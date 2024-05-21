@@ -1,0 +1,13 @@
+{
+  "name": "studententuin",
+  "version": "1.0.0",
+  "description": "webhosting website voor nederlandse studenten",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Coen de Kruijf, Zaid Karmoudi, Ruben Struijlaart, Damian Buskens",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
