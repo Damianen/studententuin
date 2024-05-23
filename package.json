@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "studententuin",
   "version": "1.0.0",
   "description": "webhosting website voor nederlandse studenten",
