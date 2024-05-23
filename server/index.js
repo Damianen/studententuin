@@ -1,14 +1,13 @@
-const express = require('express');
-const React = require('react');
-const ReactDOMServer = require('react-dom/server');
-const AppServer = require('../src/AppServer').default;
+import express from 'express';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import AppServer from '../src/AppServer';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.get('/', (req, res) => {
-  const content = ReactDOMServer.renderToString(<AppServer />);
-  const html = `
+function getHTML(content) {
+    return `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -21,8 +20,11 @@ app.get('/', (req, res) => {
       </body>
     </html>
   `;
+}
 
-  res.send(html);
+app.get('/', (req, res) => {
+  const content = renderToString(<AppServer />);
+  res.send(getHTML(content));
 });
 
 app.listen(PORT, () => {
