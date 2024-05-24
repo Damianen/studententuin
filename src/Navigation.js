@@ -6,7 +6,7 @@ export default function Navigation() {
             <nav className="mx-auto flex max-w-full items-center justify-between p-6">
                <div className="flex flex-1 justify-start gap-4">
                     <a href="#" className="-m-1.5 p-1.5">
-                        logo
+                        <img src="logo.png" className="w-16 h-16" />
                     </a>
                 </div> 
                 <div className="flex flex-shrink-0 flex-grow justify-start items-center gap-4 px-2">

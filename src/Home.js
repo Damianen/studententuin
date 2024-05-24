@@ -7,6 +7,7 @@ export default function Home() {
     return (
         <>
             <Navigation />
+            <div className="h-52"></div>
             <Footer />           
         </>
     );
