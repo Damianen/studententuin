@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
+import Login from './login.js';
 import '../public/style.css';
 
 function App() {
@@ -26,5 +26,5 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <App />,
+    <Login />,
 );

@@ -9,7 +9,7 @@
     "build": "webpack -w",
     "dev": "run-p build start"
   },
-  "author": "Damian Buskens",
+  "author": "Damian Buskens, Ruben Struijlaart",
   "license": "ISC",
   "dependencies": {
     "ejs": "^3.1.10",
