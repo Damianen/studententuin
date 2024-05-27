@@ -3,7 +3,7 @@ import React from "react";
 function Homepage() {
   return (
     <div className="bg-gradient-to-b from-green-600">
-      <div className="bg-white px-4 mb-6 py-6 rounded-3xl mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+      <div className="px-4 bg-white rounded-lg overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full  lg:flex-row">
           <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
             <div className="max-w-xl mb-4">
@@ -38,7 +38,7 @@ function Homepage() {
         <br />
       </div>
 
-      <div className="px-4 bg-white mb-6 py-6 rounded-3xl mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+      <div className="px-4 bg-white rounded-lg overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full lg:flex-row">
           <img
             className="rounded-3xl"
@@ -73,7 +73,7 @@ function Homepage() {
         <br />
       </div>
 
-      <div className="px-4 bg-white mb-6 py-6 rounded-3xl mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+      <div className="px-4 bg-white rounded-lg overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full lg:flex-row">
           <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
             <div className="max-w-xl mb-4">
