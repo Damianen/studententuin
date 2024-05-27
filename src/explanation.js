@@ -119,7 +119,7 @@ function Explanation() {
               </h2>
               <p className="text-gray-600 mb-6">
                 Beste pakket voor studenten die iets kleins willen bouwen voor
-                bijvoorbeeld huiswerk
+                bijvoorbeeld huiswerk projecten
               </p>
               <p className="text-4xl font-bold text-gray-800 mb-6">Gratis</p>
               <ul className="text-sm text-gray-600 mb-6">
