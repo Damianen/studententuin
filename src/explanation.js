@@ -109,7 +109,7 @@ function Explanation() {
           Pakketen die wij aanbieden
         </h1>
       </div>
-      <div className="py-12 flex items-center justify-center px-4 sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 mx-auto">
+      <div className="py-12 flex items-center justify-center px-4 sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-0 mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-20">
           <div className="bg-white rounded-lg overflow-hidden shadow-lg transition-transform transform hover:scale-105">
             <div className="p-1 bg-green-500"></div>
