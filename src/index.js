@@ -1,10 +1,8 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import '../public/style.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "../public/style.css";
 
+import Login from "./login.js";
 
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-
-);
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<Login />);
