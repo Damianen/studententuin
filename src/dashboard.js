@@ -2,7 +2,6 @@ import React from "react";
 
 const Dashboard = (props) => {
   return (
-    // <!--sidenav -->
     <div>
       <div class="fixed left-0 top-0 w-64 h-full bg-[#f8f4f3] p-4 z-50 sidebar-menu transition-transform">
         <a href="#" class="flex items-center pb-4 border-b border-b-gray-800">
@@ -126,7 +125,6 @@ const Dashboard = (props) => {
       </div>
       <div class="fixed top-0 left-0 w-full h-full bg-black/50 z-40 md:hidden sidebar-overlay"></div>
     </div>
-    // <!-- end sidenav -->
   );
 };
 

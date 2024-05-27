@@ -12,6 +12,8 @@
   "author": "Damian Buskens, Ruben Struijlaart",
   "license": "ISC",
   "dependencies": {
+    "@material-tailwind/react": "^2.1.9",
+    "@popperjs/core": "^2.11.8",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "prop-types": "^15.8.1",

@@ -13,6 +13,7 @@ import Manage from "./Manage.js";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <>
+  
     <Manage />
     <Footer />
   </>
