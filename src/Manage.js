@@ -1,6 +1,12 @@
 import React from "react";
 import SiteDropdown from "./components/SiteDropdown.js";
-import AccountDropdown from "./components/AccountDropdown.js";
+import Logs from "./portalComponents/Logs.js";
+import Analytics from "./portalComponents/Analytics.js";
+import Domain from "./portalComponents/Domain.js";
+import Deployment from "./portalComponents/Deployment.js";
+import Forms from "./portalComponents/Forms.js";
+import SiteConfiguration from "./portalComponents/SiteConfiguration.js";
+import Git from "./portalComponents/Git.js";
 
 function Manage() {
   const [selectedItem, setSelectedItem] = React.useState("Logs");
@@ -78,7 +84,13 @@ function Manage() {
         <div className="w-3/4 bg-white">
           <div className="p-4 h-screen">
             <h1 className="text-2xl font-semibold">{selectedItem}</h1>
-            <p>This is the {selectedItem} page content.</p>
+            {selectedItem === "Logs" ? <Logs /> : 
+                selectedItem === "Analytics" ? <Analytics />:
+                selectedItem === "Domain" ? <Domain />:
+                selectedItem === "Deployment" ? <Deployment /> :
+                selectedItem === "Forms" ? <Forms /> :
+                selectedItem === "Site Configuration" ? <SiteConfiguration /> :
+                selectedItem === "Git" ? <Git/>  : ""}
           </div>
         </div>
       </div>

@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import "../public/style.css";
 
 import Login from "./login.js";
-import Dashboard from "./dashboard.js";
 import Home from "./home.js";
 import Navigation from "./Navigation.js";
 import Footer from "./Footer.js";
