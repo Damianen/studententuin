@@ -218,7 +218,7 @@ function Homepage() {
                       d="M5 13l4 4L19 7"
                     ></path>
                   </svg>
-                  10 GB opslag
+                  5 GB opslag
                 </li>
                 <li className="mb-2 flex items-center">
                   <svg
@@ -294,7 +294,7 @@ function Homepage() {
                       d="M5 13l4 4L19 7"
                     ></path>
                   </svg>
-                  25 GB opslag
+                  10 GB opslag
                 </li>
                 <li className="mb-2 flex items-center">
                   <svg
@@ -337,6 +337,59 @@ function Homepage() {
                 Kies dit pakket
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4 text-center mt-5">
+          Technologieën die wij ondersteunen
+        </h1>
+      </div>
+      <div class="container mx-auto py-8 px-4 sm:px-16 lg:px-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6 rounded-3xl mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+          <div class="flex flex-col items-center justify-center h-full">
+            <img
+              class="rounded-3xl"
+              alt="Node.js logo"
+              width="140"
+              height="40"
+              src="https://miro.medium.com/v2/resize:fit:800/1*v2vdfKqD4MtmTSgNP0o5cg.png"
+            />
+            <h1 class="text-center mt-4">Node.js</h1>
+            <p class="text-center ">Here's some text about Node.js</p>
+          </div>
+          <div class="flex flex-col items-center justify-center h-full">
+            <img
+              class="rounded-3xl"
+              alt=".NET logo"
+              width="140"
+              height="40"
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Microsoft_.NET_logo.svg/1280px-Microsoft_.NET_logo.svg.png"
+            />
+            <h1 class="text-center mt-4">.NET</h1>
+            <p class="text-center">Here's some text about .NET</p>
+          </div>
+          <div class="flex flex-col items-center justify-center h-full">
+            <img
+              class="rounded-3xl"
+              alt="SQL Server logo"
+              width="140"
+              height="40"
+              src="https://www.derdack.com/wp-content/uploads/sites/2/2020/12/Microsoft_SQL_Server_Logo.png"
+            />
+            <h1 class="text-center mt-11">SQL Server</h1>
+            <p class="text-center">Here's some text about SQL Server</p>
+          </div>
+          <div class="flex flex-col items-center justify-center h-full">
+            <img
+              class="rounded-3xl"
+              alt="MySQL logo"
+              width="140"
+              height="40"
+              src="https://futuresolutionsonline.co.uk/wp-content/uploads/2023/04/mySQL-logo.png"
+            />
+            <h1 class="text-center mt-4">MySQL</h1>
+            <p class="text-center">Here's some text about MySQL</p>
           </div>
         </div>
       </div>
