@@ -9,6 +9,7 @@ import Login from "./login.js";
 import RequestForm from "./RequestForm.js";
 import Manage from "./Manage.js";
 import About from "./About.js";
+import Contact from "./contact.js";
 
 const router = createBrowserRouter([
   {
@@ -37,7 +38,7 @@ const router = createBrowserRouter([
   },
   {
     path: "contact",
-    element: <Main></Main>
+    element: <Main><Contact /></Main>
   },
   {
     path: "wachtwoord",
