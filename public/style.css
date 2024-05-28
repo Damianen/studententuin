@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.root,
+#root,
+#docs-root  {
+  --primary-green: #006241;
+  --light-green: #d4e9e2;
+  --house-green: #1e3932;
+  --tea-green: #dff9ba;
+}

@@ -9,9 +9,16 @@ import Homepage from "./homepage.js";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
+<<<<<<< HEAD
   <>
     <Navigation />
     <Homepage />
     <Footer />
   </>
 );
+=======
+    <div class="bg-primary-green">
+    <h1>Hello World</h1>
+  </div>
+);
+>>>>>>> main
