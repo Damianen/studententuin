@@ -15,20 +15,19 @@ function Homepage() {
               <p className="text-black text-base md:text-lg">
                 Heb jij een een betrouwbare online omgeving nodig? Wij bieden
                 een gratis online omgeving aan voor alle studenten. Hierbij kan
-                je gebruik maken van verschillende technieken zoals Node.js of
-                wil je gebruik maken van een database en ben je een student?
-                <br />
-                <br />
+                je gebruik maken van verschillende technologien zoals Node.js of
+                wil je gebruik maken van een database en ben je een student? Vul
+                de aanvraagformulier in en krijg je eigen online omgeving!
               </p>
             </div>
             <div className="flex justify-center pt-8">
               <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
-                Vraag een online omgeving aan
+                Vraag nu een online omgeving aan!
               </button>
             </div>
           </div>
           <img
-            className="rounded-3xl"
+            className=""
             alt="logo"
             width="560"
             height="160"
@@ -41,7 +40,7 @@ function Homepage() {
       <div className="px-4 bg-white overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full lg:flex-row">
           <img
-            className="rounded-3xl"
+            className=""
             alt="logo"
             width="560"
             height="160"
@@ -60,7 +59,6 @@ function Homepage() {
                 betalen. Bij studententuin.nl kan je gratis een online omgeving
                 aanvragen. Indien je meer resources nodig hebt kan je bij ons
                 ook terecht.
-                <br />
               </p>
             </div>
             <div className="flex justify-center pt-12">
@@ -100,7 +98,7 @@ function Homepage() {
             </div>
           </div>
           <img
-            className="rounded-3xl"
+            className=""
             alt="logo"
             width="560"
             height="160"
@@ -355,56 +353,68 @@ function Homepage() {
         </div>
       </div>
 
-      <div className="container mx-auto py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6  mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0">
-          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
-            <img
-              className="w-32 h-32 object-contain mb-4"
-              alt="Node.js logo"
-              src="https://miro.medium.com/v2/resize:fit:800/1*v2vdfKqD4MtmTSgNP0o5cg.png"
-            />
-            <h1 className="text-lg font-bold">Node.js</h1>
-            <p className="mt-2">
-              Node.js is een open-source, cross-platform JavaScript runtime
-              environment en library voor het uitvoeren van JavaScript-code
-            </p>
+      <div className="container mx-auto py-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0">
+          <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
+            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+              <img
+                className="w-32 h-32 object-contain mb-4"
+                alt="Node.js logo"
+                src="https://miro.medium.com/v2/resize:fit:800/1*v2vdfKqD4MtmTSgNP0o5cg.png"
+              />
+              <h1 className="text-lg font-bold">Node.js</h1>
+              <p className="mt-2">
+                Node.js is een open-source, cross-platform JavaScript runtime
+                environment en library voor het uitvoeren van JavaScript-code
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
-            <img
-              className="w-32 h-32 object-contain mb-4"
-              alt=".NET logo"
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Microsoft_.NET_logo.svg/1280px-Microsoft_.NET_logo.svg.png"
-            />
-            <h1 className="text-lg font-bold">.NET</h1>
-            <p className="mt-2">
-              .NET is een veelzijdig framework voor het bouwen van moderne,
-              schaalbare applicaties voor web, mobiel en desktop.
-            </p>
+          <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
+            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+              <img
+                className="w-32 h-32 object-contain mb-4"
+                alt=".NET logo"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Microsoft_.NET_logo.svg/1280px-Microsoft_.NET_logo.svg.png"
+              />
+              <h1 className="text-lg font-bold">.NET</h1>
+              <p className="mt-2">
+                .NET is een veelzijdig framework voor het bouwen van moderne,
+                schaalbare applicaties voor web, mobiel en desktop.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
-            <img
-              className="w-32 h-32 object-contain mb-4"
-              alt="SQL Server logo"
-              src="https://www.svgrepo.com/show/303229/microsoft-sql-server-logo.svg"
-            />
-            <h1 className="text-lg font-bold">Microsoft SQL</h1>
-            <p className="mt-2">
-              Microsoft SQL Server is een krachtige relationele
-              databasebeheersysteem voor het opslaan en beheren van gegevens.
-            </p>
+          <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
+            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+              <img
+                className="w-32 h-32 object-contain mb-4"
+                alt="SQL Server logo"
+                src="https://www.svgrepo.com/show/303229/microsoft-sql-server-logo.svg"
+              />
+              <h1 className="text-lg font-bold">Microsoft SQL</h1>
+              <p className="mt-2">
+                Microsoft SQL Server is een krachtige relationele
+                databasebeheersysteem voor het opslaan en beheren van gegevens.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
-            <img
-              className="w-32 h-32 object-contain mb-4"
-              alt="MySQL logo"
-              src="https://futuresolutionsonline.co.uk/wp-content/uploads/2023/04/mySQL-logo.png"
-            />
-            <h1 className="text-lg font-bold">MySQL</h1>
-            <p className="mt-2">
-              MySQL is een populaire open-source database die vaak wordt
-              gebruikt voor webapplicaties vanwege zijn snelheid en
-              flexibiliteit.
-            </p>
+          <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
+            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+              <img
+                className="w-32 h-32 object-contain mb-4"
+                alt="MySQL logo"
+                src="https://futuresolutionsonline.co.uk/wp-content/uploads/2023/04/mySQL-logo.png"
+              />
+              <h1 className="text-lg font-bold">MySQL</h1>
+              <p className="mt-2">
+                MySQL is een populaire open-source database die vaak wordt
+                gebruikt voor webapplicaties vanwege zijn snelheid en
+                flexibiliteit.
+              </p>
+            </div>
           </div>
         </div>
       </div>
