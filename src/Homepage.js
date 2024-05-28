@@ -22,7 +22,7 @@ function Homepage() {
               </p>
             </div>
             <div className="flex justify-center pt-8">
-              <Link to="requestfrom">
+              <Link to="requestform">
                 <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                   Vraag nu een online omgeving aan!
                 </button>
@@ -127,7 +127,7 @@ function Homepage() {
       <div className="py-8 flex items-center justify-center sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0 mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
           <div className="bg-white overflow-hidden shadow-lg transition-transform transform hover:scale-105">
-            <div className="p-1 bg-primary-green"></div>
+            <div className="p-1 bg-house-green"></div>
             <div className="p-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 Gratis pakket
@@ -201,7 +201,7 @@ function Homepage() {
           </div>
 
           <div className="bg-white overflow-hidden shadow-lg transition-transform transform hover:scale-105">
-            <div className="p-1 bg-primary-green"></div>
+            <div className="p-1 bg-house-green"></div>
             <div className="p-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 Basis pakket
@@ -277,7 +277,7 @@ function Homepage() {
           </div>
 
           <div className="bg-white overflow-hidden shadow-lg transition-transform transform hover:scale-105">
-            <div className="p-1 bg-primary-green"></div>
+            <div className="p-1 bg-house-green"></div>
             <div className="p-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 Premium pakket
@@ -368,7 +368,7 @@ function Homepage() {
       <div className="container mx-auto py-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0">
           <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
-            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="w-full p-1 bg-house-green"></div>
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
               <img
                 className="w-32 h-32 object-contain mb-4"
@@ -383,7 +383,7 @@ function Homepage() {
             </div>
           </div>
           <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
-            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="w-full p-1 bg-house-green"></div>
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
               <img
                 className="w-32 h-32 object-contain mb-4"
@@ -398,7 +398,7 @@ function Homepage() {
             </div>
           </div>
           <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
-            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="w-full p-1 bg-house-green"></div>
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
               <img
                 className="w-32 h-32 object-contain mb-4"
@@ -413,7 +413,7 @@ function Homepage() {
             </div>
           </div>
           <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
-            <div className="w-full p-1 bg-primary-green"></div>
+            <div className="w-full p-1 bg-house-green"></div>
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
               <img
                 className="w-32 h-32 object-contain mb-4"

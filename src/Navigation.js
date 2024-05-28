@@ -22,7 +22,7 @@ export default function Navigation() {
         >
           <button
             type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-primary-green"
+            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-house-green"
           >
             <svg
               className="h-16 w-16"
@@ -59,12 +59,12 @@ export default function Navigation() {
             Login
           </Link>
           <Link to="/requestform">
-            <button className="inline-block  border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-house-green">
+            <button className="inline-block  border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
               Account aanmaken
             </button>
           </Link>
           <Link to="/manage">
-            <button className="inline-block  border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-house-green">
+            <button className="inline-block  border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
               Jouw omgeving
             </button>
           </Link>
