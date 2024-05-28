@@ -21,7 +21,7 @@ router.get('/manage', (req, res, next) => {
     res.render("index.ejs");
 });
 
-router.get('/over', (req, res, next) => {
+router.get('/about', (req, res, next) => {
     res.render("index.ejs");
 });
 

@@ -8,6 +8,7 @@ import HomePage from "./Homepage.js";
 import Login from "./login.js";
 import RequestForm from "./RequestForm.js";
 import Manage from "./Manage.js";
+import About from "./About.js";
 
 const router = createBrowserRouter([
   {
@@ -31,8 +32,8 @@ const router = createBrowserRouter([
     element: <Main manage={true}><Manage/></Main>
   },
   {
-    path: "over",
-    element: <Main></Main>
+    path: "about",
+    element: <Main><About></About></Main>
   },
   {
     path: "contact",

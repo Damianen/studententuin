@@ -11,7 +11,7 @@ export default function Footer() {
           </Link>
         </div>
         <div className="flex flex-1 justify-end items-center gap-4 -px-2">
-          <Link to="/over" className="text-lg font-semibold leading-6 text-black">
+          <Link to="/about" className="text-lg font-semibold leading-6 text-black">
             over ons
           </Link>
           <Link to="/contact" className="text-lg font-semibold leading-6 text-black">
