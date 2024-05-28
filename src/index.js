@@ -1,12 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '../public/style.css';
-
-
+import RequestForm from './request-form.js';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <div class="bg-primary-green">
-    <h1>Hello World</h1>
-  </div>
+    <RequestForm />
 );
