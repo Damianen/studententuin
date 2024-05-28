@@ -2,15 +2,15 @@ import React from "react";
 
 function Homepage() {
   return (
-    <div className="bg-gradient-to-b from-green-600">
-      <div className="px-4 bg-white rounded-lg overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+    <div className="bg-gradient-to-b from-primary-green ">
+      <div className="px-4 bg-white  overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full  lg:flex-row">
           <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
             <div className="max-w-xl mb-4">
               <h2 className="font-sans text-3xl sm:mt-0 mt-4 font-medium tracking-tight text-black sm:text-4xl sm:leading-none max-w-lg mb-4">
                 Gratis online omgeving
               </h2>
-              <div className="p-1 bg-green-500"></div>
+              <div className="p-1 bg-house-green"></div>
               <br />
               <p className="text-black text-base md:text-lg">
                 Heb jij een een betrouwbare online omgeving nodig? Wij bieden
@@ -22,7 +22,7 @@ function Homepage() {
               </p>
             </div>
             <div className="flex justify-center pt-8">
-              <button className="inline-block rounded-md border border-transparent bg-green-500 px-6 py-2 text-center font-medium text-white hover:bg-green-400">
+              <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                 Vraag een online omgeving aan
               </button>
             </div>
@@ -38,7 +38,7 @@ function Homepage() {
         <br />
       </div>
 
-      <div className="px-4 bg-white rounded-lg overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+      <div className="px-4 bg-white overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full lg:flex-row">
           <img
             className="rounded-3xl"
@@ -52,7 +52,7 @@ function Homepage() {
               <h2 className="font-sans text-3xl sm:mt-0 mt-4 font-medium tracking-tight text-black sm:text-4xl sm:leading-none max-w-lg mb-4">
                 Voor studenten door studenten
               </h2>
-              <div className="p-1 bg-green-500"></div>
+              <div className="p-1 bg-house-green"></div>
               <p className="text-black pt-6 text-base md:text-lg">
                 Studententuin.nl is een platform voor studenten door studenten.
                 Iedereen kent het wel, je hebt voor een school project een
@@ -64,7 +64,7 @@ function Homepage() {
               </p>
             </div>
             <div className="flex justify-center pt-12">
-              <button className="inline-block rounded-md border border-transparent bg-green-500 px-6 py-2 text-center font-medium text-white hover:bg-green-400">
+              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                 Bekijk beschikbare pakketen
               </button>
             </div>
@@ -73,14 +73,14 @@ function Homepage() {
         <br />
       </div>
 
-      <div className="px-4 bg-white rounded-lg overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+      <div className="px-4 bg-white overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full lg:flex-row">
           <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
             <div className="max-w-xl mb-4">
               <h2 className="font-sans text-3xl sm:mt-0 mt-4 font-medium tracking-tight text-black sm:text-4xl sm:leading-none max-w-lg mb-4">
                 Handleiding
               </h2>
-              <div className="p-1 bg-green-500"></div>
+              <div className="p-1 bg-house-green"></div>
               <br />
               <p className="text- text-base md:text-lg">
                 Voorkom dat je vastloopt bij het opzetten van je online
@@ -94,7 +94,7 @@ function Homepage() {
               </p>
             </div>
             <div className="flex justify-center">
-              <button className="inline-block rounded-md border border-transparent bg-green-500 px-6 py-2 text-center font-medium text-white hover:bg-green-400">
+              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                 Bekijk de handleiding
               </button>
             </div>
@@ -115,10 +115,10 @@ function Homepage() {
           Pakketen die wij aanbieden
         </h1>
       </div>
-      <div className="py-8 flex items-center justify-center px-4 sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-4 mx-auto">
+      <div className="py-8 flex items-center justify-center sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0 mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
-          <div className="bg-white rounded-lg overflow-hidden shadow-lg transition-transform transform hover:scale-105">
-            <div className="p-1 bg-green-500"></div>
+          <div className="bg-white overflow-hidden shadow-lg transition-transform transform hover:scale-105">
+            <div className="p-1 bg-primary-green"></div>
             <div className="p-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 Gratis pakket
@@ -183,14 +183,14 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <button className="inline-block rounded-md border border-transparent bg-green-500 px-6 py-2 text-center font-medium text-white hover:bg-green-400">
+              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                 Kies dit pakket
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg overflow-hidden shadow-lg transition-transform transform hover:scale-105">
-            <div className="p-1 bg-green-500"></div>
+          <div className="bg-white overflow-hidden shadow-lg transition-transform transform hover:scale-105">
+            <div className="p-1 bg-primary-green"></div>
             <div className="p-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 Basis pakket
@@ -257,14 +257,14 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <button className="inline-block rounded-md border border-transparent bg-green-500 px-6 py-2 text-center font-medium text-white hover:bg-green-400">
+              <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                 Kies dit pakket
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg overflow-hidden shadow-lg transition-transform transform hover:scale-105">
-            <div className="p-1 bg-green-500"></div>
+          <div className="bg-white overflow-hidden shadow-lg transition-transform transform hover:scale-105">
+            <div className="p-1 bg-primary-green"></div>
             <div className="p-6">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 Premium pakket
@@ -333,7 +333,7 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <button className="inline-block rounded-md border border-transparent bg-green-500 px-6 py-2 text-center font-medium text-white hover:bg-green-400">
+              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                 Kies dit pakket
               </button>
             </div>
@@ -344,52 +344,58 @@ function Homepage() {
         <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4 text-center mt-5">
           Technologieën die wij ondersteunen
         </h1>
+        <div className="p-1 bg-primary-green"></div>
       </div>
-      <div class="container mx-auto py-8 px-4 sm:px-16 lg:px-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6 rounded-3xl mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
-          <div class="flex flex-col items-center justify-center h-full">
+      <div className="container mx-auto py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6  mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
             <img
-              class="rounded-3xl"
+              className="w-32 h-32 object-contain mb-4"
               alt="Node.js logo"
-              width="140"
-              height="40"
               src="https://miro.medium.com/v2/resize:fit:800/1*v2vdfKqD4MtmTSgNP0o5cg.png"
             />
-            <h1 class="text-center mt-4">Node.js</h1>
-            <p class="text-center ">Here's some text about Node.js</p>
+            <h1 className="text-lg font-bold">Node.js</h1>
+            <p className="mt-2">
+              Node.js is een open-source, cross-platform JavaScript runtime
+              environment en library voor het uitvoeren van JavaScript-code
+            </p>
           </div>
-          <div class="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
             <img
-              class="rounded-3xl"
+              className="w-32 h-32 object-contain mb-4"
               alt=".NET logo"
-              width="140"
-              height="40"
               src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Microsoft_.NET_logo.svg/1280px-Microsoft_.NET_logo.svg.png"
             />
-            <h1 class="text-center mt-4">.NET</h1>
-            <p class="text-center">Here's some text about .NET</p>
+            <h1 className="text-lg font-bold">.NET</h1>
+            <p className="mt-2">
+              .NET is een veelzijdig framework voor het bouwen van moderne,
+              schaalbare applicaties voor web, mobiel en desktop.
+            </p>
           </div>
-          <div class="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
             <img
-              class="rounded-3xl"
+              className="w-32 h-32 object-contain mb-4"
               alt="SQL Server logo"
-              width="140"
-              height="40"
-              src="https://www.derdack.com/wp-content/uploads/sites/2/2020/12/Microsoft_SQL_Server_Logo.png"
+              src="https://www.svgrepo.com/show/303229/microsoft-sql-server-logo.svg"
             />
-            <h1 class="text-center mt-11">SQL Server</h1>
-            <p class="text-center">Here's some text about SQL Server</p>
+            <h1 className="text-lg font-bold">Microsoft SQL</h1>
+            <p className="mt-2">
+              Microsoft SQL Server is een krachtige relationele
+              databasebeheersysteem voor het opslaan en beheren van gegevens.
+            </p>
           </div>
-          <div class="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
             <img
-              class="rounded-3xl"
+              className="w-32 h-32 object-contain mb-4"
               alt="MySQL logo"
-              width="140"
-              height="40"
               src="https://futuresolutionsonline.co.uk/wp-content/uploads/2023/04/mySQL-logo.png"
             />
-            <h1 class="text-center mt-4">MySQL</h1>
-            <p class="text-center">Here's some text about MySQL</p>
+            <h1 className="text-lg font-bold">MySQL</h1>
+            <p className="mt-2">
+              MySQL is een populaire open-source database die vaak wordt
+              gebruikt voor webapplicaties vanwege zijn snelheid en
+              flexibiliteit.
+            </p>
           </div>
         </div>
       </div>
