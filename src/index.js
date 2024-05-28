@@ -1,22 +1,40 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "../public/style.css";
 
+import Main  from "./Main.js";
+import HomePage from "./Homepage.js";
 import Login from "./login.js";
-import Home from "./home.js";
-import Navigation from "./Navigation.js";
-import Footer from "./Footer.js";
-import Homepage from "./Homepage.js";
-import Explanation from "./explanation.js";
+import RequestForm from "./RequestForm.js";
 import Manage from "./Manage.js";
 
-import Dashboard from "./dashboard.js";
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Main><HomePage /></Main> 
+  },
+  {
+    path: "login",
+    element: <Main><Login /></Main>
+  },
+  {
+    path: "requestForm",
+    element: <Main><RequestForm/></Main>
+  },
+  {
+    path: "handleiding",
+    element: <Main></Main> 
+  },
+  {
+    path: "manage",
+    element: <Main manage={true}><Manage/></Main>
+  }
+]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <>
-    <Navigation />
-    <Homepage />
-    <Footer />
-  </>
+  <React.StrictMode>
+    <RouterProvider router={router} /> 
+  </React.StrictMode>
 );

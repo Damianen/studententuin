@@ -9,8 +9,8 @@ export default function RequestForm() {
                 <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">Subdomein aanvragen</h2>
             </div>
 
-            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm shadow-xl rounded-lg p-5">
-                <form className="space-y-6" action="#" method="POST">
+            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm shadow-xl rounded-lg p-10 border border-gray-200">
+                <form className="space-y-4" action="#" method="POST">
                     <div>
                         <label htmlFor="subdomainName" className="block text-sm font-medium leading-6 text-gray-900">Subdomein Naam</label>
                         <div className="mt-2">

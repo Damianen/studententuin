@@ -2,7 +2,7 @@ import React from "react";
 
 function Homepage() {
   return (
-    <div className="bg-gradient-to-b from-primary-green ">
+    <div className="bg-gradient-to-b from-primary-green to-neutral-warm ">
       <div className="px-4 bg-white  overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full  lg:flex-row">
           <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
