@@ -80,9 +80,11 @@ function Manage() {
             </a>
           </ul>
         </div>
-        <div className="w-10/12 bg-white
-        ">
-          <div className="p-4 h-screen">
+        <div
+          className="w-10/12 bg-white
+        "
+        >
+          <div className="p-4 h-screen overflow-auto">
             <h1 className="text-2xl font-semibold">{selectedItem}</h1>
             {selectedItem === "Logs" ? (
               <Logs />
