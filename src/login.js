@@ -69,7 +69,7 @@ const Login = (props) => {
             {/* <!-- Login Button --> */}
             <button
               type="submit"
-              class="float-right shadow-md rounded-full bg-primary-green px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+              class="float-right shadow-md rounded-full bg-primary-green px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
             >
               Login
             </button>
