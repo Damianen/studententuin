@@ -2,7 +2,7 @@ import React from "react";
 
 export default function Footer() {
   return (
-    <footer className="bg-white">
+    <footer className="bg-neutral-warm">
       <div className="mx-auto flex max-w-full items-center justify-between p-6">
         <div className="flex flex-1 justify-start items-center">
           <a href="#" className="-m-1.5 p-1.5">
