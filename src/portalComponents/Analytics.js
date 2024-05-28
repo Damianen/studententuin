@@ -4,12 +4,6 @@ const Analytics = () => {
     const [logs, setLogs] = useState([]);
 
     useEffect(() => {
-        // Fetch logs data from your API or database
-        // Replace the API_URL with your actual API endpoint
-        // fetch(API_URL)
-        //     .then(response => response.json())
-        //     .then(data => setLogs(data))
-        //     .catch(error => console.error(error));
     }, []);
 
     return (

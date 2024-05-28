@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const SiteConfigurations = () => {
+const SiteConfiguration = () => {
     const [logs, setLogs] = useState([]);
 
     useEffect(() => {
@@ -27,4 +27,4 @@ const SiteConfigurations = () => {
     );
 };
 
-export default SiteConfigurations;
+export default SiteConfiguration;

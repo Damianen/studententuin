@@ -25,7 +25,7 @@ function Manage() {
               Handleiding
             </a>
           </div>
-          <div class="relative inline-block text-left">
+          <div className="relative inline-block text-left">
             <div className="mx-auto flex max-w-full items-center justify-start p-6 gap-4">
               <button className="relative block h-8 w-8 border-2 border-gray-600 rounded-full overflow-hidden">
                 <img
