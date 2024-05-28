@@ -109,11 +109,15 @@ function Homepage() {
         </div>
         <br />
       </div>
-
-      <div>
-        <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4 text-center">
+      <div className="text-center">
+        <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4">
           Pakketen die wij aanbieden
         </h1>
+        <div className="flex justify-center">
+          <div className="inline-block">
+            <div className="w-72 h-2 bg-primary-green"></div>
+          </div>
+        </div>
       </div>
       <div className="py-8 flex items-center justify-center sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0 mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
@@ -340,14 +344,19 @@ function Homepage() {
           </div>
         </div>
       </div>
-      <div>
-        <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4 text-center mt-5">
+      <div className="text-center">
+        <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4">
           Technologieën die wij ondersteunen
         </h1>
-        <div className="p-1 bg-primary-green"></div>
+        <div className="flex justify-center">
+          <div className="inline-block">
+            <div className="w-72 h-2 bg-primary-green"></div>
+          </div>
+        </div>
       </div>
+
       <div className="container mx-auto py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6  mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6  mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0">
           <div className="flex flex-col items-center justify-center h-full text-center p-4 border bg-white shadow-xl">
             <img
               className="w-32 h-32 object-contain mb-4"
