@@ -61,18 +61,18 @@ const Login = (props) => {
               </a>
             </div>
             {/* <!-- Sign up  Link --> */}
-            <div class="mt-6 text-primary-green">
-              <a href="#" class="hover:underline">
+            <div className="flex justify-between items-center">
+              <a href="#" class="hover:underline text-primary-green h-100%">
                 Sign up Here
               </a>
+              {/* <!-- Login Button --> */}
+              <button
+                type="submit"
+                class=" shadow-md rounded-full bg-primary-green px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+              >
+                Login
+              </button>
             </div>
-            {/* <!-- Login Button --> */}
-            <button
-              type="submit"
-              class="float-right shadow-md rounded-full bg-primary-green px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
-            >
-              Login
-            </button>
           </form>
         </div>
       </div>
