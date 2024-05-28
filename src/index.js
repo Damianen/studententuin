@@ -6,4 +6,4 @@ import Login from "./login.js";
 import Dashboard from "./dashboard.js";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<Dashboard />);
+root.render(<Login />);
