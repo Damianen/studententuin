@@ -20,4 +20,13 @@ router.get('/handleiding', (req, res, next) => {
 router.get('/manage', (req, res, next) => {
     res.render("index.ejs");
 });
+
+router.get('/over', (req, res, next) => {
+    res.render("index.ejs");
+});
+
+router.get('/contact', (req, res, next) => {
+    res.render("index.ejs");
+});
+
 export default router;

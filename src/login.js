@@ -28,18 +28,18 @@ const Login = (props) => {
                 className="text-green-400"
               ></input>
               <label htmlFor="remember" className="text-gray-600 ml-2">
-                Remember Me
+                Onthoud mij
               </label>
             </div>
             <div className="text-primary-green">
-              <a href="#" className="hover:underline">
-                Forgot Password?
-              </a>
+              <Link to="wachtwoord" className="hover:underline">
+                Wachtwoord vergeten?
+              </Link>
             </div>
             <div className="flex justify-between items-center">
-              <a href="#" className="hover:underline text-primary-green h-100% self-start">
-                Sign up Here
-              </a>
+              <Link to="requestForm" className="hover:underline text-primary-green h-100% self-start">
+                Vraag domein aan
+              </Link>
               <button type="submit" className="flex justify-center rounded-md bg-primary-green px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-house-green focus:outline-none self-end">Login</button>
             </div>
         </form>

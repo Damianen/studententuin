@@ -29,6 +29,18 @@ const router = createBrowserRouter([
   {
     path: "manage",
     element: <Main manage={true}><Manage/></Main>
+  },
+  {
+    path: "over",
+    element: <Main></Main>
+  },
+  {
+    path: "contact",
+    element: <Main></Main>
+  },
+  {
+    path: "wachtwoord",
+    element: <Main></Main>
   }
 ]);
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function Homepage() {
   return (
@@ -21,9 +22,11 @@ function Homepage() {
               </p>
             </div>
             <div className="flex justify-center pt-8">
-              <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
-                Vraag nu een online omgeving aan!
-              </button>
+              <Link to="requestfrom">
+                <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                  Vraag nu een online omgeving aan!
+                </button>
+              </Link>
             </div>
           </div>
           <img
@@ -62,9 +65,11 @@ function Homepage() {
               </p>
             </div>
             <div className="flex justify-center pt-12">
-              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
-                Bekijk beschikbare pakketen
-              </button>
+              <Link>
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                  Bekijk beschikbare pakketen
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -92,9 +97,11 @@ function Homepage() {
               </p>
             </div>
             <div className="flex justify-center">
-              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
-                Bekijk de handleiding
-              </button>
+              <Link to="handleiding">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                  Bekijk de handleiding
+                </button>
+              </Link>
             </div>
           </div>
           <img
@@ -185,9 +192,11 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
-                Kies dit pakket
-              </button>
+              <Link to="requestForm">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                  Kies dit pakket
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -259,9 +268,11 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
-                Kies dit pakket
-              </button>
+              <Link to="requestForm">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                  kies dit pakket
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -275,7 +286,6 @@ function Homepage() {
                 Voor meerdere hobbyprojecten die ieder een eigen subdomein nodig
                 heeft
               </p>
-              <br />
               <p className="text-4xl font-bold text-gray-800 mb-4">
                 €9.99 <span className="text-base">/Maand</span>
               </p>
@@ -335,9 +345,11 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
-                Kies dit pakket
-              </button>
+              <Link to="requestForm">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                  Kies dit pakket
+                </button>
+              </Link>
             </div>
           </div>
         </div>
