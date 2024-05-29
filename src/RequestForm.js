@@ -34,7 +34,7 @@ export default function RequestForm() {
               htmlFor="email"
               className="block text-sm font-medium leading-6 text-gray-900"
             >
-              E-mailadres
+              Email
             </label>
             <div className="mt-2">
               <input
