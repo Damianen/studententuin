@@ -5,9 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon --exec babel-node server.js --ignore /public",
-    "build": "webpack -w",
-    "dev": "run-p build start"
+    "build": "webpack",
+    "dev:start": "nodemon --exec babel-node server.js --ignore /public",
+    "dev:build": "webpack -w",
+    "dev": "run-p dev:build dev:start"
   },
   "author": "Damian Buskens, Ruben Struijlaart",
   "license": "ISC",
