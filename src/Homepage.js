@@ -2,6 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 function Homepage() {
+  const techSectionRef = React.useRef(null);
+
+  const priceSectionRef = React.useRef(null);
+
   return (
     <div className="bg-gradient-to-b from-primary-green to-neutral-warm ">
       <div className="px-4 bg-white  overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
@@ -114,7 +118,7 @@ function Homepage() {
         </div>
         <br />
       </div>
-      <div className="text-center">
+      <div id="pakketen" ref={priceSectionRef} className="text-center">
         <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4">
           Pakketen die wij aanbieden
         </h1>
@@ -354,7 +358,7 @@ function Homepage() {
           </div>
         </div>
       </div>
-      <div className="text-center">
+      <div id="technologieen" ref={techSectionRef} className="text-center">
         <h1 className="font-sans text-3xl pt-8 font-medium tracking-tight text-black mb-4">
           Technologieën die wij ondersteunen
         </h1>

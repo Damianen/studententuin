@@ -1,16 +1,35 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Navigation() {
   const [dialog, setDialog] = React.useState(false);
+  const location = useLocation();
 
   const toggleDialog = () => {
     setDialog(!dialog);
   };
 
+  const handleScrollToTech = () => {
+    if (location.pathname === "/") {
+      const techSection = document.getElementById("technologieen");
+      techSection.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.location.href = "/#technologieen";
+    }
+  };
+
+  const handleScrollToPrice = () => {
+    if (location.pathname === "/") {
+      const techSection = document.getElementById("pakketen");
+      techSection.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.location.href = "/#pakketen";
+    }
+  };
+
   return (
     <header className="bg-primary-green">
-      <nav className="lg:mx-auto flex max-w-full lg:items-center justify-between p-6 ">
+      <nav className="lg:mx-auto flex max-w-full lg:items-center justify-between p-6">
         <div className="flex lg:flex-shrink-0 lg:flex-grow-0 lg:justify-start lg:gap-4">
           <Link to="/" className="-m-1.5 p-1.5">
             <img src="logo.png" className="w-16 h-16" />
@@ -41,30 +60,45 @@ export default function Navigation() {
           </button>
         </div>
         <div className="lg:flex lg:flex-shrink-1 lg:flex-grow lg:justify-center lg:items-center lg:gap-4 lg:px-2 hidden">
-          <Link to="/" className="text-lg font-semibold leading-6 text-white">
+          <button
+            onClick={handleScrollToTech}
+            className="text-lg font-semibold leading-6 text-white"
+          >
             Technologien
-          </Link>
-          <Link to="/requestForm" className="text-lg font-semibold leading-6 text-white">
+          </button>
+          <Link
+            to="/requestForm"
+            className="text-lg font-semibold leading-6 text-white"
+          >
             Aanvragen
           </Link>
-          <Link to="/" className="text-lg font-semibold leading-6 text-white">
+          <button
+            onClick={handleScrollToPrice}
+            className="text-lg font-semibold leading-6 text-white"
+          >
             Prijzen
-          </Link>
-          <Link to="/handleiding" className="text-lg font-semibold leading-6 text-white">
+          </button>
+          <Link
+            to="/handleiding"
+            className="text-lg font-semibold leading-6 text-white"
+          >
             Handleiding
           </Link>
         </div>
         <div className="lg:flex lg:flex-shrink-0 lg:flex-grow lg:justify-end lg:items-center lg:gap-4 hidden">
-          <Link to="/login" className="text-lg font-semibold leading-6 text-white">
+          <Link
+            to="/login"
+            className="text-lg font-semibold leading-6 text-white"
+          >
             Login
           </Link>
           <Link to="/requestform">
-            <button className="inline-block  border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
+            <button className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
               Account aanmaken
             </button>
           </Link>
           <Link to="/manage">
-            <button className="inline-block  border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
+            <button className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
               Jouw omgeving
             </button>
           </Link>
@@ -104,24 +138,24 @@ export default function Navigation() {
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/10">
                 <div className="space-y-2 py-6">
-                  <Link
-                    to="/"
+                  <button
+                    onClick={handleScrollToTech}
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                   >
                     Technologien
-                  </Link>
+                  </button>
                   <Link
                     to="/requestForm"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                   >
                     Aanvragen
                   </Link>
-                  <Link
-                    to="/"
+                  <button
+                    onClick={handleScrollToPrice}
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                   >
                     Prijzen
-                  </Link>
+                  </button>
                   <Link
                     to="/handleiding"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"

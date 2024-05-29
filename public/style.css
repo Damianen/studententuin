@@ -10,3 +10,7 @@
   --tea-green: #dff9ba;
   --neutral-warm: #f2f0eb;
 }
+
+html {
+  scroll-behavior: smooth;
+}
