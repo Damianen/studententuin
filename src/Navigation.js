@@ -61,6 +61,13 @@ export default function Navigation() {
         </div>
         <div className="lg:flex lg:flex-shrink-1 lg:flex-grow lg:justify-center lg:items-center lg:gap-4 lg:px-2 hidden">
           <button
+            onClick={handleScrollToPrice}
+            className="text-lg font-semibold leading-6 text-white"
+          >
+            Pakketen
+          </button>
+
+          <button
             onClick={handleScrollToTech}
             className="text-lg font-semibold leading-6 text-white"
           >
@@ -72,12 +79,6 @@ export default function Navigation() {
           >
             Aanvragen
           </Link>
-          <button
-            onClick={handleScrollToPrice}
-            className="text-lg font-semibold leading-6 text-white"
-          >
-            Prijzen
-          </button>
           <Link
             to="/handleiding"
             className="text-lg font-semibold leading-6 text-white"
@@ -139,6 +140,12 @@ export default function Navigation() {
               <div className="-my-6 divide-y divide-gray-500/10">
                 <div className="space-y-2 py-6">
                   <button
+                    onClick={handleScrollToPrice}
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                  >
+                    Pakketen
+                  </button>
+                  <button
                     onClick={handleScrollToTech}
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                   >
@@ -150,12 +157,6 @@ export default function Navigation() {
                   >
                     Aanvragen
                   </Link>
-                  <button
-                    onClick={handleScrollToPrice}
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                  >
-                    Prijzen
-                  </button>
                   <Link
                     to="/handleiding"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
