@@ -1,5 +1,6 @@
 import React from "react";
 import SiteDropdown from "./components/SiteDropdown.js";
+import SiteDropdownHamburger from "./components/SiteDropdownHamburger.js";
 import Logs from "./portalComponents/Logs.js";
 import Analytics from "./portalComponents/Analytics.js";
 import Domain from "./portalComponents/Domain.js";
@@ -13,60 +14,14 @@ function Manage() {
   return (
     <div>
       <header className="bg-house-green">
-        {/* <nav className="mx-auto flex max-w-full items-center justify-start p-6">
-          <div className="flex flex-1 justify-start gap-4 text-center items-center">
-            <a href="#" className="-m-1.5 p-1.5">
-              <img src="logo.png" className="w-16 h-16" />
-            </a>
-            <button className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400">
-              Upgraden
-            </button>
-            <a href="#" className="text-lg font-semibold leading-6 text-white">
-              Handleiding
-            </a>
-          </div>
-          <div className="relative inline-block text-left">
-            <div className="mx-auto flex max-w-full items-center justify-start p-6 gap-4">
-              <button className="relative block h-8 w-8 border-2 border-gray-600 rounded-full overflow-hidden">
-                <img
-                  className="w-full h-full"
-                  src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&q=80"
-                  alt="Your avatar"
-                />
-              </button>
-              <SiteDropdown className="inline-block text-left z-10" />
-            </div>
-          </div>
-        </nav> */}
         <nav class="bg-white border-gray-200 dark:bg-house-green">
           <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
             <a href="#" className="-m-1.5 p-1.5">
               <img src="logo.png" className="w-16 h-16" />
             </a>
-            <button
-              data-collapse-toggle="navbar-default"
-              type="button"
-              class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-              aria-controls="navbar-default"
-              aria-expanded="false"
-            >
-              <span class="sr-only">Open main menu</span>
-              <svg
-                class="w-5 h-5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 17 14"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M1 1h15M1 7h15M1 13h15"
-                />
-              </svg>
-            </button>
+
+            <SiteDropdownHamburger className="inline-block text-left z-10" />
+          
             <div class="hidden w-full md:block md:w-auto" id="navbar-default">
               <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-house-green md:dark:bg-house-green dark:border-gray-700">
                 <li>
