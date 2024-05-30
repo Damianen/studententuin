@@ -60,11 +60,19 @@ const Login = (props) => {
                 Forgot Password?
               </a>
             </div>
-            {/* <!-- Sign up  Link --> */}
-            <div className="flex justify-between items-center">
+            <div class="mb-6 text-primary-green">
               <a href="#" class="hover:underline text-primary-green h-100%">
                 Sign up Here
               </a>
+            </div>
+            {/* <!-- Sign up  Link --> */}
+            <div className="flex justify-between items-center">
+              <button
+                type="submit"
+                class=" shadow-md rounded-full bg-gray-500 px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+              >
+                Back{" "}
+              </button>
               {/* <!-- Login Button --> */}
               <button
                 type="submit"
