@@ -73,7 +73,7 @@ const SiteConfiguration = () => {
           ))}
         </ul>
           <button
-            className="bg-house-green hover:bg-green-600 text-white font-bold py-2 px-4 float-right rounded"
+            className="bg-house-green hover:bg-green-600 text-white font-bold mt-1 py-2 px-4 float-right rounded"
             onClick={showVariableInputHandler}
           >
             Toggle adding a variable
@@ -83,14 +83,14 @@ const SiteConfiguration = () => {
             <form>
               <input
                 id="variableName"
-                className="p-4 px-8 py-2"
+                className="px-8 py-2"
                 type="text"
                 placeholder="Enter variable name"
                 required
               />
               <input
                 id="variableValue"
-                className="p-4 px-8 py-2"
+                className="py-2 px-8"
                 type="text"
                 placeholder="Enter variable value"
                 required
@@ -108,7 +108,7 @@ const SiteConfiguration = () => {
           </div>
         )}
       </div>
-      <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+      <hr className="h-px mt-12 bg-gray-200 border-0 dark:bg-gray-700"></hr>
       <h1 className="font-sans text-xl font-medium">Post build commands</h1>
       <div>
         <ul className="shadow-md rounded-lg">
@@ -137,13 +137,13 @@ const SiteConfiguration = () => {
               id="postBuildCommand"
               className="p-4 px-8 py-2"
               type="text"
-              placeholder="Enter post build command"
+              placeholder="Enter command"
               required
             />
             <button
               type="submit"
               className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
-            >
+             onClick={addPostBuildCommandHandler}>
               Add Post Build Command
             </button>
           </form>
