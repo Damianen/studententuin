@@ -37,11 +37,26 @@ const Login = (props) => {
                 Wachtwoord vergeten?
               </Link>
             </div>
+            <div class="mb-6 text-primary-green">
+              <a href="#" class="hover:underline text-primary-green h-100%">
+                Sign up Here
+              </a>
+            </div>
+            {/* <!-- Sign up  Link --> */}
             <div className="flex justify-between items-center">
-              <Link to="requestForm" className="hover:underline text-primary-green h-100% self-start">
-                Vraag domein aan
-              </Link>
-              <button type="submit" className="flex justify-center rounded-md bg-primary-green px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-house-green focus:outline-none self-end">Login</button>
+              <button
+                type="submit"
+                class=" shadow-md rounded-full bg-gray-500 px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+              >
+                Back{" "}
+              </button>
+              {/* <!-- Login Button --> */}
+              <button
+                type="submit"
+                class=" shadow-md rounded-full bg-primary-green px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+              >
+                Login
+              </button>
             </div>
         </form>
       </div>
