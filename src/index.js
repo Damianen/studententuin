@@ -5,5 +5,9 @@ import "../public/style.css";
 import Login from "./login.js";
 import Dashboard from "./dashboard.js";
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<Login />);
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+    <div className="bg-primary-green">
+    <h1>Hello World</h1>
+  </div>
+);
