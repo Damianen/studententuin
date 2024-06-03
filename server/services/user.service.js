@@ -8,8 +8,10 @@ const userService = {
     try {
       const result = await pool
         .request()
-        .input('userEmail', sql.NVarChar, userEmail)
-        .query("SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @userEmail");
+        .input("userEmail", sql.NVarChar, userEmail)
+        .query(
+          "SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @userEmail"
+        );
 
       if (result.recordset) {
         res.send({
@@ -17,7 +19,7 @@ const userService = {
           message: "This is a message",
           data: result.recordset,
         });
-      }else{
+      } else {
         res.send({
           status: 404,
           message: "User not found",
@@ -31,6 +33,21 @@ const userService = {
         error: error.message,
       });
     }
+
+    // Code voorbeeld om de call in de frontend te maken
+    // fetch('http://localhost:3001/api/user/r@struijlaart.nl')
+    // .then(response => {
+    //   if (!response.ok) {
+    //     throw new Error('Network response was not ok ' + response.statusText);
+    //   }
+    //   return response.json();
+    // })
+    // .then(data => {
+    //   console.dir(data);
+    // })
+    // .catch(error => {
+    //   console.dir(error);
+    // });
   },
 };
 
