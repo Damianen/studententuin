@@ -49,6 +49,25 @@ const userService = {
     //   console.dir(error);
     // });
   },
+  getUserByEmail: async (email) => {
+    try {
+      const request = pool.request();
+      const result = await request
+        .input("email", sql.NVarChar, email)
+        .query(
+          "SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @email"
+        );
+
+      if (result.recordset.length > 0) {
+        return result.recordset[0];
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;
