@@ -22,7 +22,7 @@ function Homepage() {
                 een gratis online omgeving aan voor alle studenten. Hierbij kan
                 je gebruik maken van verschillende technologien zoals Node.js of
                 wil je gebruik maken van een database en ben je een student? Vul
-                de aanvraagformulier in en krijg je eigen online omgeving!
+                de aanvraagformulier in en krijg je eigen online omgeving!!
               </p>
             </div>
             <div className="flex justify-center pt-8">
