@@ -11,7 +11,7 @@ function FileManager() {
 
   return (
     <div className="w-full h-full flex">
-      <div className="w-72 overflow-auto">
+      <div className="w-86 overflow-auto">
         <FolderInput
           onChange={(event) => {
             const files = event.target.files || {};

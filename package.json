@@ -12,6 +12,7 @@
   "author": "Damian Buskens, Ruben Struijlaart",
   "license": "ISC",
   "dependencies": {
+    "@blueprintjs/core": "^5.10.3",
     "@material-tailwind/react": "^2.1.9",
     "@popperjs/core": "^2.11.8",
     "ag-charts-community": "^9.3.1",
@@ -21,10 +22,12 @@
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "js-file-manager": "^1.0.9",
+    "multer": "^1.4.5-lts.1",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-apexcharts": "^1.4.1",
     "react-complex-tree": "^2.4.4",
+    "react-complex-tree-blueprintjs-renderers": "^2.4.4",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.3"
   },
