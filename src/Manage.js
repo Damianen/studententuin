@@ -8,6 +8,7 @@ import Deployment from "./portalComponents/Deployment.js";
 import Forms from "./portalComponents/Forms.js";
 import SiteConfiguration from "./portalComponents/SiteConfiguration.js";
 import Git from "./portalComponents/Git.js";
+import FileManager from "./portalComponents/FileManager.js";
 
 function Manage() {
   const [selectedItem, setSelectedItem] = React.useState("Logs");
@@ -99,6 +100,11 @@ function Manage() {
                 Git
               </li>
             </a>
+            <a href="#" onClick={() => setSelectedItem("Files")}>
+              <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
+                Files
+              </li>
+            </a>
           </ul>
         </div>
         <div
@@ -121,9 +127,7 @@ function Manage() {
               <SiteConfiguration />
             ) : selectedItem === "Git" ? (
               <Git />
-            ) : (
-              ""
-            )}
+            ) : <FileManager /> }
           </div>
         </div>
       </div>
