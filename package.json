@@ -9,6 +9,9 @@
     "build": "webpack -w",
     "dev": "run-p build start"
   },
+  "browser": {
+    "fs": false
+  },
   "author": "Damian Buskens, Ruben Struijlaart",
   "license": "ISC",
   "dependencies": {
@@ -29,7 +32,8 @@
     "react-complex-tree": "^2.4.4",
     "react-complex-tree-blueprintjs-renderers": "^2.4.4",
     "react-dom": "^18.3.1",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "react-treebeard": "^3.2.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.5",

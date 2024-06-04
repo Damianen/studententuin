@@ -9,6 +9,7 @@ import Forms from "./portalComponents/Forms.js";
 import SiteConfiguration from "./portalComponents/SiteConfiguration.js";
 import Git from "./portalComponents/Git.js";
 import FileManager from "./portalComponents/FileManager.js";
+import FileTree from "./portalComponents/Filetree.js";
 
 function Manage() {
   const [selectedItem, setSelectedItem] = React.useState("Logs");
@@ -127,7 +128,7 @@ function Manage() {
               <SiteConfiguration />
             ) : selectedItem === "Git" ? (
               <Git />
-            ) : <FileManager /> }
+            ) : <FileTree /> }
           </div>
         </div>
       </div>
