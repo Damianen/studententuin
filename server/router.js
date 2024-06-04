@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import userService from "../server/services/user.service.js";
 import cors from "cors";
 import jwt from "jsonwebtoken";
+import Cookies from "js-cookie";
 
 const router = Router();
 
@@ -64,13 +65,15 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    res.cookie('token', token ,{httpOnly: true, secure: true})
+    
 
     // Als de inloggegevens correct zijn, sla de gebruiker op in de sessie
-    req.session = user;
+    // req.session = user;
 
     // Geef een succesbericht terug
-    res.json({ message: "Login successful" });
+    console.log("Token:", token);
+    res.cookie("token", token, { httpOnly: true });
+    
     res.redirect("/manage");
   } catch (error) {
     console.error("Error:", error);

@@ -8,9 +8,24 @@ import Deployment from "./portalComponents/Deployment.js";
 import Forms from "./portalComponents/Forms.js";
 import SiteConfiguration from "./portalComponents/SiteConfiguration.js";
 import Git from "./portalComponents/Git.js";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 
 function Manage() {
   const [selectedItem, setSelectedItem] = React.useState("Logs");
+  console.log("getting token from cookie");
+  const token = Cookies.get("token"); // Get the token from the cookie
+  console.log(token); // Log the token to the console
+
+  React.useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      const decoded = jwtDecode(token);
+      console.log(decoded);
+    } else {
+      console.log("No token found");
+    }
+  }, []);
   return (
     <div>
       <header className="bg-house-green">
