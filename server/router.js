@@ -14,7 +14,7 @@ router.get("/", (req, res, next) => {
   res.render("index.ejs");
 });
 
-router.post("/", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {

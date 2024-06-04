@@ -9,7 +9,7 @@ const Login = (props) => {
           Login
         </h1>
         <div class="lg:p-28 md:p-36 sm:20 p-4 w-full shadow-md border border-gray-200 rounded-lg">
-          <form action="#" method="POST">
+          <form action="/login" method="POST">
             {/* <!-- Email Input --> */}
             <div class="mb-4">
               <label
