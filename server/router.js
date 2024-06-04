@@ -14,7 +14,7 @@ router.get("/", (req, res, next) => {
   res.render("index.ejs");
 });
 
-router.post("/", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -41,6 +41,30 @@ router.post("/", async (req, res) => {
 
     // Geef een succesbericht terug
     res.json({ message: "Login successful" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
+router.post("/", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Valideer de ingevoerde gegevens
+    if (!email || !password) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Roep de register-functie aan met de ingevoerde gegevens
+    const result = await userService.register(email, password);
+
+    // Geef een reactie terug naar de client
+    if (result.error) {
+      return res.status(500).json({ message: result.error });
+    }
+
+    res.json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "An error occurred" });

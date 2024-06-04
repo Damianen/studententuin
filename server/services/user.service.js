@@ -1,5 +1,6 @@
 import pool from "../../dao/db-config.js";
 import sql from "mssql";
+import bcrypt from "bcrypt";
 
 const userService = {
   getByEmail: async (req, res, next) => {
@@ -63,6 +64,27 @@ const userService = {
       } else {
         return null;
       }
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  },
+
+  register: async (email, password) => {
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const result = await pool
+        .request()
+        .input("email", sql.NVarChar, email)
+        .input("password", sql.NVarChar, hashedPassword)
+        .query(
+          "INSERT INTO [studententuin].[dbo].[User] (email, password) VALUES (@email, @password)"
+        );
+
+      return "User created successfully";
+
+      console.log("User created successfully");
     } catch (error) {
       console.error("Error:", error);
       throw error;
