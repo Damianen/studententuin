@@ -27,7 +27,7 @@ function Homepage() {
             </div>
             <div className="flex justify-center pt-8">
               <Link to="requestform">
-                <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Vraag nu een online omgeving aan!
                 </button>
               </Link>
@@ -70,7 +70,7 @@ function Homepage() {
             </div>
             <div className="flex justify-center pt-12">
               <Link>
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Bekijk beschikbare pakketen
                 </button>
               </Link>
@@ -102,7 +102,7 @@ function Homepage() {
             </div>
             <div className="flex justify-center">
               <Link to="handleiding">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Bekijk de handleiding
                 </button>
               </Link>
@@ -197,7 +197,7 @@ function Homepage() {
             </div>
             <div className="p-4 flex justify-center">
               <Link to="requestForm">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Kies dit pakket
                 </button>
               </Link>
@@ -273,7 +273,7 @@ function Homepage() {
             </div>
             <div className="p-4 flex justify-center">
               <Link to="requestForm">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   kies dit pakket
                 </button>
               </Link>
@@ -350,7 +350,7 @@ function Homepage() {
             </div>
             <div className="p-4 flex justify-center">
               <Link to="requestForm">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Kies dit pakket
                 </button>
               </Link>
