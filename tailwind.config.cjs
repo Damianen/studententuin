@@ -7,6 +7,7 @@ module.exports = {
         "light-green": "var(--light-green)",
         "house-green": "var(--house-green)",
         "tea-green": "var(--tea-green)",
+        "neutral-warm": "var(--neutral-warm)"
       },
     },
   },

@@ -1,5 +1,5 @@
 import React from "react";
-// import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Login = (props) => {
   return (
@@ -9,7 +9,7 @@ const Login = (props) => {
           Login
         </h1>
         <div class="lg:p-28 md:p-36 sm:20 p-4 w-full shadow-md border border-gray-200 rounded-lg">
-          <form action="#" method="POST">
+          <form action="/login" method="POST">
             {/* <!-- Email Input --> */}
             <div class="mb-4">
               <label
@@ -27,7 +27,7 @@ const Login = (props) => {
               ></input>
             </div>
             {/* <!-- Password Input --> */}
-            <div class="mb-4">
+            <div class="mb-6">
               <label
                 for="password"
                 class="block text-sm font-medium leading-6 text-gray-900"
@@ -39,26 +39,24 @@ const Login = (props) => {
                 id="password"
                 name="password"
                 class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-green-400"
-                autocomplete="off"
               ></input>
             </div>
-            {/* <!-- Remember Me Checkbox --> */}
-            <div class="mb-4 flex items-center">
+            {/* <!-- Remember me and Forgot password Link --> */}
+            <div className="flex items-center">
               <input
                 type="checkbox"
                 id="remember"
                 name="remember"
-                class="text-green-400"
+                className="text-green-400"
               ></input>
-              <label for="remember" class="text-gray-600 ml-2">
-                Remember Me
+              <label htmlFor="remember" className="text-gray-600 ml-2">
+                Onthoud mij
               </label>
             </div>
-            {/* <!-- Forgot Password Link --> */}
-            <div class="mb-6 text-primary-green">
-              <a href="#" class="hover:underline">
-                Forgot Password?
-              </a>
+            <div className="text-primary-green">
+              <Link to="wachtwoord" className="hover:underline">
+                Wachtwoord vergeten?
+              </Link>
             </div>
             <div class="mb-6 text-primary-green">
               <a href="#" class="hover:underline text-primary-green h-100%">
@@ -69,19 +67,19 @@ const Login = (props) => {
             <div className="flex justify-between items-center">
               <button
                 type="submit"
-                class=" shadow-md rounded-full bg-gray-500 px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                class="rounded-full bg-gray-500 px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
               >
                 Back{" "}
               </button>
               {/* <!-- Login Button --> */}
               <button
                 type="submit"
-                class=" shadow-md rounded-full bg-primary-green px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                class="rounded-full bg-primary-green px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-house-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
               >
                 Login
               </button>
             </div>
-          </form>
+        </form>
         </div>
       </div>
     </div>
