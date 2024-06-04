@@ -22,19 +22,19 @@ router.post("/", async (req, res) => {
     const user = await userService.getUserByEmail(email);
 
     // Als de gebruiker niet gevonden is, geef een foutmelding terug
-    if (!user || user.password !== password) {
+    if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Vergelijk het ingediende wachtwoord met het versleutelde wachtwoord in de database
 
-    // const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
     // Als de wachtwoorden niet overeenkomen, geef een foutmelding terug
 
-    // if (!passwordMatch) {
-    //   return res.status(401).json({ message: "Invalid email or password" });
-    // }
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
 
     // Als de inloggegevens correct zijn, sla de gebruiker op in de sessie
     req.session = user;
