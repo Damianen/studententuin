@@ -11,6 +11,7 @@ const subdomain = ''
 const directory = subdomain || 'studententuin'
 const relativepath = '../' + directory
 
+app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(router);
@@ -42,13 +43,35 @@ app.get('/filetree', (req, res) => {
 
 app.post('/selected-node', (req, res) => {
   req.session.selectedNode = req.body.selectedNode;
-  res.json({ message: 'Selected node updated' });
-  console.log(req.session.selectedNode);
+  console.log(req.session.selectedNode + " in selected node");
+  req.session.save(function (err) {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ message: 'Session save error' });
+      return;
+    }else{
+      res.json({ message: 'Selected node updated' });
+      console.log('session saved');
+    }
 });
+});
+
+
+function checkSelectedNode(req, res, next) {
+  if (req.session && req.session.selectedNode) {
+    next();
+    console.log(selectedNode = req.session.selectedNode);
+  } else {
+    res.status(400).json({ message: 'Selected node is not defined' });
+    console.log('selected node is not defined');
+  }
+}
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
    if (req.session) {
+    console.log(req.session.selectedNode + ' in storage');
       cb(null, req.session.selectedNode);
     } else {
       cb(new Error('Session is not defined'));
@@ -59,8 +82,9 @@ const storage = multer.diskStorage({
   }
 });
 
-app.post('/upload', multer({ storage: storage }).single('file'), (req, res) => {
+app.post('/upload', checkSelectedNode, multer({ storage: storage }).single('file'), (req, res) => {
   res.json({ message: 'File uploaded' });
+  console.log('file uploaded');
 });
 
 app.listen(port, () => {
