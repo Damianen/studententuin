@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import Joyride, { ACTIONS, EVENTS, ORIGIN, STATUS } from 'react-joyride';
 
 export default function Navigation() {
   const [dialog, setDialog] = React.useState(false);
@@ -27,8 +28,64 @@ export default function Navigation() {
     }
   };
 
+  const [joyrideRun, setRun] = React.useState(false);
+
+  const handleClickStart = () => {
+    setRun(true);
+  };
+
+const joyrideSteps = [
+  {
+    target: '.joyride-step-1',
+    content: 'Vraag hier makkelijk je sub-domein aan!',
+    disableBeacon: true
+  },
+  {
+    target: '.joyride-step-2',
+    content: 'Een makkelijke handleiding om te weten hoe jij je sub-domein kan beheren!',
+  },
+  {
+    target: '.joyride-step-3',
+    content: 'Kies een pakket dat bij jou past!',
+  },
+  {
+    target: '.joyride-step-4',
+    content: 'Meerdere technologieën die wij ondersteunen!',
+  },
+];
+
+const handleJoyrideCallback = (data = null) => {
+  const { action, index, origin, status, type } = data;
+  
+  if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+    // You need to set our running state to false, so we can restart if we click start again.
+    setRun(false);
+  }
+};
+
+const joyrideStyling = {
+  arrowColor: '#fff',
+  backgroundColor: '#fff',
+  beaconSize: 36,
+  overlayColor: 'rgba(0, 0, 0, 0.5)',
+  primaryColor: '#f04',
+  spotlightShadow: '0 0 15px rgba(0, 0, 0, 0.5)',
+  textColor: '#333',
+  width: undefined,
+  zIndex: 100,
+};
+
   return (
     <header className="bg-primary-green">
+      <Joyride callback={handleJoyrideCallback} steps={joyrideSteps} continuous={true} run={joyrideRun} showSkipButton={true} 
+      styles={{
+          options: {
+            primaryColor: '#006241'
+          },
+        }}
+        locale={{ back: 'Terug', close: 'Afsluiten', last: 'Afsluiten', next: 'Volgende', skip: 'Overslaan' }}
+        
+        />
       <nav className="lg:mx-auto flex max-w-full lg:items-center justify-between p-6">
         <div className="flex lg:flex-shrink-0 lg:flex-grow-0 lg:justify-start lg:gap-4">
           <Link to="/" className="-m-1.5 p-1.5">
@@ -85,6 +142,9 @@ export default function Navigation() {
           >
             Handleiding
           </Link>
+          <button onClick={handleClickStart} className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
+            Introductie
+          </button>
         </div>
         <div className="lg:flex lg:flex-shrink-0 lg:flex-grow lg:justify-end lg:items-center lg:gap-4 hidden">
           <Link
