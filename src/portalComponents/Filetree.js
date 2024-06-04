@@ -82,13 +82,25 @@ const style = {
 function FileTree() {
   const [fileTree, setFileTree] = useState({});
   const [cursor, setCursor] = useState(false);
+  const [selectedNode, setSelectedNode] = useState("");
 
   useEffect(() => {
     fetch("/filetree")
       .then((response) => response.json())
       .then((data) => setFileTree(processData(data)));
   }, []);
-
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("file", e.target.files[0]);
+    fetch("/upload", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.error(error));
+  };
   const processData = (data) => {
     const processedData = { name: "root", toggled: true, children: [] };
     function processNode(node, processedNode) {
@@ -116,14 +128,33 @@ function FileTree() {
     }
     setCursor(node);
     setFileTree(Object.assign({}, fileTree));
+    setSelectedNode(node.name);
+    console.log(node.name);
+    fetch("/selected-node", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedNode: node.name }),
+    })
+    .then((response) => response.json())
+    .then((data) => console.log(data))
+    .catch((error) => console.error(error));
   };
   return (
-    <Treebeard
-      className="text-black"
-      data={fileTree}
-      onToggle={onToggle}
-      style={style}
-    />
+    <div>
+      <div>
+        <Treebeard
+          className="text-black"
+          data={fileTree}
+          onToggle={onToggle}
+          style={style}
+        />
+      </div>
+      <input type="file" name="file" onChange={handleFileChange} />
+      <div>Selected Node: {selectedNode}</div>{" "}
+      {/* display the selected node name */}
+    </div>
   );
 }
 

@@ -24,6 +24,7 @@
     "axios": "^1.7.2",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
+    "express-session": "^1.18.0",
     "js-file-manager": "^1.0.9",
     "multer": "^1.4.5-lts.1",
     "prop-types": "^15.8.1",
