@@ -39,17 +39,16 @@ export default function Manual() {
                   Stap 2: Vul de gegevens in de aanvraagformulier in.
                 </h2>
                 <p className="mt-3">
-                  Je hebt wel een geldige schoolmail nodig om je in te
-                  schrijven!
-                  <br></br>
+                  <p className="font-bold">
+                    Je hebt wel een geldige schoolmail nodig om je in te
+                    schrijven!
+                  </p>
                   <br></br>
                   Vul de gegevens in het aanvraagformulier in en klik op
                   verzenden. Je krijgt een email met een bevesteging dat je
                   account is aangemaakt.
-                  <br></br>
-                  <br></br>
                   <p className="font-bold"></p>
-                  Tip, gebruik een password manager om je wachtwoord te
+                  Tip: gebruik een password manager om je wachtwoord te
                   onthouden.
                 </p>
               </div>
