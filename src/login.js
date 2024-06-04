@@ -26,6 +26,22 @@ const Login = (props) => {
                 autocomplete="off"
               ></input>
             </div>
+            {/* <!-- Password Input --> */}
+            <div class="mb-6">
+              <label
+                for="password"
+                class="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-green-400"
+              ></input>
+            </div>
+            {/* <!-- Remember me and Forgot password Link --> */}
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -67,6 +83,7 @@ const Login = (props) => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 
