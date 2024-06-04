@@ -3,23 +3,28 @@ import { Link } from "react-router-dom";
 
 const Login = (props) => {
   return (
-    <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 space-y-2">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 className="text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">Login</h2>
-      </div>
-       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm shadow-xl rounded-lg p-10 border border-gray-200">
-          <form className="space-y-4" action="#" method="POST">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">Email</label>
-                <div className="mt-2">
-                  <input id="email" name="email" type="email" required className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"/>
-                </div>
-              </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">Wachtwoord</label>    
-              <div className="mt-2">
-                <input id="password" name="password" type="password" required className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"/>
-              </div>
+    <div class="flex justify-center items-center h-screen ">
+      <div class="justify-center items-center">
+        <h1 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 p-5">
+          Login
+        </h1>
+        <div class="lg:p-28 md:p-36 sm:20 p-4 w-full shadow-md border border-gray-200 rounded-lg">
+          <form action="/login" method="POST">
+            {/* <!-- Email Input --> */}
+            <div class="mb-4">
+              <label
+                for="email"
+                class="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-green-400"
+                autocomplete="off"
+              ></input>
             </div>
             <div className="flex items-center">
               <input
