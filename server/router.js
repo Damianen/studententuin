@@ -16,7 +16,7 @@ router.use(
     secret: "your_secret_key", // Verander dit naar een sterke geheime sleutel
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true, maxAge: 30 * 60 * 1000 }, // Gebruik true als je HTTPS hebt
+    cookie: { secure: false, maxAge: 30 * 60 * 1000 }, // Gebruik true als je HTTPS hebt
   })
 );
 
@@ -24,29 +24,68 @@ router.get("/", (req, res, next) => {
   res.render("index.ejs");
 });
 
-router.get('/requestForm', (req, res, next) => {
-    res.render("index.ejs");
+router.get("/requestForm", (req, res, next) => {
+  res.render("index.ejs");
 });
 
-router.get('/login', (req, res, next) => {
-    res.render("index.ejs");
+router.get("/login", (req, res, next) => {
+  res.render("index.ejs");
 });
 
-router.get('/handleiding', (req, res, next) => {
-    res.render("index.ejs");
+router.get("/handleiding", (req, res, next) => {
+  res.render("index.ejs");
 });
 
-router.get('/manage', (req, res, next) => {
-    res.render("index.ejs");
+router.get("/manage", (req, res) => {
+  console.log("Accessing /manage route");
+  console.log("Session on /manage:", req.session);
+
+  if (req.session.user) {
+    res.render("index.ejs", { user: req.session.user });
+  } else {
+    res.redirect("/");
+  }
 });
 
-router.get('/about', (req, res, next) => {
-    res.render("index.ejs");
+router.get("/api/check-session", (req, res) => {
+  if (req.session.user) {
+    // Als er een gebruiker is opgeslagen in de sessie, retourneer een JSON-object met isAuthenticated:true
+    res.json({ isAuthenticated: true });
+  } else {
+    // Als er geen gebruiker is opgeslagen in de sessie, retourneer een JSON-object met isAuthenticated:false
+    res.json({ isAuthenticated: false });
+  }
 });
 
-router.get('/contact', (req, res, next) => {
-    res.render("index.ejs");
+router.get("/api/getUserByEmailFromSession", async (req, res) => {
+  try {
+    const user = await userService.getUserByEmailFromSession(req);
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
 });
+
+router.get("/about", (req, res, next) => {
+  res.render("index.ejs");
+});
+
+router.get("/contact", (req, res, next) => {
+  res.render("index.ejs");
+});
+
+// router.get("/check-session", (req, res) => {
+//   if (req.session.user) {
+//     res.json({ session: req.session.user });
+//   } else {
+//     res.status(401).json({ message: "No active session" });
+//   }
+// });
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -58,6 +97,7 @@ router.post("/login", async (req, res) => {
     // Als de gebruiker niet gevonden is, geef een foutmelding terug
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
+      res.redirect("/manage");
     }
 
     // Vergelijk het ingediende wachtwoord met het versleutelde wachtwoord in de database
@@ -76,11 +116,29 @@ router.post("/login", async (req, res) => {
     console.log("Session created:", req.session);
 
     // Geef een succesbericht terug
-    res.json({ message: "Login successful" });
+    // res.json({ message: "Login successful" });
+
+    console.log("Session after login:", req.session);
+
+    res.redirect("/manage");
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "An error occurred" });
   }
+});
+
+router.get("/logout", (req, res) => {
+  // Vernietig de sessie van de gebruiker
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying session:", err);
+      res.status(500).json({ message: "Internal server error" });
+    } else {
+      // Stuur een succesvolle respons terug
+      res.clearCookie("session"); // Verwijder het sessie-cookie
+      res.redirect("/");
+    }
+  });
 });
 
 export default router;

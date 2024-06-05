@@ -1,18 +1,42 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-
-const navigate = useNavigate();
-
-useEffect(() => { 
-  if (cookie) {
-    navigate('/manage');
-  }
-}, [navigate]);
-
-
+import Cookies from "js-cookie";
 
 const Login = (props) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const sessionCookie = Cookies.get("connect.sid");
+    if (sessionCookie) {
+      navigate("/manage");
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const email = event.target.email.value;
+    const password = event.target.password.value;
+
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (data.redirectUrl) {
+      // Zet de sessie cookie
+      Cookies.set("connect.sid", data.sessionId, { expires: 1 }); // Verloopt na 1 dag
+      navigate(data.redirectUrl);
+    } else {
+      alert(data.message);
+    }
+  };
+
   return (
     <div class="flex justify-center items-center h-screen ">
       <div class="justify-center items-center">
@@ -90,7 +114,7 @@ const Login = (props) => {
                 Login
               </button>
             </div>
-        </form>
+          </form>
         </div>
       </div>
     </div>

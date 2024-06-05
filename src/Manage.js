@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SiteDropdown from "./components/SiteDropdown.js";
 import SiteDropdownHamburger from "./components/SiteDropdownHamburger.js";
 import Logs from "./portalComponents/Logs.js";
@@ -9,23 +10,26 @@ import Forms from "./portalComponents/Forms.js";
 import SiteConfiguration from "./portalComponents/SiteConfiguration.js";
 import Git from "./portalComponents/Git.js";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
 
 function Manage() {
-  const [selectedItem, setSelectedItem] = React.useState("Logs");
-  console.log("getting token from cookie");
-  const token = Cookies.get("token"); // Get the token from the cookie
-  console.log(token); // Log the token to the console
+  const [selectedItem, setSelectedItem] = useState("Logs");
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
-      const decoded = jwtDecode(token);
-      console.log(decoded);
-    } else {
-      console.log("No token found");
-    }
-  }, []);
+  useEffect(() => {
+    // Maak een request naar de backend om te controleren of de gebruiker is ingelogd
+    fetch("/api/check-session", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.isAuthenticated) {
+          navigate("/login");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        navigate("/login");
+      });
+  }, [navigate]);
+
   return (
     <div>
       <header className="bg-house-green">
