@@ -64,16 +64,11 @@ router.post("/login", async (req, res) => {
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
-    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET
-    );
-
     // Als de wachtwoorden niet overeenkomen, geef een foutmelding terug
 
     if (!passwordMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
-    
 
     // Als de inloggegevens correct zijn, sla de gebruiker op in de sessie
     req.session.user = user;
@@ -81,10 +76,7 @@ router.post("/login", async (req, res) => {
     console.log("Session created:", req.session);
 
     // Geef een succesbericht terug
-    console.log("Token:", token);
-    res.cookie("token", token, { httpOnly: true });
-    
-    res.redirect("/manage");
+    res.json({ message: "Login successful" });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "An error occurred" });
