@@ -3,12 +3,22 @@ import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
 import userService from "../server/services/user.service.js";
 import cors from "cors";
+import session from "express-session";
 
 const router = Router();
 
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 router.use(cors());
+
+router.use(
+  session({
+    secret: "your_secret_key", // Verander dit naar een sterke geheime sleutel
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true, maxAge: 30 * 60 * 1000 }, // Gebruik true als je HTTPS hebt
+  })
+);
 
 router.get("/", (req, res, next) => {
   res.render("index.ejs");
@@ -37,7 +47,9 @@ router.post("/login", async (req, res) => {
     }
 
     // Als de inloggegevens correct zijn, sla de gebruiker op in de sessie
-    req.session = user;
+    req.session.user = user;
+
+    console.log("Session created:", req.session);
 
     // Geef een succesbericht terug
     res.json({ message: "Login successful" });
