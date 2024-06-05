@@ -7,9 +7,11 @@ import multer from "multer";
 
 const app = express();
 const port = process.env.PORT || 3001;
+const __dirname = path.resolve();
 const subdomain = ''
 const directory = subdomain || 'studententuin'
-const relativepath = '../' + directory
+const relativepath = '../' + directory + '/'
+let clickedNode = '' || '/src/test'
 
 app.use(express.json());
 app.set("view engine", "ejs");
@@ -44,6 +46,8 @@ app.get('/filetree', (req, res) => {
 app.post('/selected-node', (req, res) => {
   req.session.selectedNode = req.body.selectedNode;
   console.log(req.session.selectedNode + " in selected node");
+  clickedNode = req.session.selectedNode
+  console.log(clickedNode + " in clicked node");
   req.session.save(function (err) {
     if (err) {
       console.log(err);
@@ -56,35 +60,36 @@ app.post('/selected-node', (req, res) => {
 });
 });
 
+app.delete('/delete-file', (req, res) => {
+  fs.unlinkSync( __dirname+ clickedNode);
+  console.log('File deleted:', clickedNode)
+  res.json({ message: 'File deleted'
+   });
+});
+
 
 function checkSelectedNode(req, res, next) {
-  if (req.session && req.session.selectedNode) {
-    next();
-    console.log(selectedNode = req.session.selectedNode);
-  } else {
-    res.status(400).json({ message: 'Selected node is not defined' });
-    console.log('selected node is not defined');
-  }
+  console.log(clickedNode + ' in checkSelectedNode');
 }
 
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-   if (req.session) {
-    console.log(req.session.selectedNode + ' in storage');
-      cb(null, req.session.selectedNode);
-    } else {
-      cb(new Error('Session is not defined'));
-    }
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  }
+ destination: (req, file, cb) => {
+    const folderPath = path.join(relativepath, clickedNode,
+    req.body.relativepath || '')
+  fs.mkdirSync(folderPath, { recursive: true });
+  cb(null, folderPath);
+},
+filename: (req, file, cb) => {
+  cb(null, file.originalname);
+},
 });
 
-app.post('/upload', checkSelectedNode, multer({ storage: storage }).single('file'), (req, res) => {
-  res.json({ message: 'File uploaded' });
-  console.log('file uploaded');
+const upload = multer({ storage: storage });
+
+app.post('/upload', upload.array("files") ,(req, res) => {
+  console.log('uploading files to path:', relativepath + clickedNode);
+  res.send('File uploaded successfully');
 });
 
 app.listen(port, () => {

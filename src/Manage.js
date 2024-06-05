@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import SiteDropdown from "./components/SiteDropdown.js";
 import SiteDropdownHamburger from "./components/SiteDropdownHamburger.js";
 import Logs from "./portalComponents/Logs.js";
@@ -11,7 +11,9 @@ import Git from "./portalComponents/Git.js";
 import FileManager from "./portalComponents/FileManager.js";
 import FileTree from "./portalComponents/Filetree.js";
 
+
 function Manage() {
+  const [user, setUser] = React.useState({});
   const [selectedItem, setSelectedItem] = React.useState("Logs");
   return (
     <div>
@@ -68,7 +70,7 @@ function Manage() {
           <ul className="py-4">
             <a href="#" onClick={() => setSelectedItem("Logs")}>
               <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                Logs
+                Logs email: {user.email}
               </li>
             </a>
             <a href="#" onClick={() => setSelectedItem("Analytics")}>
@@ -128,7 +130,9 @@ function Manage() {
               <SiteConfiguration />
             ) : selectedItem === "Git" ? (
               <Git />
-            ) : <FileTree /> }
+            ) : (
+              <FileTree />
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Treebeard } from "react-treebeard";
+import Uppy from "../Uppy.js";
+import { Button } from "@material-tailwind/react";
+import fs from "fs";
 
 const style = {
   tree: {
@@ -83,12 +86,34 @@ function FileTree() {
   const [fileTree, setFileTree] = useState({});
   const [cursor, setCursor] = useState(false);
   const [selectedNode, setSelectedNode] = useState("");
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     fetch("/filetree")
       .then((response) => response.json())
       .then((data) => setFileTree(processData(data)));
-  }, []);
+  }, [refresh]);
+
+  const handleDeleteFile = () => {
+    fetch("/delete-file", {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ selectedNode: selectedNode }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('File deleted successfully');
+        
+      } else {
+        console.log('Failed to delete file');
+        setRefresh(!refresh);
+      }
+    });
+  }
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
@@ -101,22 +126,24 @@ function FileTree() {
       .then((data) => console.log(data))
       .catch((error) => console.error(error));
   };
-  const processData = (data) => {
-    const processedData = { name: "root", toggled: true, children: [] };
-    function processNode(node, processedNode) {
-      Object.keys(node).forEach((key) => {
-        if (typeof node[key] === "string") {
-          processedNode.children.push({ name: node[key] });
-        } else {
-          const newNode = { name: key, children: [] };
-          processedNode.children.push(newNode);
-          processNode(node[key], newNode);
-        }
-      });
-    }
-    processNode(data, processedData);
-    return processedData;
-  };
+
+ const processData = (data) => {
+  const processedData = { name: "root", toggled: true, children: [], path: "" };
+  function processNode(node, processedNode) {
+    Object.keys(node).forEach((key) => {
+      const path = `${processedNode.path}/${key}`;
+      if (typeof node[key] === "string") {
+        processedNode.children.push({ name: node[key], path });
+      } else {
+        const newNode = { name: key, children: [], path };
+        processedNode.children.push(newNode);
+        processNode(node[key], newNode);
+      }
+    });
+  }
+  processNode(data, processedData);
+  return processedData;
+};
 
   const onToggle = (node, toggled) => {
     if (cursor) {
@@ -128,14 +155,14 @@ function FileTree() {
     }
     setCursor(node);
     setFileTree(Object.assign({}, fileTree));
-    setSelectedNode(node.name);
-    console.log(node.name);
+    setSelectedNode(node.path);
+    console.log(node.path);
     fetch("/selected-node", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ selectedNode: node.name }),
+      body: JSON.stringify({ selectedNode: node.path }),
     })
     .then((response) => response.json())
     .then((data) => console.log(data))
@@ -151,10 +178,18 @@ function FileTree() {
           style={style}
         />
       </div>
-      <input type="file" name="file" onChange={handleFileChange} />
+      <div>
+        <Uppy />
+      </div>
       <div>Selected Node: {selectedNode}</div>{" "}
       {/* display the selected node name */}
+      <div>
+      <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green" onClick={handleDeleteFile}>
+                  Delete
+                </button>
+  </div>
     </div>
+  
   );
 }
 

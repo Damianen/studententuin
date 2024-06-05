@@ -1,7 +1,18 @@
+import { Button } from "@material-tailwind/react";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function AccountDropdownHamburger() {
   const [isOpen, setIsOpen] = React.useState(false);
+
+  const navigate = useNavigate();
+  
+  const handleLogout = () => { 
+    localStorage.removeItem("token");
+      console.log("Token removed");
+    navigate("/");
+    console.log("Navigated to login")
+  };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -67,12 +78,14 @@ export default function AccountDropdownHamburger() {
           >
             Support
           </a>
+          <span>
           <a
-            href="#"
             className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
+            onClick={handleLogout}
           >
-            Sign Out
+            Sign Out 
           </a>
+          </span>
         </div>
       </div>
     </div>

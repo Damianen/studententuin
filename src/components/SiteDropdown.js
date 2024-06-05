@@ -1,7 +1,16 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function AccountDropdown() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const navigate = useNavigate();
+  
+  const handleLogout = () => { 
+    localStorage.removeItem("token");
+      console.log("Token removed");
+    navigate("/");
+    console.log("Navigated to homepage")
+  };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -51,6 +60,7 @@ export default function AccountDropdown() {
           <a
             href="#"
             className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
+            onClick={handleLogout}
           >
             Sign Out
           </a>

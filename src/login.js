@@ -1,7 +1,31 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { Link } from "react-router-dom";
 
 const Login = (props) => {
+  const [username, setUsername] = useState('');
+  const navigate = useNavigate();
+
+  // useEffect(() => { 
+  //   if (token) {
+  //     navigate('/manage');
+  //   }
+  // }, [navigate]);
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const email = e.target.elements.email.value;
+  //   const password = e.target.elements.password.value;
+  //   try {
+  //     const response = await axios.post('/login', { email, password });
+  //     localStorage.setItem('token', response.data.token);
+  //     navigate('/manage');
+  //   } catch (err) {
+  //     console.error('Login failed:', err);
+  //   }
+  // };
+
   return (
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 space-y-2">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
