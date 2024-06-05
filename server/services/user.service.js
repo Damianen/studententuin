@@ -3,8 +3,7 @@ import sql from "mssql";
 import bcrypt from "bcrypt";
 
 const userService = {
-  getByEmail: async (req, res, next) => {
-    const userEmail = req.params.userEmail;
+  getByEmail: async (userEmail, callback) => {
 
     try {
       const result = await pool
@@ -14,42 +13,16 @@ const userService = {
           "SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @userEmail"
         );
 
-      if (result.recordset) {
-        res.send({
-          status: 200,
-          message: "This is a message",
-          data: result.recordset,
-        });
+      if (result.recordset.length !== 0) {
+        callback({status: 200, data: result.recordset}, null);
       } else {
-        res.send({
-          status: 404,
-          message: "User not found",
-          data: {},
-        });
+        callback(null, {status: 404, message: "User not found"});
       }
     } catch (error) {
-      res.send({
-        status: 500,
-        message: "An error occurred",
-        error: error.message,
-      });
+      callback(null, {status: 500, message: error.message});
     }
-
-    // Code voorbeeld om de call in de frontend te maken
-    // fetch('http://localhost:3001/api/user/r@struijlaart.nl')
-    // .then(response => {
-    //   if (!response.ok) {
-    //     throw new Error('Network response was not ok ' + response.statusText);
-    //   }
-    //   return response.json();
-    // })
-    // .then(data => {
-    //   console.dir(data);
-    // })
-    // .catch(error => {
-    //   console.dir(error);
-    // });
   },
+  
   getUserByEmail: async (email) => {
     try {
       const request = pool.request();

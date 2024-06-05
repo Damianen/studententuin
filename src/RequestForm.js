@@ -1,6 +1,19 @@
 import React from "react";
 
 export default function RequestForm() {
+
+  const inputRef = React.useRef(null);
+
+  const [inputValue, setInputValue] = React.useState('');
+
+  React.useEffect(() => {
+    setInputValue(inputRef.current.value);
+  }, []);
+
+  const handleInputChange = (event) => {
+      setInputValue(event.target.value);
+  };
+
   return (
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 space-y-2">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -10,7 +23,7 @@ export default function RequestForm() {
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm shadow-xl rounded-lg p-10 border border-gray-200">
-        <form className="space-y-4" action="#" method="POST">
+        <form className="space-y-4" action="/requestForm" method="POST">
           <div>
             <label
               htmlFor="subdomainName"
@@ -24,25 +37,29 @@ export default function RequestForm() {
                 name="subdomainName"
                 type="subdomainName"
                 required
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
+                className="p-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
+                onChange={handleInputChange}
+                ref={inputRef}
               />
+              <div className="w-full break-word"><p>Voorbeeld: <label className="font-bold">{inputValue}.studententuin.nl</label></p></div>
+              
             </div>
           </div>
 
           <div>
             <label
-              htmlFor="email"
+              htmlFor="emailAddress"
               className="block text-sm font-medium leading-6 text-gray-900"
             >
               Email
             </label>
             <div className="mt-2">
               <input
-                id="email"
-                name="email"
+                id="emailAddress"
+                name="emailAddress"
                 type="email"
                 required
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
+                className="p-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
               />
             </div>
           </div>
@@ -60,7 +77,7 @@ export default function RequestForm() {
                 name="password"
                 type="password"
                 required
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
+                className="p-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
               />
             </div>
           </div>
@@ -75,8 +92,9 @@ export default function RequestForm() {
             <div className="mt-2">
               <select
                 name="productPackage"
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
+                className="p-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
                 id="productPackage"
+                required
               >
                 <option value="">Kies een pakket</option>
                 <option value="free">Gratis</option>
