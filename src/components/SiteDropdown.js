@@ -27,8 +27,6 @@ export default function AccountDropdown() {
     setIsOpen(false);
   };
 
-  console.log(user);
-
   return (
     <div>
       <div className="relative">

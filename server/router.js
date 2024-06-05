@@ -97,15 +97,12 @@ router.post("/login", async (req, res) => {
     // Als de gebruiker niet gevonden is, geef een foutmelding terug
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
-      res.redirect("/manage");
     }
 
     // Vergelijk het ingediende wachtwoord met het versleutelde wachtwoord in de database
-
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     // Als de wachtwoorden niet overeenkomen, geef een foutmelding terug
-
     if (!passwordMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
@@ -115,12 +112,8 @@ router.post("/login", async (req, res) => {
 
     console.log("Session created:", req.session);
 
-    // Geef een succesbericht terug
-    // res.json({ message: "Login successful" });
-
-    console.log("Session after login:", req.session);
-
-    res.redirect("/manage");
+    // Geef een succesbericht terug met de redirect-url
+    res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "An error occurred" });
