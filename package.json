@@ -9,9 +9,13 @@
     "build": "webpack -w",
     "dev": "run-p build start"
   },
+  "browser": {
+    "fs": false
+  },
   "author": "Damian Buskens, Ruben Struijlaart",
   "license": "ISC",
   "dependencies": {
+    "@blueprintjs/core": "^5.10.3",
     "@material-tailwind/react": "^2.1.9",
     "@popperjs/core": "^2.11.8",
     "ag-charts-community": "^9.3.1",
@@ -32,10 +36,17 @@
     "js-cookies": "^1.0.4",
     "jwt-decode": "^4.0.0",
     "mssql": "^10.0.2",
+    "express-session": "^1.18.0",
+    "js-file-manager": "^1.0.9",
+    "multer": "^1.4.5-lts.1",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-apexcharts": "^1.4.1",
-    "react-dom": "^18.3.1"
+    "react-complex-tree": "^2.4.4",
+    "react-complex-tree-blueprintjs-renderers": "^2.4.4",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.2.3",
+    "react-treebeard": "^3.2.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.5",
@@ -52,6 +63,7 @@
     "postcss-preset-env": "^9.5.14",
     "react-router-dom": "^6.23.1",
     "style-loader": "^4.0.0",
+    "svg-url-loader": "^8.0.0",
     "tailwindcss": "^3.4.3",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"

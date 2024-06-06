@@ -18,9 +18,24 @@ module.exports = {
             },
             {
                 test: /\.css$/i,
-                include: path.resolve(__dirname, 'public'),
                 use: ['style-loader', 'css-loader', 'postcss-loader'],
             },
+            {
+                test: /\.svg$/,
+                use: [
+                    {
+                        loader: 'svg-url-loader',
+                        options: {
+                            limit: 10000,
+                        },
+                    },
+                ],
+            },
         ],
+    },
+    resolve: {
+        fallback: {
+            "fs": false
+        },
     },
 };
