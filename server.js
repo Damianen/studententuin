@@ -11,8 +11,8 @@ const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
 const subdomain = '';
 const directory = subdomain || 'test';
-const relativepath = '../' + directory + '/';
-let clickedNode = '' || '/src/test';
+const relativepath = '../' + directory;
+let clickedNode = '';
 
 app.use(express.json());
 app.set("view engine", "ejs");
@@ -61,9 +61,9 @@ app.post('/selected-node', (req, res) => {
 });
 });
 
-app.delete('/delete-file', (req, res) => {
-  fs.unlinkSync( __dirname+ clickedNode);
-  console.log('File deleted:', clickedNode)
+app.get('/delete-file', (req, res) => {
+  console.log('File deleted:', relativepath+clickedNode)
+  fs.unlinkSync( relativepath + clickedNode);
   res.json({ message: 'File deleted'
    });
 });
