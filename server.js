@@ -1,6 +1,7 @@
 import express from "express";
 import session from "express-session";
-import router from "./server/router.js";
+import router from './server/router.js';
+import userRoutes from './server/routes/user.routes.js';
 import fs from "fs";
 import path from "path";
 import multer from "multer";
@@ -91,6 +92,7 @@ app.post('/upload', upload.array("files") ,(req, res) => {
   console.log('uploading files to path:', relativepath + clickedNode);
   res.send('File uploaded successfully');
 });
+app.use(userRoutes);
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

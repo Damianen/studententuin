@@ -80,6 +80,7 @@ export default function AccountDropdownHamburger() {
           </a>
           <span>
           <a
+            href="/logout"
             className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
             onClick={handleLogout}
           >

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SiteDropdown from "./components/SiteDropdown.js";
 import SiteDropdownHamburger from "./components/SiteDropdownHamburger.js";
 import Logs from "./portalComponents/Logs.js";
@@ -10,11 +11,27 @@ import SiteConfiguration from "./portalComponents/SiteConfiguration.js";
 import Git from "./portalComponents/Git.js";
 import FileManager from "./portalComponents/FileManager.js";
 import FileTree from "./portalComponents/Filetree.js";
-
+import Cookies from "js-cookie";
 
 function Manage() {
-  const [user, setUser] = React.useState({});
-  const [selectedItem, setSelectedItem] = React.useState("Logs");
+  const [selectedItem, setSelectedItem] = useState("Logs");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Maak een request naar de backend om te controleren of de gebruiker is ingelogd
+    fetch("/api/check-session", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.isAuthenticated) {
+          navigate("/login");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        navigate("/login");
+      });
+  }, [navigate]);
+
   return (
     <div>
       <header className="bg-house-green">

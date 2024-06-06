@@ -1,16 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function AccountDropdown() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const navigate = useNavigate();
-  
-  const handleLogout = () => { 
-    localStorage.removeItem("token");
-      console.log("Token removed");
-    navigate("/");
-    console.log("Navigated to homepage")
-  };
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Maak een HTTP-verzoek om de gebruikersgegevens op te halen
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("/api/getUserByEmailFromSession");
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    fetchUser(); // Roep de functie voor het ophalen van gebruikersgegevens aan wanneer het component gemonteerd is
+  }, []); // De lege array als tweede argument zorgt ervoor dat useEffect alleen wordt uitgevoerd bij de eerste render
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -27,7 +35,9 @@ export default function AccountDropdown() {
           onClick={toggleDropdown}
           className="relative overflow-hidden focus:outline-none focus:border-white text-lg font-semibold leading-6 text-white"
         >
-          <a>voorbeeld.studententuin.nl</a>
+          <a>
+            {user ? user.SubDomainName + ".studententuin.nl" : "Loading..."}
+          </a>
         </button>
         <button
           className={
@@ -58,7 +68,7 @@ export default function AccountDropdown() {
             Support
           </a>
           <a
-            href="#"
+            href="/logout"
             className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
             onClick={handleLogout}
           >

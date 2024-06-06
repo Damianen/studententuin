@@ -4,20 +4,20 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "../public/style.css";
 
 import Main from "./Main.js";
-import HomePage from "./Homepage.js";
+import HomePage from "./homepage.js";
 import Login from "./login.js";
 import RequestForm from "./RequestForm.js";
 import Manage from "./Manage.js";
 import About from "./About.js";
 import Contact from "./contact.js";
-import Uppy from "./Uppy.js";
+import Manual from "./Manual.js";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <Main>
-        <Uppy/>
+        <HomePage />
       </Main>
     ),
   },
@@ -39,7 +39,11 @@ const router = createBrowserRouter([
   },
   {
     path: "handleiding",
-    element: <Main></Main>,
+    element: (
+      <Main>
+        <Manual />
+      </Main>
+    ),
   },
   {
     path: "manage",
