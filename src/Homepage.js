@@ -11,7 +11,7 @@ function Homepage() {
       <div className="px-4 bg-white  overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full  lg:flex-row">
           <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
-            <div className="max-w-xl mb-4">
+            <div className="joyride-step-1 max-w-xl mb-4">
               <h2 className="font-sans text-3xl sm:mt-0 mt-4 font-medium tracking-tight text-black sm:text-4xl sm:leading-none max-w-lg mb-4">
                 Gratis online omgeving
               </h2>
@@ -27,7 +27,7 @@ function Homepage() {
             </div>
             <div className="flex justify-center pt-8">
               <Link to="requestform">
-                <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Vraag nu een online omgeving aan!
                 </button>
               </Link>
@@ -70,7 +70,7 @@ function Homepage() {
             </div>
             <div className="flex justify-center pt-12">
               <Link>
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Bekijk beschikbare pakketen
                 </button>
               </Link>
@@ -82,7 +82,7 @@ function Homepage() {
 
       <div className="px-4 bg-white overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full lg:flex-row">
-          <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
+          <div className="joyride-step-2 mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
             <div className="max-w-xl mb-4">
               <h2 className="font-sans text-3xl sm:mt-0 mt-4 font-medium tracking-tight text-black sm:text-4xl sm:leading-none max-w-lg mb-4">
                 Handleiding
@@ -102,7 +102,7 @@ function Homepage() {
             </div>
             <div className="flex justify-center">
               <Link to="handleiding">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
                   Bekijk de handleiding
                 </button>
               </Link>
@@ -129,7 +129,7 @@ function Homepage() {
         </div>
       </div>
       <div className="py-8 flex items-center justify-center sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0 mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+        <div className="joyride-step-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
           <div className="bg-white overflow-hidden shadow-lg transition-transform transform hover:scale-105">
             <div className="p-1 bg-house-green"></div>
             <div className="p-6">
@@ -196,7 +196,14 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <Link to="requestForm">
+              <Link
+                to={{
+                  pathname: "/requestForm", // URL van de andere pagina
+                  search: `?package=${encodeURIComponent(
+                    JSON.stringify("Gratis")
+                  )}`, // Querystring met het geselecteerde pakket
+                }}
+              >
                 <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                   Kies dit pakket
                 </button>
@@ -272,7 +279,14 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <Link to="requestForm">
+              <Link
+                to={{
+                  pathname: "/requestForm", // URL van de andere pagina
+                  search: `?package=${encodeURIComponent(
+                    JSON.stringify("Basis")
+                  )}`, // Querystring met het geselecteerde pakket
+                }}
+              >
                 <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                   kies dit pakket
                 </button>
@@ -349,7 +363,14 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <Link to="requestForm">
+              <Link
+                to={{
+                  pathname: "/requestForm", // URL van de andere pagina
+                  search: `?package=${encodeURIComponent(
+                    JSON.stringify("Premium")
+                  )}`, // Querystring met het geselecteerde pakket
+                }}
+              >
                 <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                   Kies dit pakket
                 </button>
@@ -370,7 +391,7 @@ function Homepage() {
       </div>
 
       <div className="container mx-auto py-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0">
+        <div className="joyride-step-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-0">
           <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl transition-transform transform hover:scale-105">
             <div className="w-full p-1 bg-house-green"></div>
             <div className="flex flex-col items-center justify-center h-full text-center p-4">

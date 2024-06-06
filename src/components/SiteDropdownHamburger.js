@@ -1,24 +1,18 @@
-import React, { useEffect, useState } from "react";
+import { Button } from "@material-tailwind/react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
-export default function AccountDropdown() {
+export default function AccountDropdownHamburger() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    // Maak een HTTP-verzoek om de gebruikersgegevens op te halen
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get("/api/getUserByEmailFromSession");
-        setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-
-    fetchUser(); // Roep de functie voor het ophalen van gebruikersgegevens aan wanneer het component gemonteerd is
-  }, []); // De lege array als tweede argument zorgt ervoor dat useEffect alleen wordt uitgevoerd bij de eerste render
+  const navigate = useNavigate();
+  
+  const handleLogout = () => { 
+    localStorage.removeItem("token");
+      console.log("Token removed");
+    navigate("/");
+    console.log("Navigated to login")
+  };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -33,11 +27,28 @@ export default function AccountDropdown() {
       <div className="relative">
         <button
           onClick={toggleDropdown}
-          className="relative overflow-hidden focus:outline-none focus:border-white text-lg font-semibold leading-6 text-white"
+          data-collapse-toggle="navbar-default"
+          type="button"
+          className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+          aria-controls="navbar-default"
+          aria-expanded="false"
         >
-          <a>
-            {user ? user.SubDomainName + ".studententuin.nl" : "Loading..."}
-          </a>
+          <span className="sr-only">Open main menu</span>
+          <svg
+            className="w-5 h-5"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 17 14"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M1 1h15M1 7h15M1 13h15"
+            />
+          </svg>
         </button>
         <button
           className={
@@ -67,12 +78,15 @@ export default function AccountDropdown() {
           >
             Support
           </a>
+          <span>
           <a
             href="/logout"
             className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
+            onClick={handleLogout}
           >
-            Sign Out
+            Sign Out 
           </a>
+          </span>
         </div>
       </div>
     </div>
