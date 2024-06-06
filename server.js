@@ -9,10 +9,10 @@ import multer from "multer";
 const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
-const subdomain = ''
-const directory = subdomain || 'studententuin'
-const relativepath = '../' + directory + '/'
-let clickedNode = '' || '/src/test'
+const subdomain = '';
+const directory = subdomain || 'test';
+const relativepath = '../' + directory + '/';
+let clickedNode = '' || '/src/test';
 
 app.use(express.json());
 app.set("view engine", "ejs");
