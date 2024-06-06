@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bodyParser from "body-parser";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import userService from "../server/services/user.service.js";
 import cors from "cors";
 import session from "express-session";
