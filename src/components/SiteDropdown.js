@@ -69,7 +69,7 @@ export default function AccountDropdown() {
           </a>
           <a
             href="/logout"
-            className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
+            className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"  
           >
             Sign Out
           </a>
