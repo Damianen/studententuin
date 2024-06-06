@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "../public/style.css";
 
 import Main from "./Main.js";
-import HomePage from "./homepage.js";
+import HomePage from "./Homepage.js";
 import Login from "./login.js";
 import RequestForm from "./RequestForm.js";
 import Manage from "./Manage.js";

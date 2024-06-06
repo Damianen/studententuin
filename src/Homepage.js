@@ -196,8 +196,15 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <Link to="requestForm">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
+              <Link
+                to={{
+                  pathname: "/requestForm", // URL van de andere pagina
+                  search: `?package=${encodeURIComponent(
+                    JSON.stringify("Gratis")
+                  )}`, // Querystring met het geselecteerde pakket
+                }}
+              >
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                   Kies dit pakket
                 </button>
               </Link>
@@ -272,8 +279,15 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <Link to="requestForm">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
+              <Link
+                to={{
+                  pathname: "/requestForm", // URL van de andere pagina
+                  search: `?package=${encodeURIComponent(
+                    JSON.stringify("Basis")
+                  )}`, // Querystring met het geselecteerde pakket
+                }}
+              >
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                   kies dit pakket
                 </button>
               </Link>
@@ -349,8 +363,15 @@ function Homepage() {
               </ul>
             </div>
             <div className="p-4 flex justify-center">
-              <Link to="requestForm">
-                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green transition-transform transform hover:scale-105">
+              <Link
+                to={{
+                  pathname: "/requestForm", // URL van de andere pagina
+                  search: `?package=${encodeURIComponent(
+                    JSON.stringify("Premium")
+                  )}`, // Querystring met het geselecteerde pakket
+                }}
+              >
+                <button className="inline-block border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green">
                   Kies dit pakket
                 </button>
               </Link>

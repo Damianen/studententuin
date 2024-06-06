@@ -1,6 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 export default function RequestForm() {
+  const location = useLocation();
+
+  // Directly initialize the state from the URL parameters
+  const queryParams = new URLSearchParams(location.search);
+  const initialPackage = queryParams.get("package") || "";
+  const [selectedPackage, setSelectedPackage] = useState(initialPackage);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const packageParam = queryParams.get("package");
+    if (packageParam) {
+      if (packageParam !== selectedPackage) {
+        setSelectedPackage(packageParam);
+      }
+    }
+  }, [location.search, selectedPackage]);
+
   return (
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 space-y-2">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -22,7 +40,7 @@ export default function RequestForm() {
               <input
                 id="subdomainName"
                 name="subdomainName"
-                type="subdomainName"
+                type="text"
                 required
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
               />
@@ -77,11 +95,13 @@ export default function RequestForm() {
                 name="productPackage"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
                 id="productPackage"
+                value={JSON.parse(selectedPackage)}
+                onChange={(e) => setSelectedPackage(e.target.value)}
               >
                 <option value="">Kies een pakket</option>
-                <option value="free">Gratis</option>
-                <option value="basic">Basis</option>
-                <option value="premium">Premium</option>
+                <option value="Gratis">Gratis</option>
+                <option value="Basis">Basis</option>
+                <option value="Premium">Premium</option>
               </select>
             </div>
           </div>
