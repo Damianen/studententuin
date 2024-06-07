@@ -5,6 +5,8 @@ const Logs = () => {
   const [stdoutLogs, setStdoutLogs] = useState("");
   const [stderrLogs, setStderrLogs] = useState("");
   const [error, setError] = useState(null);
+  const [showStdout, setShowStdout] = useState(true);
+  const [showStderr, setShowStderr] = useState(false);
 
   useEffect(() => {
     axios
@@ -19,15 +21,35 @@ const Logs = () => {
   }, []);
 
   return (
-    <div>
+    <div className="container mx-auto px-4 py-8">
       {error ? (
-        <p>{error}</p>
+        <p className="text-red-500">{error}</p>
       ) : (
-        <div>
-          <h2>Stdout Logs</h2>
-          <pre>{stdoutLogs}</pre>
-          <h2>Stderr Logs</h2>
-          <pre>{stderrLogs}</pre>
+        <div className="space-y-4">
+          <button
+            className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
+            onClick={() => setShowStdout(!showStdout)}
+          >
+            {showStdout ? "Hide Stdout" : "Show Stdout"}
+          </button>
+          <button
+            className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
+            onClick={() => setShowStderr(!showStderr)}
+          >
+            {showStderr ? "Hide Stderr" : "Show Stderr"}
+          </button>
+          {showStdout && (
+            <div>
+              <h1 className="text-xl font-bold">Stdout Logs</h1>
+              <pre className="bg-gray-200 p-4 rounded">{stdoutLogs}</pre>
+            </div>
+          )}
+          {showStderr && (
+            <div>
+              <h1 className="text-xl font-bold">Stderr Logs</h1>
+              <pre className="bg-gray-200 p-4 rounded">{stderrLogs}</pre>
+            </div>
+          )}
         </div>
       )}
     </div>
