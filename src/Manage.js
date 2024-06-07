@@ -147,7 +147,9 @@ function Manage() {
               <SiteConfiguration />
             ) : selectedItem === "Git" ? (
               <Git />
-            ) : <FileTree /> }
+            ) : (
+              <FileTree />
+            )}
           </div>
         </div>
       </div>

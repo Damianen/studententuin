@@ -1,37 +1,35 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Logs = () => {
-  const [logs, setLogs] = useState([]);
+  const [stdoutLogs, setStdoutLogs] = useState("");
+  const [stderrLogs, setStderrLogs] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch logs data from your API or database
-    // Replace the API_URL with your actual API endpoint
-    // fetch(API_URL)
-    //     .then(response => response.json())
-    //     .then(data => setLogs(data))
-    //     .catch(error => console.error(error));
-    setLogs([
-      { id: 1, content: "Log 1" },
-      { id: 2, content: "Log 2" },
-      { id: 3, content: "Log 3" },
-    ]);
+    axios
+      .get("http://localhost:3001/api/logs")
+      .then((response) => {
+        setStdoutLogs(response.data.stdout || "");
+        setStderrLogs(response.data.stderr || "");
+      })
+      .catch((error) => {
+        setError("Error fetching logs");
+      });
   }, []);
 
   return (
     <div>
-      <h1>Dit zijn de logs</h1>
-      <ul className="shadow-md rounded-lg">
-        {logs.map((log, index) => (
-          <div
-            key={index}
-            className={`p-3 ${
-              index % 2 === 0 ? "bg-with" : "bg-neutral-warm"
-            }`}
-          >
-            {log.content}
-          </div>
-        ))}
-      </ul>
+      {error ? (
+        <p>{error}</p>
+      ) : (
+        <div>
+          <h2>Stdout Logs</h2>
+          <pre>{stdoutLogs}</pre>
+          <h2>Stderr Logs</h2>
+          <pre>{stderrLogs}</pre>
+        </div>
+      )}
     </div>
   );
 };

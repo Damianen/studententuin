@@ -3,9 +3,15 @@ import bodyParser from "body-parser";
 import bcrypt from "bcryptjs";
 import userService from "../server/services/user.service.js";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import session from "express-session";
+import fs from "fs/promises"; // gebruik fs/promises voor asynchrone file operaties
 
 const router = Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
@@ -132,6 +138,71 @@ router.get("/logout", (req, res) => {
       res.redirect("/");
     }
   });
+});
+
+// Helper functie om het nieuwste logbestand te vinden per type (stdout/stderr)
+const getNewestLogFiles = async (dir) => {
+  const files = await fs.readdir(dir);
+
+  // Filter logbestanden voor stdout en stderr
+  const stdoutFiles = files.filter(
+    (file) =>
+      file.startsWith("STUDENTENTUIN01-") &&
+      file.includes("-stdout-") &&
+      file.endsWith(".txt")
+  );
+
+  const stderrFiles = files.filter(
+    (file) =>
+      file.startsWith("STUDENTENTUIN01-") &&
+      file.includes("-stderr-") &&
+      file.endsWith(".txt")
+  );
+
+  // Sorteer de logbestanden op datum
+  stdoutFiles.sort((a, b) => {
+    const timestampA = parseInt(a.split("-")[3].replace(".txt", ""));
+    const timestampB = parseInt(b.split("-")[3].replace(".txt", ""));
+    return timestampB - timestampA;
+  });
+
+  stderrFiles.sort((a, b) => {
+    const timestampA = parseInt(a.split("-")[3].replace(".txt", ""));
+    const timestampB = parseInt(b.split("-")[3].replace(".txt", ""));
+    return timestampB - timestampA;
+  });
+
+  // Return de nieuwste logbestanden voor stdout en stderr
+  const newestStdout =
+    stdoutFiles.length > 0 ? path.join(dir, stdoutFiles[0]) : null;
+  const newestStderr =
+    stderrFiles.length > 0 ? path.join(dir, stderrFiles[0]) : null;
+
+  return { newestStdout, newestStderr };
+};
+
+router.get("/api/logs", async (req, res) => {
+  try {
+    const logsDir = path.join(__dirname, "logs");
+    const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
+
+    if (!newestStdout && !newestStderr) {
+      return res.status(404).json({ error: "No log files found" });
+    }
+
+    const stdoutData = newestStdout
+      ? await fs.readFile(newestStdout, "utf8")
+      : null;
+    const stderrData = newestStderr
+      ? await fs.readFile(newestStderr, "utf8")
+      : null;
+
+    res.json({ stdout: stdoutData, stderr: stderrData });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Error reading log files", details: err.message });
+  }
 });
 
 export default router;
