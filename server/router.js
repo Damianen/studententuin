@@ -84,76 +84,6 @@ router.get("/about", (req, res) => {
 router.get("/contact", (req, res) => {
   res.render("index.ejs");
 });
-router.get("/api", async (req, res) => {
-  try {
-    const logsDir = path.resolve(__dirname, "../logs");
-    console.log(`Looking for logs in: ${logsDir}`);
-
-    try {
-      await fs.access(logsDir);
-    } catch (err) {
-      console.error(`Directory does not exist: ${logsDir}`, err);
-      return res.status(404).json({ error: "Logs directory does not exist" });
-    }
-
-    const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
-
-    if (!newestStdout && !newestStderr) {
-      return res.status(404).json({ error: "No log files found" });
-    }
-
-    const stdoutData = newestStdout
-      ? await fs.readFile(newestStdout, "utf8")
-      : null;
-    const stderrData = newestStderr
-      ? await fs.readFile(newestStderr, "utf8")
-      : null;
-
-    res.json({ stdout: stdoutData, stderr: stderrData });
-  } catch (err) {
-    console.error("Error reading log files:", err);
-    res
-      .status(500)
-      .json({ error: "Error reading log files", details: err.message });
-  }
-});
-
-export default router;
-
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await userService.getUserByEmail(email);
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    req.session.user = user;
-    console.log("Session created:", req.session);
-    res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ message: "An error occurred" });
-  }
-});
-
-router.get("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Error destroying session:", err);
-      res.status(500).json({ message: "Internal server error" });
-    } else {
-      res.clearCookie("session"); // Verwijder het sessie-cookie
-      res.redirect("/");
-    }
-  });
-});
 
 // Helper function to find the newest log files
 const getNewestLogFiles = async (dir) => {
@@ -192,3 +122,74 @@ const getNewestLogFiles = async (dir) => {
 
   return { newestStdout, newestStderr };
 };
+
+router.get("/api", async (req, res) => {
+  try {
+    const logsDir = path.resolve(__dirname, "../logs");
+    console.log(`Looking for logs in: ${logsDir}`);
+
+    try {
+      await fs.access(logsDir);
+    } catch (err) {
+      console.error(`Directory does not exist: ${logsDir}`, err);
+      return res.status(404).json({ error: "Logs directory does not exist" });
+    }
+
+    const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
+
+    if (!newestStdout && !newestStderr) {
+      return res.status(404).json({ error: "No log files found" });
+    }
+
+    const stdoutData = newestStdout
+      ? await fs.readFile(newestStdout, "utf8")
+      : null;
+    const stderrData = newestStderr
+      ? await fs.readFile(newestStderr, "utf8")
+      : null;
+
+    res.json({ stdout: stdoutData, stderr: stderrData });
+  } catch (err) {
+    console.error("Error reading log files:", err);
+    res
+      .status(500)
+      .json({ error: "Error reading log files", details: err.message });
+  }
+});
+
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await userService.getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    req.session.user = user;
+    console.log("Session created:", req.session);
+    res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
+router.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying session:", err);
+      res.status(500).json({ message: "Internal server error" });
+    } else {
+      res.clearCookie("session"); // Verwijder het sessie-cookie
+      res.redirect("/");
+    }
+  });
+});
+
+export default router;
