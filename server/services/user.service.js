@@ -92,6 +92,76 @@ const userService = {
       throw error;
     }
   },
+
+  createUser: async (email, password, userPackage) => {
+    try {
+      const request = pool.request();
+      const result = await request
+        .input("email", sql.NVarChar, email)
+        .input("password", sql.NVarChar, password)
+        .input("userPackage", sql.NVarChar, userPackage)
+        .query(
+          "INSERT INTO [studententuin].[dbo].[User] (Email, Password, package) VALUES (@email, @password, @userPackage)"
+        );
+
+      return {
+        email: email,
+        userPackage: userPackage,
+      };
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  },
+
+  getUserPackage: async (req) => {
+    try {
+      // Haal de e-mail van de gebruiker uit de sessie
+      const userEmail = req.session.user.email;
+
+      // Roep de getUserByEmail-functie aan om de gebruiker op te halen
+      const request = pool.request();
+      const result = await request
+        .input("userEmail", sql.NVarChar, userEmail)
+        .query(
+          "SELECT package FROM [studententuin].[dbo].[User] WHERE email = @userEmail"
+        );
+
+      if (result.recordset.length > 0) {
+        return result.recordset[0];
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  },
+
+  getSubdomainByUser: async (req) => {
+    try {
+      // Haal de e-mail van de gebruiker uit de sessie
+      const userEmail = req.session.user.email;
+
+      // Roep de getUserByEmail-functie aan om de gebruiker op te halen
+      const request = pool.request();
+      const result = await request
+        .input("userEmail", sql.NVarChar, userEmail)
+        .query(
+          "SELECT SubDomainName FROM [studententuin].[dbo].[UserSubDomain] WHERE userEmail = @userEmail"
+        );
+
+      if (result.recordset.length > 0) {
+        return result.recordset[0];
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  }
+
 };
 
 export default userService;

@@ -2,8 +2,9 @@ import express from "express";
 import session from "express-session";
 import router from './server/router.js';
 import userRoutes from './server/routes/user.routes.js';
+import userService from "./server/services/user.service.js";
 import fs, {readdir, stat } from "fs";
-import path from "path";
+import path, { relative } from "path";
 import multer from "multer";
 import { promisify } from "util";
 import fastFolderSize from "fast-folder-size";
@@ -11,10 +12,6 @@ import fastFolderSize from "fast-folder-size";
 const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
-const subdomain = '';
-const directory = subdomain || 'test';
-const relativepath = '../' + directory;
-let clickedNode = '';
 
 app.use(express.json());
 app.set("view engine", "ejs");
@@ -22,6 +19,18 @@ app.use(express.static("public"));
 app.use(router);
 app.use(userRoutes);
 
+const getRelativePath = (req) => {
+  const userSubdomain = userService.getSubdomainByUser(req);
+  let relativepath;
+  if (userSubdomain) {
+    subdomain = userSubdomain.SubDomainName;
+    console.log('Subdomain:', subdomain);
+    directory = subdomain || 'test';
+    relativepath = '../' + directory;
+    console.log ('Relative path:', relativepath);
+  }
+  return relativepath;
+}
 
 function buildFileTree(dirPath) {
   const tree = {};
@@ -45,8 +54,19 @@ const dirSize = async relativepath => {
 }
 
 
-app.get('/filetree', (req, res) => {
-  res.json(buildFileTree(relativepath));
+app.get('/filetree', async (req, res) => {
+  try {
+    let relativepath = getRelativePath(req);
+    console.log('Relative path:', relativepath);
+    if(relativepath){
+    res.json(buildFileTree(relativepath));
+    }else{
+      res.status(400).json({ message: 'No subdomain found' });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.post('/selected-node', (req, res) => {
@@ -67,8 +87,14 @@ app.post('/selected-node', (req, res) => {
 });
 
 app.get('/dir-info', async (req, res) => {
+  let relativepath = getRelativePath(req);
+  console.log('Relative path:', relativepath);
   const size = await dirSize(relativepath);
-  const totalStorage = 1000000; // get this from database
+  let userPackage = await userService.getUserPackage(req);
+  let totalStorage;
+  if (userPackage = 'free') {
+    totalStorage = 314572800;
+  }
   const usedStorage = size;
   const storagePercentage = (usedStorage / totalStorage) * 100;
   res.json({ size, storagePercentage });
