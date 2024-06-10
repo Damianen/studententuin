@@ -51,7 +51,7 @@ function Manage() {
               >
                 <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-house-green md:dark:bg-house-green dark:border-gray-700">
                   <li>
-                    <button className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400">
+                    <button className="inline-block border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400">
                       Upgraden
                     </button>
                   </li>
@@ -72,7 +72,9 @@ function Manage() {
                           alt="Your avatar"
                         />
                       </button>
-                      <SiteDropdown className="inline-block text-left z-10" />
+                      <div className="inline-block text-left z-10">
+                        <SiteDropdown />
+                      </div>
                     </div>
                   </li>
                 </ul>
@@ -131,7 +133,7 @@ function Manage() {
           className="w-10/12 bg-white
         "
         >
-          <div className="p-4 h-screen overflow-auto">
+          <div className="p-4 h-screen overflow-auto z-5">
             <h1 className="text-2xl font-semibold">{selectedItem}</h1>
             {selectedItem === "Logs" ? (
               <Logs />
@@ -147,7 +149,11 @@ function Manage() {
               <SiteConfiguration />
             ) : selectedItem === "Git" ? (
               <Git />
-            ) : <FileTree /> }
+            ) : (
+              <div className="z-0">
+                <FileTree />
+              </div>
+            )}
           </div>
         </div>
       </div>

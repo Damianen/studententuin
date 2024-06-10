@@ -2,9 +2,11 @@ import express from "express";
 import session from "express-session";
 import router from './server/router.js';
 import userRoutes from './server/routes/user.routes.js';
-import fs from "fs";
+import fs, {readdir, stat } from "fs";
 import path from "path";
 import multer from "multer";
+import { promisify } from "util";
+import fastFolderSize from "fast-folder-size";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -35,6 +37,14 @@ function buildFileTree(dirPath) {
   return tree;
 }
 
+const dirSize = async relativepath => {
+  const fastFolderSizeASync= promisify(fastFolderSize);
+  const size = await fastFolderSizeASync(relativepath);
+  console.log('Directory size:', size);
+  return size;
+}
+
+
 app.get('/filetree', (req, res) => {
   res.json(buildFileTree(relativepath));
 });
@@ -56,6 +66,14 @@ app.post('/selected-node', (req, res) => {
 });
 });
 
+app.get('/dir-info', async (req, res) => {
+  const size = await dirSize(relativepath);
+  const totalStorage = 1000000; // get this from database
+  const usedStorage = size;
+  const storagePercentage = (usedStorage / totalStorage) * 100;
+  res.json({ size, storagePercentage });
+});
+
 app.get('/delete-file', (req, res) => {
   console.log('File deleted:', relativepath+clickedNode)
   fs.unlinkSync( relativepath + clickedNode);
@@ -64,21 +82,28 @@ app.get('/delete-file', (req, res) => {
 });
 
 
-function checkSelectedNode(req, res, next) {
-  console.log(clickedNode + ' in checkSelectedNode');
-}
-
 
 const storage = multer.diskStorage({
- destination: (req, file, cb) => {
-    const folderPath = path.join(relativepath, clickedNode,
-    req.body.relativepath || '')
-  fs.mkdirSync(folderPath, { recursive: true });
-  cb(null, folderPath);
-},
-filename: (req, file, cb) => {
-  cb(null, file.originalname);
-},
+  destination: (req, file, cb) => {
+    let folderPath = path.join(relativepath, clickedNode, req.body.relativepath || '');
+    
+    // Check if the path is a file or a directory
+    if (fs.existsSync(folderPath)) {
+      const stats = fs.statSync(folderPath);
+      if (stats.isFile()) {
+        // If it's a file, get the directory of the file
+        folderPath = path.dirname(folderPath);
+      }
+    } else {
+      // If the path doesn't exist, create it
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
+
+    cb(null, folderPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
 });
 
 const upload = multer({ storage: storage });

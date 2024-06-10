@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Treebeard } from "react-treebeard";
 import Uppy from "../Uppy.js";
-import { Button } from "@material-tailwind/react";
 import fs from "fs";
 
 const style = {
@@ -13,7 +12,7 @@ const style = {
       padding: 0,
       color: "#9DA5AB",
       fontFamily: "lucida grande ,tahoma,verdana,arial,sans-serif",
-      fontSize: "22px",
+      fontSize: "18px",
     },
     node: {
       base: {
@@ -87,6 +86,7 @@ function FileTree() {
   const [cursor, setCursor] = useState(false);
   const [selectedNode, setSelectedNode] = useState("");
   const [refresh, setRefresh] = useState(false);
+  const [showUppy, setShowUppy] = useState(false);
 
   useEffect(() => {
     fetch("/filetree")
@@ -95,51 +95,66 @@ function FileTree() {
   }, [refresh]);
 
   const handleDeleteFile = () => {
-    fetch("/delete-file", {
-      method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        console.log('File deleted successfully');
-        
-      } else {
-        console.log('Failed to delete file');
-        setRefresh(!refresh);
-      }
-    });
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append("file", e.target.files[0]);
-    fetch("/upload", {
+    fetch("/selected-node", {
       method: "POST",
-      body: formData,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedNode: selectedNode }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.error(error));
+    fetch("/delete-file", {
+      method: "GET",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          console.log("File deleted successfully");
+        } else {
+          console.log("Failed to delete file");
+          setRefresh(!refresh);
+        }
+      });
+  };
+
+  const handleUpload = () => {
+    setShowUppy(!showUppy);
+    fetch("/selected-node", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedNode: selectedNode }),
     })
       .then((response) => response.json())
       .then((data) => console.log(data))
       .catch((error) => console.error(error));
   };
 
- const processData = (data) => {
-  const processedData = { name: "root", toggled: true, children: [], path: "" };
-  function processNode(node, processedNode) {
-    Object.keys(node).forEach((key) => {
-      const path = `${processedNode.path}/${key}`;
-      if (typeof node[key] === "string") {
-        processedNode.children.push({ name: node[key], path });
-      } else {
-        const newNode = { name: key, children: [], path };
-        processedNode.children.push(newNode);
-        processNode(node[key], newNode);
-      }
-    });
-  }
-  processNode(data, processedData);
-  return processedData;
-};
+  const processData = (data) => {
+    const processedData = {
+      name: "root",
+      toggled: true,
+      children: [],
+      path: "",
+    };
+    function processNode(node, processedNode) {
+      Object.keys(node).forEach((key) => {
+        const path = `${processedNode.path}/${key}`;
+        if (typeof node[key] === "string") {
+          processedNode.children.push({ name: node[key], path });
+        } else {
+          const newNode = { name: key, children: [], path };
+          processedNode.children.push(newNode);
+          processNode(node[key], newNode);
+        }
+      });
+    }
+    processNode(data, processedData);
+    return processedData;
+  };
 
   const onToggle = (node, toggled) => {
     if (cursor) {
@@ -153,39 +168,37 @@ function FileTree() {
     setFileTree(Object.assign({}, fileTree));
     setSelectedNode(node.path);
     console.log(node.path);
-    fetch("/selected-node", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ selectedNode: node.path }),
-    })
-    .then((response) => response.json())
-    .then((data) => console.log(data))
-    .catch((error) => console.error(error));
+    if(showUppy){
+      setShowUppy(!showUppy);
+    }
   };
   return (
-    <div>
+    <div className="w-3/5 z-0">
       <div>
-        <Treebeard
-          className="text-black"
-          data={fileTree}
-          onToggle={onToggle}
-          style={style}
-        />
+        <Treebeard data={fileTree} onToggle={onToggle} style={style} />
       </div>
-      <div>
-        <Uppy />
+      <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+      {showUppy && (
+        <div>
+          <Uppy />
+        </div>
+      )}
+      <div>Path: {selectedNode}</div>{" "}
+      <div className=" ">
+        <button
+          className="inline-block  border border-transparent bg-primary-green px-6 py-2 mx-5 text-center font-medium text-white hover:bg-house-green"
+          onClick={handleDeleteFile}
+        >
+          Delete
+        </button>
+        <button
+          className="inline-block border mx-5 border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green"
+          onClick={handleUpload}
+        >
+          Upload
+        </button>
       </div>
-      <div>Selected Node: {selectedNode}</div>{" "}
-      {/* display the selected node name */}
-      <div>
-      <button className="inline-block  border border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green" onClick={handleDeleteFile}>
-                  Delete
-                </button>
-  </div>
     </div>
-  
   );
 }
 

@@ -42,7 +42,7 @@ export default function AccountDropdown() {
         <button
           className={
             isOpen
-              ? " cursor-default bg-black opacity-50 fixed inset-0 w-full h-full"
+              ? " cursor-default bg-black opacity-50 fixed inset-0 w-full h-full z-40"
               : "hidden"
           }
           onClick={closeDropdown}
@@ -51,7 +51,7 @@ export default function AccountDropdown() {
         <div
           className={
             isOpen
-              ? "absolute right-0 mt-2 w-48 bg-white rounded-lg py-2 shadow-xl"
+              ? "absolute right-0 mt-2 w-48 bg-white rounded-lg py-2 shadow-xl z-50"
               : "hidden"
           }
         >
@@ -69,7 +69,7 @@ export default function AccountDropdown() {
           </a>
           <a
             href="/logout"
-            className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"  
+            className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
           >
             Sign Out
           </a>
