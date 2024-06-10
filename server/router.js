@@ -85,14 +85,6 @@ router.get("/contact", (req, res, next) => {
   res.render("index.ejs");
 });
 
-// router.get("/check-session", (req, res) => {
-//   if (req.session.user) {
-//     res.json({ session: req.session.user });
-//   } else {
-//     res.status(401).json({ message: "No active session" });
-//   }
-// });
-
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -183,7 +175,7 @@ const getNewestLogFiles = async (dir) => {
 
 router.get("/api/logs", async (req, res) => {
   try {
-    const logsDir = path.join(__dirname, "logs");
+    const logsDir = path.resolve(__dirname, "../logs"); // Update this line to reference the logs directory correctly
     const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
 
     if (!newestStdout && !newestStderr) {
