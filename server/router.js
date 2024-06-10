@@ -88,6 +88,31 @@ router.get("/contact", (req, res, next) => {
 //   }
 // });
 
+router.post("/register", async (req, res) => {
+  const { email, password, userPackage } = req.body;
+
+  try {
+    // Controleer of de gebruiker al bestaat
+    const userExists = await userService.getUserByEmail(email);
+
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Versleutel het wachtwoord
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Sla de gebruiker op in de database
+    const user = await userService.createUser(email, hashedPassword, userPackage);
+
+    // Geef een succesbericht terug met de redirect-url
+    res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 

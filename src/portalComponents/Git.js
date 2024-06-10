@@ -49,6 +49,10 @@ const Git = () => {
     setShowExplanation(!showExplanation);
   };
 
+  const runDeploy = () => {
+    // Run the deploy script
+  };
+
   const showRepoChangeHandler = () => {
     setShowRepoChange(!showRepoChange);
   };
@@ -142,7 +146,18 @@ const Git = () => {
         </button>
       </form>
       <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+      <h2>Je kunt nu handmatig deployen door middel van de knop hieronder</h2>
+      <p>Let op! Dit zal de huidige branch pullen en daarna al je post build commands uitvoeren (deze kun je in de SiteConfiguration veranderen)</p>
+      <button
+        className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
+        type="button"
+        onClick={runDeploy}
+      >
+        Deploy
+      </button>
+      <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
       <h2>Wil je automatisch deployen klik dan hier</h2>
+
       <button
         className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
         type="button"

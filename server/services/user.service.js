@@ -93,6 +93,27 @@ const userService = {
     }
   },
 
+  createUser: async (email, password, userPackage) => {
+    try {
+      const request = pool.request();
+      const result = await request
+        .input("email", sql.NVarChar, email)
+        .input("password", sql.NVarChar, password)
+        .input("userPackage", sql.NVarChar, userPackage)
+        .query(
+          "INSERT INTO [studententuin].[dbo].[User] (Email, Password, package) VALUES (@email, @password, @userPackage)"
+        );
+
+      return {
+        email: email,
+        userPackage: userPackage,
+      };
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  },
+
   getUserPackage: async (req) => {
     try {
       // Haal de e-mail van de gebruiker uit de sessie
