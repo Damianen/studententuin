@@ -19,13 +19,13 @@ app.use(express.static("public"));
 app.use(router);
 app.use(userRoutes);
 
-const getRelativePath = (req) => {
-  const userSubdomain = userService.getSubdomainByUser(req);
+const getRelativePath = async (req) => {
+  const userSubdomain =  await userService.getSubdomainByUser(req);
   let relativepath;
   if (userSubdomain) {
-    let subdomain = userSubdomain.SubDomainName;
+    let subdomain = userSubdomain;
     console.log('Subdomain:', subdomain);
-    directory = subdomain || 'test';
+    let directory = subdomain || 'test';
     relativepath = '../' + directory;
     console.log ('Relative path:', relativepath);
   }
