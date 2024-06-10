@@ -96,11 +96,7 @@ function FileTree() {
 
   const handleDeleteFile = () => {
     fetch("/delete-file", {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ selectedNode: selectedNode }),
+      method: 'GET'
     })
     .then(response => response.json())
     .then(data => {

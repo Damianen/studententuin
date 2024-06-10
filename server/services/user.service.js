@@ -55,7 +55,7 @@ const userService = {
       const result = await request
         .input("email", sql.NVarChar, email)
         .query(
-          "SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @email"
+          "SELECT * FROM [studententuin].[dbo].[User] WHERE email = @email"
         );
 
       if (result.recordset.length > 0) {

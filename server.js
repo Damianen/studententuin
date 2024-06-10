@@ -11,19 +11,14 @@ const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
 const subdomain = '';
 const directory = subdomain || 'test';
-const relativepath = '../' + directory + '/';
-let clickedNode = '' || '/src/test';
+const relativepath = '../' + directory;
+let clickedNode = '';
 
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(router);
-app.use(session({
-  secret: 'secret',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }
-}));
+app.use(userRoutes);
 
 
 function buildFileTree(dirPath) {
@@ -61,9 +56,9 @@ app.post('/selected-node', (req, res) => {
 });
 });
 
-app.delete('/delete-file', (req, res) => {
-  fs.unlinkSync( __dirname+ clickedNode);
-  console.log('File deleted:', clickedNode)
+app.get('/delete-file', (req, res) => {
+  console.log('File deleted:', relativepath+clickedNode)
+  fs.unlinkSync( relativepath + clickedNode);
   res.json({ message: 'File deleted'
    });
 });
@@ -92,7 +87,7 @@ app.post('/upload', upload.array("files") ,(req, res) => {
   console.log('uploading files to path:', relativepath + clickedNode);
   res.send('File uploaded successfully');
 });
-app.use(userRoutes);
+
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

@@ -13,7 +13,7 @@ function Component() {
   });
 
   uppy.use(XHRUpload, {
-    endpoint: "http://localhost:3001/upload",
+    endpoint: "https://studententuin.nl/upload",
     fieldName: "files",
     formData: true,
     allowedMetaFields: [{ id: "relativePath", name: "Relative Path" }],
