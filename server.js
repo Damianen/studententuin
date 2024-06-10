@@ -23,7 +23,7 @@ const getRelativePath = async (req) => {
   const userSubdomain =  await userService.getSubdomainByUser(req);
   let relativepath;
   if (userSubdomain) {
-    let subdomain = userSubdomain;
+    let subdomain = userSubdomain.SubDomainName;
     console.log('Subdomain:', subdomain);
     let directory = subdomain || 'test';
     relativepath = '../' + directory;
