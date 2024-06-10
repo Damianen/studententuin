@@ -158,7 +158,7 @@ const getNewestLogFiles = async (dir) => {
   return { newestStdout, newestStderr };
 };
 
-router.get("/api/logs", async (req, res) => {
+router.get("/logs", async (req, res) => {
   res.status(500).json({ message: "An error occurred" });
 
   // try {
