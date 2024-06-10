@@ -56,7 +56,7 @@ const dirSize = async relativepath => {
 
 app.get('/filetree', async (req, res) => {
   try {
-    let relativepath = getRelativePath(req);
+    let relativepath = await getRelativePath(req);
     console.log('Relative path:', relativepath);
     if(relativepath){
     res.json(buildFileTree(relativepath));
