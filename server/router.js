@@ -158,40 +158,38 @@ const getNewestLogFiles = async (dir) => {
   return { newestStdout, newestStderr };
 };
 
-router.get("/logs", async (req, res) => {
-  res.status(500).json({ message: "An error occurred" });
+router.get("/api", async (req, res) => {
+  try {
+    const logsDir = path.resolve(__dirname, "../logs");
+    console.log(`Looking for logs in: ${logsDir}`);
 
-  // try {
-  //   const logsDir = path.resolve(__dirname, "../logs");
-  //   console.log(`Looking for logs in: ${logsDir}`);
+    try {
+      await fs.access(logsDir);
+    } catch (err) {
+      console.error(`Directory does not exist: ${logsDir}`, err);
+      return res.status(404).json({ error: "Logs directory does not exist" });
+    }
 
-  //   try {
-  //     await fs.access(logsDir);
-  //   } catch (err) {
-  //     console.error(`Directory does not exist: ${logsDir}`, err);
-  //     return res.status(404).json({ error: "Logs directory does not exist" });
-  //   }
+    const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
 
-  //   const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
+    if (!newestStdout && !newestStderr) {
+      return res.status(404).json({ error: "No log files found" });
+    }
 
-  //   if (!newestStdout && !newestStderr) {
-  //     return res.status(404).json({ error: "No log files found" });
-  //   }
+    const stdoutData = newestStdout
+      ? await fs.readFile(newestStdout, "utf8")
+      : null;
+    const stderrData = newestStderr
+      ? await fs.readFile(newestStderr, "utf8")
+      : null;
 
-  //   const stdoutData = newestStdout
-  //     ? await fs.readFile(newestStdout, "utf8")
-  //     : null;
-  //   const stderrData = newestStderr
-  //     ? await fs.readFile(newestStderr, "utf8")
-  //     : null;
-
-  //   res.json({ stdout: stdoutData, stderr: stderrData });
-  // } catch (err) {
-  //   console.error("Error reading log files:", err);
-  //   res
-  //     .status(500)
-  //     .json({ error: "Error reading log files", details: err.message });
-  // }
+    res.json({ stdout: stdoutData, stderr: stderrData });
+  } catch (err) {
+    console.error("Error reading log files:", err);
+    res
+      .status(500)
+      .json({ error: "Error reading log files", details: err.message });
+  }
 });
 
 export default router;
