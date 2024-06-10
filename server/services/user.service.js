@@ -63,6 +63,28 @@ const userService = {
       throw error;
     }
   },
+
+  insert: async (email, password, productPackage, callback) => {
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    try {
+
+      const result = await pool
+        .request()
+        .input("email", sql.NVarChar, email)
+        .input("password", sql.NVarChar, hashedPassword)
+        .input("package", sql.NVarChar, productPackage)
+        .query(
+          "INSERT INTO [studententuin].[dbo].[User] (email, password, package) VALUES (@email, @password, @package)"
+        );
+
+      callback({status: 200, message: "User succesvol toegevoegt"}, null);
+
+    } catch (err) {
+      callback(null, {status: 500, message: err.message});
+    }
+  },
 };
 
 export default userService;

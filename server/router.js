@@ -6,7 +6,8 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import Cookies from "js-cookie";
 import validateSubdomainRequestChaiExpect from "./../src/ValidateSignUp.js";
-import requestService from "./services/request.service.js"
+import subDomainService from "../server/services/subdomain.service.js"
+import UserSubDomainService from "../server/services/user.subdomain.service.js"
 
 const router = Router();
 
@@ -86,56 +87,69 @@ router.post("/login", async (req, res) => {
 router.post("/requestForm", validateSubdomainRequestChaiExpect, async (req, res) => {
     const {subdomainName, emailAddress, password, productPackage} = req.body;
   
-    const emailExistenceCheckStandard = await new Promise((resolve, reject) => {
-        userService.getByEmail(emailAddress, (success, error) => {
-            if (success) {
-                resolve(true);
-            } else {
-                resolve(false);
+
+    await userService.getByEmail(emailAddress, (success, error) => {
+        if (success) {
+            if(success.status === 200){
+                res.status(409).json({
+                    status: 409,
+                    message: "De gebruikte email staat al geregistreerd in het systeem!",
+                });
             }
-        });
-    });
-
-    if(emailExistenceCheckStandard === true){
-        res.status(409).json({
-            status: error.status,
-            message: "De gebruikte email staat al geregistreerd in het systeem!",
-        });
-        return
-    }
-
-    const emailExistenceCheckRequest = await new Promise((resolve, reject) => {
-        requestService.getByEmail(emailAddress, (success, error) => {
-            if (success) {
-                resolve(true);
-            } else {
-                resolve(false);
-            }
-        });
-    });
-
-    if(emailExistenceCheckRequest === true){
-        res.status(409).json({
-            status: 409,
-            message: "De gebruikte email heeft al een verzoek ingedient!",
-        });
-        return
-    }
-
-    await requestService.insert(emailAddress, password, subdomainName, productPackage, (succes, error) => {
-        if(error){
-            res.status(400).json({
-                status: 400,
-                message: error.message,
-            });
         }else{
-            res.status(200).json({
-                status: 200,
-                message: "succes",
-                data: {subdomainName, emailAddress, password, productPackage}
-            });
+            
+            subDomainService.getByName(subdomainName, (success, error) => {
+                if(success){
+                    if(success.status === 200){
+                        res.status(409).json({
+                            status: 409,
+                            message: "Het opgegeven sub-domein naam is al in gebruik!",
+                        });
+                    }
+                }else{
+                    userService.insert(emailAddress, password, productPackage, (success, error) => {
+                        if(success){
+                            if(success.status === 200){
+                                subDomainService.insertDomainName(subdomainName, (success, error) => {
+                                    if(success){
+                                        if(success.status === 200){
+                                            UserSubDomainService.insert(emailAddress, subdomainName, (success, error) => {
+                                                if(success){
+                                                    if(success.status === 200){
+                                                        res.status(200).json({
+                                                            status: 200,
+                                                            message: "Gebruiker succesvol geregistreerd!",
+                                                        });
+                                                    }
+                                                }else{
+                                                    res.status(error.status).json({
+                                                        status: error.status,
+                                                        message: error.message
+                                                    });
+                                                }
+                                            })
+                                            
+                                        }
+                                    }else{
+                                        res.status(error.status).json({
+                                            status: error.status,
+                                            message: error.message
+                                        });
+                                    }
+                                })
+                            }
+                        }else{
+                            res.status(error.status).json({
+                                status: error.status,
+                                message: error.message
+                            });
+                        }
+                    })
+                }
+            })
+            
         }
-    })
+    });
   });
 
 export default router;
