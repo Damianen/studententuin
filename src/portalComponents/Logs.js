@@ -10,7 +10,7 @@ const Logs = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/api/logs")
+      .get("https://studententuin.nl/api/logs")
       .then((response) => {
         setStdoutLogs(response.data.stdout || "");
         setStderrLogs(response.data.stderr || "");
