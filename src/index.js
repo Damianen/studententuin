@@ -15,11 +15,7 @@ import Manual from "./Manual.js";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <Main>
-        <HomePage />
-      </Main>
-    ),
+    element: <Main joyride={true}><HomePage /></Main> 
   },
   {
     path: "login",
