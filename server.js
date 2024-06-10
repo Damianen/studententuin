@@ -18,12 +18,7 @@ app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(router);
-app.use(session({
-  secret: 'secret',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }
-}));
+app.use(userRoutes);
 
 
 function buildFileTree(dirPath) {
@@ -92,7 +87,7 @@ app.post('/upload', upload.array("files") ,(req, res) => {
   console.log('uploading files to path:', relativepath + clickedNode);
   res.send('File uploaded successfully');
 });
-app.use(userRoutes);
+
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
