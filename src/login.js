@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 
 const Login = () => {
@@ -36,6 +35,10 @@ const Login = () => {
     } else {
       setErrorMessage(data.message); // Zet de foutmelding in de state
     }
+  };
+
+  const handleBack = () => {
+    navigate(-1); // Navigates to the previous page in history
   };
 
   return (
@@ -104,7 +107,8 @@ const Login = () => {
             {/* Sign up Link */}
             <div className="flex justify-between items-center">
               <button
-                type="submit"
+                type="button" // Change type to "button" for the Back button
+                onClick={handleBack}
                 className="rounded-full bg-gray-500 px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
               >
                 Back
