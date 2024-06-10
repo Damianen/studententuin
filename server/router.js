@@ -13,6 +13,7 @@ const router = Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Middleware
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 router.use(cors());
@@ -26,19 +27,20 @@ router.use(
   })
 );
 
-router.get("/", (req, res, next) => {
+// Routes
+router.get("/", (req, res) => {
   res.render("index.ejs");
 });
 
-router.get("/requestForm", (req, res, next) => {
+router.get("/requestForm", (req, res) => {
   res.render("index.ejs");
 });
 
-router.get("/login", (req, res, next) => {
+router.get("/login", (req, res) => {
   res.render("index.ejs");
 });
 
-router.get("/handleiding", (req, res, next) => {
+router.get("/handleiding", (req, res) => {
   res.render("index.ejs");
 });
 
@@ -55,10 +57,8 @@ router.get("/manage", (req, res) => {
 
 router.get("/api/check-session", (req, res) => {
   if (req.session.user) {
-    // Als er een gebruiker is opgeslagen in de sessie, retourneer een JSON-object met isAuthenticated:true
     res.json({ isAuthenticated: true });
   } else {
-    // Als er geen gebruiker is opgeslagen in de sessie, retourneer een JSON-object met isAuthenticated:false
     res.json({ isAuthenticated: false });
   }
 });
@@ -77,11 +77,11 @@ router.get("/api/getUserByEmailFromSession", async (req, res) => {
   }
 });
 
-router.get("/about", (req, res, next) => {
+router.get("/about", (req, res) => {
   res.render("index.ejs");
 });
 
-router.get("/contact", (req, res, next) => {
+router.get("/contact", (req, res) => {
   res.render("index.ejs");
 });
 
@@ -89,28 +89,18 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Zoek de gebruiker in de database op basis van het e-mailadres
     const user = await userService.getUserByEmail(email);
-
-    // Als de gebruiker niet gevonden is, geef een foutmelding terug
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Vergelijk het ingediende wachtwoord met het versleutelde wachtwoord in de database
     const passwordMatch = await bcrypt.compare(password, user.password);
-
-    // Als de wachtwoorden niet overeenkomen, geef een foutmelding terug
     if (!passwordMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Als de inloggegevens correct zijn, sla de gebruiker op in de sessie
     req.session.user = user;
-
     console.log("Session created:", req.session);
-
-    // Geef een succesbericht terug met de redirect-url
     res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
   } catch (error) {
     console.error("Error:", error);
@@ -119,24 +109,21 @@ router.post("/login", async (req, res) => {
 });
 
 router.get("/logout", (req, res) => {
-  // Vernietig de sessie van de gebruiker
   req.session.destroy((err) => {
     if (err) {
       console.error("Error destroying session:", err);
       res.status(500).json({ message: "Internal server error" });
     } else {
-      // Stuur een succesvolle respons terug
       res.clearCookie("session"); // Verwijder het sessie-cookie
       res.redirect("/");
     }
   });
 });
 
-// Helper functie om het nieuwste logbestand te vinden per type (stdout/stderr)
+// Helper function to find the newest log files
 const getNewestLogFiles = async (dir) => {
   const files = await fs.readdir(dir);
 
-  // Filter logbestanden voor stdout en stderr
   const stdoutFiles = files.filter(
     (file) =>
       file.startsWith("STUDENTENTUIN01-") &&
@@ -151,7 +138,6 @@ const getNewestLogFiles = async (dir) => {
       file.endsWith(".txt")
   );
 
-  // Sorteer de logbestanden op datum
   stdoutFiles.sort((a, b) => {
     const timestampA = parseInt(a.split("-")[3].replace(".txt", ""));
     const timestampB = parseInt(b.split("-")[3].replace(".txt", ""));
@@ -164,7 +150,6 @@ const getNewestLogFiles = async (dir) => {
     return timestampB - timestampA;
   });
 
-  // Return de nieuwste logbestanden voor stdout en stderr
   const newestStdout =
     stdoutFiles.length > 0 ? path.join(dir, stdoutFiles[0]) : null;
   const newestStderr =
@@ -175,7 +160,16 @@ const getNewestLogFiles = async (dir) => {
 
 router.get("/api/logs", async (req, res) => {
   try {
-    const logsDir = path.resolve(__dirname, "../logs"); // Update this line to reference the logs directory correctly
+    const logsDir = path.resolve(__dirname, "../logs");
+    console.log(`Looking for logs in: ${logsDir}`);
+
+    try {
+      await fs.access(logsDir);
+    } catch (err) {
+      console.error(`Directory does not exist: ${logsDir}`, err);
+      return res.status(404).json({ error: "Logs directory does not exist" });
+    }
+
     const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
 
     if (!newestStdout && !newestStderr) {
@@ -191,6 +185,7 @@ router.get("/api/logs", async (req, res) => {
 
     res.json({ stdout: stdoutData, stderr: stderrData });
   } catch (err) {
+    console.error("Error reading log files:", err);
     res
       .status(500)
       .json({ error: "Error reading log files", details: err.message });
