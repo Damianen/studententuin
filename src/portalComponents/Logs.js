@@ -16,7 +16,7 @@ const Logs = () => {
         setStderrLogs(response.data.stderr || "");
       })
       .catch((error) => {
-        setError("Error fetching logs");
+        setError("Error fetching logs" + error);
       });
   }, []);
 
