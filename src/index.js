@@ -14,7 +14,7 @@ import Contact from "./contact.js";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Main><HomePage /></Main> 
+    element: <Main joyride={true}><HomePage /></Main> 
   },
   {
     path: "login",

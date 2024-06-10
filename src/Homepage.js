@@ -10,8 +10,8 @@ function Homepage() {
     <div className="bg-gradient-to-b from-primary-green to-neutral-warm ">
       <div className="px-4 bg-white  overflow-hidden shadow-lg mb-6 py-6 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-16 lg:px-6">
         <div className="flex flex-col items-center justify-between w-full  lg:flex-row">
-          <div className="mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
-            <div className="joyride-step-1 max-w-xl mb-4">
+          <div className="joyride-step-1 mb-12 lg:mb-0 lg:max-w-lg lg:pr-4">
+            <div className="max-w-xl mb-4">
               <h2 className="font-sans text-3xl sm:mt-0 mt-4 font-medium tracking-tight text-black sm:text-4xl sm:leading-none max-w-lg mb-4">
                 Gratis online omgeving
               </h2>
