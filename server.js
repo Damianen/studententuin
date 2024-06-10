@@ -2,6 +2,7 @@ import express from "express";
 import session from "express-session";
 import router from './server/router.js';
 import userRoutes from './server/routes/user.routes.js';
+import userService from "./server/services/user.service.js";
 import fs, {readdir, stat } from "fs";
 import path from "path";
 import multer from "multer";
@@ -20,12 +21,8 @@ app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(router);
-app.use(session({
-  secret: 'secret',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }
-}));
+app.use(userRoutes);
+
 
 
 function buildFileTree(dirPath) {
@@ -73,7 +70,11 @@ app.post('/selected-node', (req, res) => {
 
 app.get('/dir-info', async (req, res) => {
   const size = await dirSize(relativepath);
-  const totalStorage = 1000000; // get this from database
+  let userPackage = await userService.getUserPackage(req);
+  let totalStorage;
+  if (userPackage = 'free') {
+    totalStorage = 314572800;
+  }
   const usedStorage = size;
   const storagePercentage = (usedStorage / totalStorage) * 100;
   res.json({ size, storagePercentage });
@@ -117,7 +118,7 @@ app.post('/upload', upload.array("files") ,(req, res) => {
   console.log('uploading files to path:', relativepath + clickedNode);
   res.send('File uploaded successfully');
 });
-app.use(userRoutes);
+
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

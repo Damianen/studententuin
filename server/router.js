@@ -2,6 +2,7 @@ import { Router } from "express";
 import bodyParser from "body-parser";
 import bcrypt from "bcryptjs";
 import userService from "../server/services/user.service.js";
+import subDomainService from "../server/services/subdomain.service.js";
 import cors from "cors";
 import session from "express-session";
 
@@ -120,6 +121,32 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/api/setBranch", async (req, res) => {
+  const { branch, subDomainName } = req.body;
+  try {
+    await subDomainService.setBranch(subDomainName, branch);
+    res.status(200).json({ message: "Branch set" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
+router.get("/api/getBranch/:subDomainName", async (req, res) => {
+  const subDomainName = req.params.subDomainName;
+  try {
+    const branch = await subDomainService.getBranch(subDomainName);
+    if (branch) {
+      res.status(200).json(branch);
+    } else {
+      res.status(404).json({ message: "Branch not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
 router.get("/logout", (req, res) => {
   // Vernietig de sessie van de gebruiker
   req.session.destroy((err) => {
@@ -132,6 +159,36 @@ router.get("/logout", (req, res) => {
       res.redirect("/");
     }
   });
+});
+
+router.get("/api/getRepoFromSubdomain/:subdomain", async (req, res) => {
+  try {
+    console.log("Requesting repo for subdomain:", req.params.subdomain);
+    const repo = await subDomainService.getRepo(req.params.subdomain);
+    console.log("Repository:", repo);
+    if (repo) {
+      res.status(200).json(repo);
+    } else {
+      res.status(404).json({ message: "Repository not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
+router.get("/api/getSubdomainFromUser", async (req, res) => {
+  try {
+    const subdomain = await userService.getSubdomainByUser(req);
+    if (subdomain) {
+      res.status(200).json(subdomain);
+    } else {
+      res.status(404).json({ message: "Subdomain not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
 });
 
 export default router;
