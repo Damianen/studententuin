@@ -23,7 +23,7 @@ const getRelativePath = (req) => {
   const userSubdomain = userService.getSubdomainByUser(req);
   let relativepath;
   if (userSubdomain) {
-    subdomain = userSubdomain.SubDomainName;
+    let subdomain = userSubdomain.SubDomainName;
     console.log('Subdomain:', subdomain);
     directory = subdomain || 'test';
     relativepath = '../' + directory;
