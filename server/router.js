@@ -123,7 +123,7 @@ const getNewestLogFiles = async (dir) => {
   return { newestStdout, newestStderr };
 };
 
-router.get("/api", async (req, res) => {
+router.get("/api/logs", async (req, res) => {
   try {
     const logsDir = path.resolve(__dirname, "../logs");
     console.log(`Looking for logs in: ${logsDir}`);
@@ -190,6 +190,10 @@ router.get("/logout", (req, res) => {
       res.redirect("/");
     }
   });
+});
+
+router.get("/test", (req, res) => {
+  res.status(500).json({ message: "test" });
 });
 
 export default router;
