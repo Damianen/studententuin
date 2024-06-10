@@ -14,7 +14,7 @@ function Explanation() {
                 Heb jij een een betrouwbare online omgeving nodig? Wij bieden
                 een gratis online omgeving aan voor alle studenten. Hierbij kan
                 je gebruik maken van verschillende technieken zoals Node.js of
-                wil je gebruik maken van een database en ben je een student?
+                wil je gebruik maken van een database en ben je een student?!!
               </p>
             </div>
             <div className="space-x-4">
