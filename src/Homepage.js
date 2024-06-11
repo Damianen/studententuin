@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { io } from "socket.io-client";
 
 function Homepage() {
-  const techSectionRef = React.useRef(null);
+    const techSectionRef = React.useRef(null);
 
   const priceSectionRef = React.useRef(null);
 

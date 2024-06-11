@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 const Logs = () => {
   const [stdoutLogs, setStdoutLogs] = useState("");
@@ -8,6 +9,10 @@ const Logs = () => {
   const [showStdout, setShowStdout] = useState(true);
   const [showStderr, setShowStderr] = useState(false);
 
+const socket = io();
+    socket.on("logsChange", (args) => {
+        console.log(args);
+    });
   useEffect(() => {
     axios
       .get("https://studententuin.nl/api/logs")

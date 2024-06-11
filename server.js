@@ -10,8 +10,12 @@ import { promisify } from "util";
 import fastFolderSize from "fast-folder-size";
 import xml2js from "xml2js";
 import bodyParser from "body-parser";
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {});
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
 
@@ -303,6 +307,10 @@ app.delete("/api/postbuildcommands/:index", (req, res) => {
   res.send("Command removed successfully");
 });
 
-app.listen(port, () => {
+io.on("connection", (socket) => {
+    console.log("connected");
+});
+
+httpServer.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
