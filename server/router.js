@@ -116,6 +116,20 @@ router.post("/requestForm", validateSubdomainRequestChaiExpect, async (req, res)
                                             UserSubDomainService.insert(emailAddress, subdomainName, (success, error) => {
                                                 if(success){
                                                     if(success.status === 200){
+
+                                                        const data = {
+                                                            email: emailAddress,
+                                                            subdomain: subdomainName
+                                                        }
+
+                                                        // fetch('https://webhook.studententuin.nl/new', {
+                                                        //     method: 'POST',
+                                                        //     headers: {
+                                                        //         'Content-Type': 'application/json'
+                                                        //     },
+                                                        //     body: JSON.stringify(data)
+                                                        // });
+
                                                         res.status(200).json({
                                                             status: 200,
                                                             message: "Gebruiker succesvol geregistreerd!",

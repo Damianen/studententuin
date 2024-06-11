@@ -2,6 +2,53 @@ import React from "react";
 
 export default function RequestForm() {
 
+  const [formData, setFormData] = React.useState({});
+  const [errors, setErrors] = React.useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/requestForm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        // Assuming the response is a JSON object containing errors
+        const errorData = await response.json();
+        setErrors(errorData);
+      } else {
+        const successData = await response.json();
+        // Handle success (e.g., redirect to another page)
+      }
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setErrors({ general: 'Er is een onverwachte fout opgetreden, probeer later opnieuw of neem contact op met de beheerders' });
+    }
+  };
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+};
+
+  // Combine handlers
+  const handleCombinedChange = (e) => {
+    handleInputChange(e);
+    handleChange(e);
+  };
+
   const inputRef = React.useRef(null);
 
   const [inputValue, setInputValue] = React.useState('');
@@ -10,10 +57,6 @@ export default function RequestForm() {
     setInputValue(inputRef.current.value);
   }, []);
 
-  const handleInputChange = (event) => {
-      setInputValue(event.target.value);
-  };
-
   return (
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 space-y-2">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -21,9 +64,10 @@ export default function RequestForm() {
           Subdomein aanvragen
         </h2>
       </div>
-
+      {errors.general && <div className="text-center text-red-600 font-bold">{errors.general}</div>}
+      {errors.message && <div className="text-center text-red-600 font-bold">{errors.message}</div>}
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm shadow-xl rounded-lg p-10 border border-gray-200">
-        <form className="space-y-4" action="/requestForm" method="POST">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label
               htmlFor="subdomainName"
@@ -38,10 +82,10 @@ export default function RequestForm() {
                 type="subdomainName"
                 required
                 className="p-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
-                onChange={handleInputChange}
+                onChange={handleCombinedChange}
                 ref={inputRef}
               />
-              <div className="w-full break-word"><p>Voorbeeld: <label className="font-bold">{inputValue}.studententuin.nl</label></p></div>
+              <div className="w-full break-words"><p>Voorbeeld: <label className="font-bold">{inputValue}.studententuin.nl</label></p></div>
               
             </div>
           </div>
@@ -59,6 +103,7 @@ export default function RequestForm() {
                 name="emailAddress"
                 type="email"
                 required
+                onChange={handleChange}
                 className="p-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
               />
             </div>
@@ -77,9 +122,16 @@ export default function RequestForm() {
                 name="password"
                 type="password"
                 required
+                onChange={handleChange}
                 className="p-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
               />
             </div>
+            <ul>
+              <li>Tussen de 8 - 20 karakters</li>
+              <li>Een hoofdletter</li>
+              <li>Een kleine letter</li>
+              <li>Een cijfer</li>
+            </ul>
           </div>
 
           <div>
@@ -95,6 +147,7 @@ export default function RequestForm() {
                 className="p-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
                 id="productPackage"
                 required
+                onChange={handleChange}
               >
                 <option value="">Kies een pakket</option>
                 <option value="free">Gratis</option>
