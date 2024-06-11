@@ -10,15 +10,27 @@ import { promisify } from "util";
 import fastFolderSize from "fast-folder-size";
 import xml2js from "xml2js";
 import bodyParser from "body-parser";
+import { get } from "http";
 
 const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
+const subdomain = '';
+const directory = subdomain || 'Upload';
+const relativepath = '../' + directory;
+let clickedNode = '';
 
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(router);
+app.use(session({
+  secret: 'secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
+}));
+
 app.use(userRoutes);
 app.use(bodyParser.json());
 
@@ -224,6 +236,8 @@ const storage = multer.diskStorage({
       filePath = req.body.paths;
     }
     let filePath2 = filePath.substring(0, filePath.lastIndexOf(`/`));
+    let relativePath = getRelativePath(req);
+    console.log("relative path: "+ relativePath);  
     console.log("filePath:", filePath2);
     const uploadPath = path.join("../Upload", filePath2);
     console.log("upload path:", uploadPath);
