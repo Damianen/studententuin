@@ -130,8 +130,11 @@ const storage = multer.diskStorage({
       filePath = req.body.paths;
     }
     let filePath2 = filePath.substring(0, filePath.lastIndexOf(`/`));
+<<<<<<< Updated upstream
     let relativePath = getRelativePath(req);
     console.log("relative path: "+ relativePath);  
+=======
+>>>>>>> Stashed changes
     console.log("filePath:", filePath2);
     const uploadPath = path.join("../Upload", filePath2);
     console.log("upload path:", uploadPath);
