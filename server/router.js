@@ -137,7 +137,6 @@ const getNewestLogFiles = async (dir) => {
 router.get("/api/logs", async (req, res) => {
   try {
     const logsDir = path.resolve(__dirname, "../logs");
-    console.log(`Looking for logs in: ${logsDir}`);
 
     try {
       await fs.access(logsDir);
@@ -183,7 +182,11 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Sla de gebruiker op in de database
-    const user = await userService.createUser(email, hashedPassword, userPackage);
+    const user = await userService.createUser(
+      email,
+      hashedPassword,
+      userPackage
+    );
 
     // Geef een succesbericht terug met de redirect-url
     res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
