@@ -15,7 +15,7 @@ const socket = io();
     });
   useEffect(() => {
     axios
-      .get("https://studententuin.nl/api/logs")
+      .get("/api/logs")
       .then((response) => {
         setStdoutLogs(response.data.stdout || "");
         setStderrLogs(response.data.stderr || "");

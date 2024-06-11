@@ -1,7 +1,7 @@
 import fs from "fs/promises"; // gebruik fs/promises voor asynchrone file operaties
 
 // Helper function to find the newest log files
-const getNewestLogFiles = async (dir) => {
+export const getNewestLogFiles = async (dir) => {
   const files = await fs.readdir(dir);
 
   const stdoutFiles = files.filter(
@@ -37,3 +37,4 @@ const getNewestLogFiles = async (dir) => {
 
   return { newestStdout, newestStderr };
 }
+
