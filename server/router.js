@@ -132,7 +132,7 @@ router.post("/requestForm", validateSubdomainRequestChaiExpect, async (req, res)
 
                                                         res.status(200).json({
                                                             status: 200,
-                                                            message: "Gebruiker succesvol geregistreerd!",
+                                                            message: "Gebruiker/Sub-domein succesvol geregistreerd!",
                                                         });
                                                     }
                                                 }else{

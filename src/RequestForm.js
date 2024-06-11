@@ -4,6 +4,7 @@ export default function RequestForm() {
 
   const [formData, setFormData] = React.useState({});
   const [errors, setErrors] = React.useState({});
+  const [SuccesMessage, setSuccesMessage] = React.useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,6 +17,10 @@ export default function RequestForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+
+      setErrors({});
+      setSuccesMessage({});
+
       const response = await fetch('/requestForm', {
         method: 'POST',
         headers: {
@@ -30,6 +35,7 @@ export default function RequestForm() {
         setErrors(errorData);
       } else {
         const successData = await response.json();
+        setSuccesMessage(successData);
         // Handle success (e.g., redirect to another page)
       }
       
@@ -66,6 +72,7 @@ export default function RequestForm() {
       </div>
       {errors.general && <div className="text-center text-red-600 font-bold">{errors.general}</div>}
       {errors.message && <div className="text-center text-red-600 font-bold">{errors.message}</div>}
+      {SuccesMessage.message && <div className="text-center text-green-700 font-bold">{SuccesMessage.message}</div>}
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm shadow-xl rounded-lg p-10 border border-gray-200">
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
