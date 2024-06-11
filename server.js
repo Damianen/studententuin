@@ -1,26 +1,20 @@
 import express from "express";
 import session from "express-session";
-<<<<<<< Updated upstream
-import router from './server/router.js';
-import userRoutes from './server/routes/user.routes.js';
-import fs, {readdir, stat } from "fs";
-import path from "path";
-=======
 import router from "./server/router.js";
 import userRoutes from "./server/routes/user.routes.js";
 import userService from "./server/services/user.service.js";
 import fs, { readdir, stat } from "fs";
 import path, { relative } from "path";
->>>>>>> Stashed changes
 import multer from "multer";
 import { promisify } from "util";
 import fastFolderSize from "fast-folder-size";
+import { get } from "http";
 
 const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
 const subdomain = '';
-const directory = subdomain || 'test';
+const directory = subdomain || 'Upload';
 const relativepath = '../' + directory;
 let clickedNode = '';
 
@@ -35,8 +29,6 @@ app.use(session({
   cookie: { secure: true }
 }));
 
-<<<<<<< Updated upstream
-=======
 const getRelativePath = async (req) => {
   const userSubdomain = await userService.getSubdomainByUser(req);
   let relativepath;
@@ -49,7 +41,6 @@ const getRelativePath = async (req) => {
   }
   return relativepath;
 };
->>>>>>> Stashed changes
 
 function buildFileTree(dirPath) {
   const tree = {};
@@ -72,11 +63,6 @@ const dirSize = async (relativepath) => {
   return size;
 };
 
-<<<<<<< Updated upstream
-
-app.get('/filetree', (req, res) => {
-  res.json(buildFileTree(relativepath));
-=======
 app.get("/filetree", async (req, res) => {
   try {
     let relativepath = await getRelativePath(req);
@@ -90,7 +76,6 @@ app.get("/filetree", async (req, res) => {
     console.error("Error:", error);
     res.status(500).json({ message: "Server error" });
   }
->>>>>>> Stashed changes
 });
 
 app.post("/selected-node", (req, res) => {
@@ -145,6 +130,8 @@ const storage = multer.diskStorage({
       filePath = req.body.paths;
     }
     let filePath2 = filePath.substring(0, filePath.lastIndexOf(`/`));
+    let relativePath = getRelativePath(req);
+    console.log("relative path: "+ relativePath);  
     console.log("filePath:", filePath2);
     const uploadPath = path.join("../Upload", filePath2);
     console.log("upload path:", uploadPath);

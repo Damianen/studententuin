@@ -151,7 +151,7 @@ function Manage() {
               <Git />
             ) : (
               <div className="z-0">
-                <FileManager />
+                <FileTree />
               </div>
             )}
           </div>
