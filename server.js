@@ -112,9 +112,6 @@ app.get("/api/appsettings", (req, res) => {
   });
 });
 
-app.get("/dir-info", async (req, res) => {
-  let relativepath = getRelativePath(req);
-  console.log("Relative path:", relativepath);
 app.delete("/api/appsettings/:key", (req, res) => {
   console.log("Deleting key:", req.params.key);
   const configPath = path.join(__dirname, "web.config");
