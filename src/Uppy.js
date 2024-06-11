@@ -7,8 +7,8 @@ import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
 
 function Component() {
-  const totalStorage = 1000000; // get this from database
   const [usedStorage, setUsedStorage] = useState(0);
+  const [totalStorage, setTotalStorage] = useState(0);
   useEffect(() => {
     const fetchUsedStorage = async () => {
       const response = await fetch("/dir-info", {
@@ -22,6 +22,7 @@ function Component() {
         const data = await response.json();
         console.log(data.size);
         setUsedStorage(data.size); // Update usedStorage with the fetched size
+        setTotalStorage(data.totalStorage);
       }
     };
 

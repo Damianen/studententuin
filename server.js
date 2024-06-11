@@ -212,7 +212,7 @@ app.get("/dir-info", async (req, res) => {
   }
   const usedStorage = size;
   const storagePercentage = (usedStorage / totalStorage) * 100;
-  res.json({ size, storagePercentage });
+  res.json({ size, storagePercentage, totalStorage });
 });
 const deleteFolderRecursive = function (directoryPath) {
   if (fs.existsSync(directoryPath)) {
