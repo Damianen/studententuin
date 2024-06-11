@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 export function convertListFileToObjectParentTree(list) {
   const obj = {};
   
@@ -23,6 +26,18 @@ export function convertListFileToObjectParentTree(list) {
   });
   return obj;
 };
+
+function createDirectoriesAndFilesFromObject(obj, currentPath = '.') {
+  for (const [key, value] of Object.entries(obj)) {
+    const newPath = path.join(currentPath, key);
+    if (value === null) {
+      fs.writeFileSync(newPath, ''); // Create a new file
+    } else {
+      fs.mkdirSync(newPath, { recursive: true }); // Create a new directory
+      createDirectoriesAndFilesFromObject(value, newPath); // Recursively create subdirectories and files
+    }
+  }
+}
 
 export const readTemplate = (template, data) => {
   for (const [key, value] of Object.entries(template)) {
