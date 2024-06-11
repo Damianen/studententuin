@@ -65,15 +65,25 @@ router.get("/api/check-session", (req, res) => {
 
 router.get("/api/getUserByEmailFromSession", async (req, res) => {
   try {
+    console.log("Session data:", req.session); // Voeg logging toe voor sessiegegevens
+
+    if (!req.session.user) {
+      return res.status(404).json({ message: "User not authenticated" });
+    }
+
     const user = await userService.getUserByEmailFromSession(req);
     if (user) {
+      console.log("User found:", user);
       res.status(200).json(user);
     } else {
+      console.log("User not found");
       res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ message: "An error occurred" });
+    console.error("Error in getUserByEmailFromSession route:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred", details: error.message });
   }
 });
 
