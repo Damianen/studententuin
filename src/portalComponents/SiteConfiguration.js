@@ -4,7 +4,7 @@ const SiteConfiguration = () => {
   const [variables, setVariables] = useState([]);
   const [showVariableInput, setShowVariableInput] = useState(true);
   const [postBuildCommands, setPostBuildCommands] = useState([]);
-  const [showPostBuildCommands, setShowPostBuildCommands] = useState(false);
+  const [showPostBuildCommands, setShowPostBuildCommands] = useState(true);
 
   useEffect(() => {
     fetch("/api/appsettings")
@@ -25,13 +25,26 @@ const SiteConfiguration = () => {
         console.error("Error fetching app settings:", error);
         setVariables([]);
       });
+  }, []);
 
-    const postBuildCommandsList = [
-      { id: 1, content: "npm run build" },
-      { id: 2, content: "npm run build2" },
-      { id: 3, content: "npm run test" },
-    ];
-    setPostBuildCommands(postBuildCommandsList);
+  useEffect(() => {
+    fetch("/api/postbuildcommands")
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const initialCommands = data.map((command, index) => ({
+            id: index + 1,
+            content: command,
+          }));
+          setPostBuildCommands(initialCommands);
+        } else {
+          setPostBuildCommands([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching post build commands:", error);
+        setPostBuildCommands([]);
+      });
   }, []);
 
   const showPostBuildCommandsHandler = () => {
@@ -40,12 +53,49 @@ const SiteConfiguration = () => {
 
   const addPostBuildCommandHandler = (e) => {
     e.preventDefault();
-    const command = document.getElementById("postBuildCommand").value;
+    const command = document.getElementById("postBuildCommand").value.trim();
     if (!command) return;
 
     const newCommand = { id: postBuildCommands.length + 1, content: command };
     setPostBuildCommands([...postBuildCommands, newCommand]);
-    showPostBuildCommandsHandler();
+
+    fetch("/api/postbuildcommands", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ command }),
+    })
+      .then((response) => response.text())
+      .then((data) => {
+        console.log("Command added successfully:", data);
+      })
+      .catch((error) => {
+        console.error("Error adding command:", error);
+      });
+  };
+
+  const removeCommandHandler = (commandId) => {
+    console.log("Removing command with ID:", commandId);
+    fetch(`/api/postbuildcommands/${commandId}`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then((data) => {
+        console.log("Command removed successfully:", data);
+        // Only update state if delete was successful on the server
+        setPostBuildCommands(
+          postBuildCommands.filter((command) => command.id !== commandId)
+        );
+      })
+      .catch((error) => {
+        console.error("Error removing command:", error);
+      });
   };
 
   const showVariableInputHandler = () => {
@@ -164,13 +214,22 @@ const SiteConfiguration = () => {
           </div>
         )}
       </div>
-      <hr className="h-px mt-12 bg-gray-200 border-0 dark:bg-gray-700" />
+      <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
       <h1 className="font-sans text-xl font-medium">Post build commands</h1>
       <div>
         <ul className="shadow-md rounded-lg">
-          {postBuildCommands.map((log) => (
-            <div key={log.id} className="p-3 bg-white">
-              {log.content}
+          {postBuildCommands.map((command) => (
+            <div
+              key={command.id}
+              className="flex justify-between items-center p-3 bg-white"
+            >
+              <span>{command.content}</span>
+              <button
+                className="text-red-500"
+                onClick={() => removeCommandHandler(command.id)}
+              >
+                Remove
+              </button>
             </div>
           ))}
         </ul>

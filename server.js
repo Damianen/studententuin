@@ -101,7 +101,6 @@ app.get("/api/appsettings", (req, res) => {
         return res.status(500).send("Error parsing config file");
       }
 
-      // Use optional chaining and provide default empty array
       const appSettings =
         result.configuration?.appSettings?.[0]?.add?.map((setting) => ({
           key: setting.$.key,
@@ -126,22 +125,17 @@ app.delete("/api/appsettings/:key", (req, res) => {
         return res.status(500).json({ message: "Error parsing XML" });
       }
 
-      // Find the appSettings section
       const appSettings = result.configuration.appSettings[0];
 
-      // Use optional chaining and default to empty array
       const settings = appSettings?.add || [];
 
-      // Find the setting to remove by key
       const settingIndexToRemove = settings.findIndex((setting) => {
         return setting.$.key === req.params.key;
       });
 
       if (settingIndexToRemove !== -1) {
-        // Remove the setting
         settings.splice(settingIndexToRemove, 1);
 
-        // Convert back to XML and write to the file
         const builder = new xml2js.Builder();
         const updatedXml = builder.buildObject(result);
 
@@ -223,15 +217,12 @@ const storage = multer.diskStorage({
       req.body.relativepath || ""
     );
 
-    // Check if the path is a file or a directory
     if (fs.existsSync(folderPath)) {
       const stats = fs.statSync(folderPath);
       if (stats.isFile()) {
-        // If it's a file, get the directory of the file
         folderPath = path.dirname(folderPath);
       }
     } else {
-      // If the path doesn't exist, create it
       fs.mkdirSync(folderPath, { recursive: true });
     }
 
@@ -249,47 +240,62 @@ app.post("/upload", upload.array("files"), (req, res) => {
   res.send("File uploaded successfully");
 });
 
-// Endpoint to read the postBuild.sh script
-app.get("/api/postbuild", (req, res) => {
-  const scriptPath = path.join(__dirname, "postBuild.sh");
+const readPostBuildCommandsFromFile = () => {
+  try {
+    const data = fs.readFileSync("postbuild.sh", "utf8");
+    // Split the data by newline characters to get each line as a command
+    const commands = data.split("\n").filter((line) => line.trim() !== "");
+    return commands;
+  } catch (err) {
+    console.error("Error reading post build commands file:", err);
+    return [];
+  }
+};
 
-  fs.readFile(scriptPath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading script:", err);
-      return res.status(500).json({ message: "Error reading script" });
-    }
+const POST_BUILD_SCRIPT_PATH = "postbuild.sh";
 
-    res.json({ script: data });
-  });
+app.get("/api/postbuildcommands", (req, res) => {
+  const commands = readPostBuildCommandsFromFile();
+  res.json(commands);
 });
 
-// Endpoint to update the postBuild.sh script
-app.post("/api/postbuild", (req, res) => {
-  const { script } = req.body;
-  const scriptPath = path.join(__dirname, "postBuild.sh");
+const writePostBuildCommandsToFile = (commands) => {
+  try {
+    fs.writeFileSync(POST_BUILD_SCRIPT_PATH, commands.join("\n"), "utf8");
+    console.log("Post build commands written to file successfully");
+  } catch (err) {
+    console.error("Error writing post build commands to file:", err);
+  }
+};
 
-  fs.writeFile(scriptPath, script, (err) => {
-    if (err) {
-      console.error("Error writing script:", err);
-      return res.status(500).json({ message: "Error writing script" });
-    }
+app.post("/api/postbuildcommands", (req, res) => {
+  const { command } = req.body;
+  if (!command) {
+    return res.status(400).json({ error: "Command is required" });
+  }
 
-    res.json({ message: "Script updated successfully" });
-  });
+  const commands = readPostBuildCommandsFromFile();
+  commands.push(command);
+  writePostBuildCommandsToFile(commands);
+
+  res.status(201).send("Command added successfully");
 });
 
-// Endpoint to delete the postBuild.sh script
-app.delete("/api/postbuild", (req, res) => {
-  const scriptPath = path.join(__dirname, "postBuild.sh");
+app.delete("/api/postbuildcommands/:index", (req, res) => {
+  const index = parseInt(req.params.index);
+  if (isNaN(index) || index < 1) {
+    return res.status(400).json({ error: "Invalid command index" });
+  }
 
-  fs.unlink(scriptPath, (err) => {
-    if (err) {
-      console.error("Error deleting script:", err);
-      return res.status(500).json({ message: "Error deleting script" });
-    }
+  const commands = readPostBuildCommandsFromFile();
+  if (index - 1 < 0 || index - 1 >= commands.length) {
+    return res.status(404).json({ error: "Command index out of bounds" });
+  }
 
-    res.json({ message: "Script deleted successfully" });
-  });
+  commands.splice(index - 1, 1);
+  writePostBuildCommandsToFile(commands);
+
+  res.send("Command removed successfully");
 });
 
 app.listen(port, () => {
