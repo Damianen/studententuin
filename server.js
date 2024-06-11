@@ -1,27 +1,26 @@
 import express from "express";
 import session from "express-session";
-import router from './server/router.js';
+import router from "./server/router.js";
 import userRoutes from "./server/routes/user.routes.js";
 import userService from "./server/services/user.service.js";
-import fs, { readdir, stat } from "fs";
+import fs, { readdir, stat, readFile } from "fs";
 import path, { relative } from "path";
 import multer from "multer";
 import { promisify } from "util";
 import fastFolderSize from "fast-folder-size";
+import xml2js from "xml2js";
+import bodyParser from "body-parser";
 
 const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
-const subdomain = '';
-const directory = subdomain || 'test';
-const relativepath = '../' + directory;
-let clickedNode = '';
 
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(router);
 app.use(userRoutes);
+app.use(bodyParser.json());
 
 const getRelativePath = async (req) => {
   const userSubdomain = await userService.getSubdomainByUser(req);
@@ -89,6 +88,110 @@ app.post("/selected-node", (req, res) => {
   });
 });
 
+app.get("/api/appsettings", (req, res) => {
+  const configPath = path.join(__dirname, "web.config");
+
+  fs.readFile(configPath, (err, data) => {
+    if (err) {
+      return res.status(500).send("Error reading config file");
+    }
+
+    xml2js.parseString(data, (err, result) => {
+      if (err) {
+        return res.status(500).send("Error parsing config file");
+      }
+
+      const appSettings =
+        result.configuration?.appSettings?.[0]?.add?.map((setting) => ({
+          key: setting.$.key,
+          value: setting.$.value,
+        })) || [];
+
+      res.json(appSettings);
+    });
+  });
+});
+
+app.get("/dir-info", async (req, res) => {
+  let relativepath = getRelativePath(req);
+  console.log("Relative path:", relativepath);
+app.delete("/api/appsettings/:key", (req, res) => {
+  console.log("Deleting key:", req.params.key);
+  const configPath = path.join(__dirname, "web.config");
+
+  try {
+    const data = fs.readFileSync(configPath);
+
+    xml2js.parseString(data, (err, result) => {
+      if (err) {
+        console.error("Error parsing XML:", err);
+        return res.status(500).json({ message: "Error parsing XML" });
+      }
+
+      const appSettings = result.configuration.appSettings[0];
+
+      const settings = appSettings?.add || [];
+
+      const settingIndexToRemove = settings.findIndex((setting) => {
+        return setting.$.key === req.params.key;
+      });
+
+      if (settingIndexToRemove !== -1) {
+        settings.splice(settingIndexToRemove, 1);
+
+        const builder = new xml2js.Builder();
+        const updatedXml = builder.buildObject(result);
+
+        try {
+          fs.writeFileSync(configPath, updatedXml);
+          res.json({ message: "Variable removed successfully" });
+        } catch (err) {
+          console.error("Error writing file:", err);
+          return res
+            .status(500)
+            .json({ message: "Error writing appsettings file" });
+        }
+      } else {
+        res.status(404).json({ message: "Variable not found" });
+      }
+    });
+  } catch (err) {
+    console.error("Error reading file:", err);
+    return res.status(500).json({ message: "Error reading appsettings file" });
+  }
+});
+
+app.post("/api/appsettings", (req, res) => {
+  const { key, value } = req.body;
+  const configPath = path.join(__dirname, "web.config");
+
+  fs.readFile(configPath, (err, data) => {
+    if (err) {
+      return res.status(500).send("Error reading config file");
+    }
+
+    xml2js.parseString(data, (err, result) => {
+      if (err) {
+        return res.status(500).send("Error parsing config file");
+      }
+
+      const appSettings = result.configuration.appSettings[0];
+      appSettings.add.push({ $: { key, value } });
+
+      const builder = new xml2js.Builder();
+      const updatedXml = builder.buildObject(result);
+
+      fs.writeFile(configPath, updatedXml, (err) => {
+        if (err) {
+          return res.status(500).send("Error writing to config file");
+        }
+
+        res.status(200).send("Variable added successfully");
+      });
+    });
+  });
+});
+
 app.get("/dir-info", async (req, res) => {
   let relativepath = getRelativePath(req);
   console.log("Relative path:", relativepath);
@@ -145,35 +248,63 @@ app.post("/upload", upload.array("files"), (req, res) => {
   res.json({ message: "Files uploaded successfully" });
 });
 
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     let folderPath = path.join(relativepath, clickedNode, req.body.relativepath || '');
+const readPostBuildCommandsFromFile = () => {
+  try {
+    const data = fs.readFileSync("postbuild.sh", "utf8");
+    // Split the data by newline characters to get each line as a command
+    const commands = data.split("\n").filter((line) => line.trim() !== "");
+    return commands;
+  } catch (err) {
+    console.error("Error reading post build commands file:", err);
+    return [];
+  }
+};
 
-//     // Check if the path is a file or a directory
-//     if (fs.existsSync(folderPath)) {
-//       const stats = fs.statSync(folderPath);
-//       if (stats.isFile()) {
-//         // If it's a file, get the directory of the file
-//         folderPath = path.dirname(folderPath);
-//       }
-//     } else {
-//       // If the path doesn't exist, create it
-//       fs.mkdirSync(folderPath, { recursive: true });
-//     }
+const POST_BUILD_SCRIPT_PATH = "postbuild.sh";
 
-//     cb(null, folderPath);
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, file.originalname);
-//   },
-// });
+app.get("/api/postbuildcommands", (req, res) => {
+  const commands = readPostBuildCommandsFromFile();
+  res.json(commands);
+});
 
-// const upload = multer({ storage: storage });
+const writePostBuildCommandsToFile = (commands) => {
+  try {
+    fs.writeFileSync(POST_BUILD_SCRIPT_PATH, commands.join("\n"), "utf8");
+    console.log("Post build commands written to file successfully");
+  } catch (err) {
+    console.error("Error writing post build commands to file:", err);
+  }
+};
 
-// app.post('/upload', upload.array("files") ,(req, res) => {
-//   console.log('uploading files to path:', relativepath + clickedNode);
-//   res.send('File uploaded successfully');
-// });
+app.post("/api/postbuildcommands", (req, res) => {
+  const { command } = req.body;
+  if (!command) {
+    return res.status(400).json({ error: "Command is required" });
+  }
+
+  const commands = readPostBuildCommandsFromFile();
+  commands.push(command);
+  writePostBuildCommandsToFile(commands);
+
+  res.status(201).send("Command added successfully");
+});
+
+app.delete("/api/postbuildcommands/:index", (req, res) => {
+  const index = parseInt(req.params.index);
+  if (isNaN(index) || index < 1) {
+    return res.status(400).json({ error: "Invalid command index" });
+  }
+
+  const commands = readPostBuildCommandsFromFile();
+  if (index - 1 < 0 || index - 1 >= commands.length) {
+    return res.status(404).json({ error: "Command index out of bounds" });
+  }
+
+  commands.splice(index - 1, 1);
+  writePostBuildCommandsToFile(commands);
+
+  res.send("Command removed successfully");
+});
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

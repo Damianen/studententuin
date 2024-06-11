@@ -2,6 +2,7 @@ import { Router } from "express";
 import bodyParser from "body-parser";
 import bcrypt from "bcryptjs";
 import userService from "../server/services/user.service.js";
+import subDomainService from "../server/services/subdomain.service.js";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -65,15 +66,25 @@ router.get("/api/check-session", (req, res) => {
 
 router.get("/api/getUserByEmailFromSession", async (req, res) => {
   try {
+    console.log("Session data:", req.session); // Voeg logging toe voor sessiegegevens
+
+    if (!req.session.user) {
+      return res.status(404).json({ message: "User not authenticated" });
+    }
+
     const user = await userService.getUserByEmailFromSession(req);
     if (user) {
+      console.log("User found:", user);
       res.status(200).json(user);
     } else {
+      console.log("User not found");
       res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ message: "An error occurred" });
+    console.error("Error in getUserByEmailFromSession route:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred", details: error.message });
   }
 });
 
@@ -157,6 +168,31 @@ router.get("/api/logs", async (req, res) => {
   }
 });
 
+router.post("/register", async (req, res) => {
+  const { email, password, userPackage } = req.body;
+
+  try {
+    // Controleer of de gebruiker al bestaat
+    const userExists = await userService.getUserByEmail(email);
+
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Versleutel het wachtwoord
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Sla de gebruiker op in de database
+    const user = await userService.createUser(email, hashedPassword, userPackage);
+
+    // Geef een succesbericht terug met de redirect-url
+    res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -180,6 +216,32 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/api/setBranch", async (req, res) => {
+  const { branch, subDomainName } = req.body;
+  try {
+    await subDomainService.setBranch(subDomainName, branch);
+    res.status(200).json({ message: "Branch set" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
+router.get("/api/getBranch/:subDomainName", async (req, res) => {
+  const subDomainName = req.params.subDomainName;
+  try {
+    const branch = await subDomainService.getBranch(subDomainName);
+    if (branch) {
+      res.status(200).json(branch);
+    } else {
+      res.status(404).json({ message: "Branch not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
 router.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -190,10 +252,6 @@ router.get("/logout", (req, res) => {
       res.redirect("/");
     }
   });
-});
-
-router.get("/test", (req, res) => {
-  res.status(500).json({ message: "test" });
 });
 
 export default router;
