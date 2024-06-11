@@ -1,7 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Breadcrumb from "./components/Breadcrumb.js";
 
 function Homepage() {
+  const breadcrumbItems = [
+    { label: "Home", url: "/" },
+    { label: "Category", url: "/category" },
+    { label: "Subcategory", url: "/category/subcategory" },
+    { label: "Current Page", url: "" },
+  ];
+
   const techSectionRef = React.useRef(null);
 
   const priceSectionRef = React.useRef(null);
