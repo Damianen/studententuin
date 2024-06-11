@@ -16,7 +16,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
 const subdomain = '';
-const directory = subdomain || 'Upload';
+const directory = subdomain || 'test';
 const relativepath = '../' + directory;
 let clickedNode = '';
 
@@ -202,7 +202,7 @@ app.post("/api/appsettings", (req, res) => {
 });
 
 app.get("/dir-info", async (req, res) => {
-  let relativepath = getRelativePath(req);
+  let relativepath = await getRelativePath(req);
   console.log("Relative path:", relativepath);
   const size = await dirSize(relativepath);
   let userPackage = await userService.getUserPackage(req);
@@ -214,17 +214,43 @@ app.get("/dir-info", async (req, res) => {
   const storagePercentage = (usedStorage / totalStorage) * 100;
   res.json({ size, storagePercentage });
 });
+const deleteFolderRecursive = function (directoryPath) {
+  if (fs.existsSync(directoryPath)) {
+      fs.readdirSync(directoryPath).forEach((file, index) => {
+        const curPath = path.join(directoryPath, file);
+        if (fs.lstatSync(curPath).isDirectory()) {
+         // recurse
+          deleteFolderRecursive(curPath);
+        } else {
+          // delete file
+          fs.unlinkSync(curPath);
+        }
+      });
+      fs.rmdirSync(directoryPath);
+    }
+  };
 
 app.get("/delete-file", (req, res) => {
-  console.log("File deleted:", relativepath + clickedNode);
-  fs.unlinkSync(relativepath + clickedNode);
+  clickedNode = req.session.selectedNode;
+  console.log("File/dir to delete:", clickedNode);
+  let fullPath = relativepath + clickedNode;
+  console.log("File/dir deleted:", fullPath);
+  
+  if(clickedNode === '') {
+    return res.status(400).json({ message: "No file or directory selected" });
+  }else{
+    if (fs.lstatSync(fullPath).isDirectory()) {
+      deleteFolderRecursive(fullPath);
+    } else {
+      fs.unlinkSync(fullPath);
+    }
+  }
+  console.log("File deleted:", fullPath);
   res.json({ message: "File deleted" });
 });
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    console.log("file:", file);
-    console.log("req:", req.body.paths);
+  destination: async (req, file, cb) => {
     let filePath;
     if(Array.isArray(req.body.paths)) {
       req.body.paths.forEach((p) => {
@@ -236,11 +262,15 @@ const storage = multer.diskStorage({
       filePath = req.body.paths;
     }
     let filePath2 = filePath.substring(0, filePath.lastIndexOf(`/`));
-    let relativePath = getRelativePath(req);
-    console.log("relative path: "+ relativePath);  
-    console.log("filePath:", filePath2);
-    const uploadPath = path.join("../Upload", filePath2);
-    console.log("upload path:", uploadPath);
+    let relativePath = await getRelativePath(req);
+    let clickedNode = req.session.selectedNode;
+    let stat = fs.statSync(path.join(relativePath, clickedNode));
+
+    if (stat.isFile()) {
+  // If clickedNode is a file, get the directory above it
+  clickedNode = path.dirname(clickedNode);
+}
+    const uploadPath = path.join(relativePath, clickedNode, filePath2);
     // Create the directory if it doesn't exist
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
@@ -256,7 +286,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post("/upload", upload.array("files"), (req, res) => {
-  res.json({ message: "Files uploaded successfully" });
+  res.status(200).json({ message: "Files uploaded successfully" });
 });
 
 const readPostBuildCommandsFromFile = () => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import SiteDropdown from "./components/SiteDropdown.js";
 import SiteDropdownHamburger from "./components/SiteDropdownHamburger.js";
 import Logs from "./portalComponents/Logs.js";
@@ -14,7 +14,7 @@ import FileManager from "./portalComponents/FileManager.js";
 import FileTree from "./portalComponents/Filetree.js";
 
 function Manage() {
-  const [selectedItem, setSelectedItem] = useState("Logs");
+  const [selectedItem, setSelectedItem] = useState("Files");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,9 +38,9 @@ function Manage() {
         <nav className="mx-auto flex max-w-full items-center justify-start p-6">
           <div className="flex flex-1 gap-4 text-center items-center">
             <div className="flex justify-start">
-              <a href="#" className="-m-1.5 p-1.5">
-                <img src="logo.png" className="w-16 h-16" />
-              </a>
+            <NavLink to="/" className="-m-1.5 p-1.5">
+            <img src="logo.png" className="w-16 h-16" />
+          </NavLink>
             </div>
             <div className="ml-auto flex items-center">
               <SiteDropdownHamburger className="inline-block text-left z-10" />
@@ -56,12 +56,12 @@ function Manage() {
                     </button>
                   </li>
                   <li>
-                    <a
-                      href="#"
+                    <NavLink
+                      to="/handleiding"
                       className="inline-block px-8 py-2 text-center font-medium text-white"
                     >
                       Handleiding
-                    </a>
+                    </NavLink>
                   </li>
                   <li>
                     <div className="flex items-center gap-1">
@@ -87,9 +87,9 @@ function Manage() {
       <div className="flex">
         <div className="w-4/12 bg-light-green">
           <ul className="py-4">
-            <a href="#" onClick={() => setSelectedItem("Logs")}>
+            <a href="#" onClick={() => setSelectedItem("Files")}>
               <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                Logs
+                Files
               </li>
             </a>
             <a href="#" onClick={() => setSelectedItem("Analytics")}>
@@ -122,9 +122,9 @@ function Manage() {
                 Git
               </li>
             </a>
-            <a href="#" onClick={() => setSelectedItem("Files")}>
+            <a href="#" onClick={() => setSelectedItem("Logs")}>
               <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                Files
+                Logs
               </li>
             </a>
           </ul>
@@ -135,8 +135,8 @@ function Manage() {
         >
           <div className="p-4 h-screen overflow-auto z-5">
             <h1 className="text-2xl font-semibold">{selectedItem}</h1>
-            {selectedItem === "Logs" ? (
-              <Logs />
+            {selectedItem === "Files" ? (
+              <FileTree />
             ) : selectedItem === "Analytics" ? (
               <Analytics />
             ) : selectedItem === "Domain" ? (
@@ -151,7 +151,7 @@ function Manage() {
               <Git />
             ) : (
               <div className="z-0">
-                <FileManager />
+                <Logs />
               </div>
             )}
           </div>

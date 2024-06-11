@@ -56,8 +56,7 @@ export default function FileManager() {
 
   function output(system_trees) {
     console.log(system_trees);
-    setLog(JSON.stringify(system_trees, checkFile, 2));
-
+    
     function checkFile(key, value) {
       if (value instanceof File) {
         return `{[File] ${value.name}, ${value.size}b}`;
@@ -93,7 +92,8 @@ export default function FileManager() {
       .then(response => response.json())
       .then(result => {
         console.log(result);
-        setLog(`Upload successful: ${JSON.stringify(result, null, 2)}`);
+        setLog(`Upload successful`);
+        window.location.reload();
       })
       .catch(error => {
         console.error('Upload failed', error);

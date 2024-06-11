@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Treebeard } from "react-treebeard";
 import Uppy from "../Uppy.js";
+import FileManager from "./FileManager.js";
 import fs from "fs";
 
 const style = {
@@ -96,6 +97,7 @@ function FileTree() {
   }, [refresh]);
 
   const handleDeleteFile = () => {
+    console.log("selected node in handle delete: " +selectedNode);
     fetch("/selected-node", {
       method: "POST",
       headers: {
@@ -199,6 +201,9 @@ function FileTree() {
         <div>
           <Uppy />
         </div>
+      )}
+      {showFileManager && (
+        <FileManager />
       )}
       <div>Path: {selectedNode}</div>{" "}
       <div className=" ">
