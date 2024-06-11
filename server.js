@@ -1,9 +1,17 @@
 import express from "express";
 import session from "express-session";
+<<<<<<< Updated upstream
 import router from './server/router.js';
 import userRoutes from './server/routes/user.routes.js';
 import fs, {readdir, stat } from "fs";
 import path from "path";
+=======
+import router from "./server/router.js";
+import userRoutes from "./server/routes/user.routes.js";
+import userService from "./server/services/user.service.js";
+import fs, { readdir, stat } from "fs";
+import path, { relative } from "path";
+>>>>>>> Stashed changes
 import multer from "multer";
 import { promisify } from "util";
 import fastFolderSize from "fast-folder-size";
@@ -27,6 +35,21 @@ app.use(session({
   cookie: { secure: true }
 }));
 
+<<<<<<< Updated upstream
+=======
+const getRelativePath = async (req) => {
+  const userSubdomain = await userService.getSubdomainByUser(req);
+  let relativepath;
+  if (userSubdomain) {
+    let subdomain = userSubdomain.SubDomainName;
+    console.log("Subdomain:", subdomain);
+    let directory = subdomain || "test";
+    relativepath = "../" + directory;
+    console.log("Relative path:", relativepath);
+  }
+  return relativepath;
+};
+>>>>>>> Stashed changes
 
 function buildFileTree(dirPath) {
   const tree = {};
@@ -42,82 +65,146 @@ function buildFileTree(dirPath) {
   return tree;
 }
 
-const dirSize = async relativepath => {
-  const fastFolderSizeASync= promisify(fastFolderSize);
+const dirSize = async (relativepath) => {
+  const fastFolderSizeASync = promisify(fastFolderSize);
   const size = await fastFolderSizeASync(relativepath);
-  console.log('Directory size:', size);
+  console.log("Directory size:", size);
   return size;
-}
+};
 
+<<<<<<< Updated upstream
 
 app.get('/filetree', (req, res) => {
   res.json(buildFileTree(relativepath));
+=======
+app.get("/filetree", async (req, res) => {
+  try {
+    let relativepath = await getRelativePath(req);
+    console.log("Relative path:", relativepath);
+    if (relativepath) {
+      res.json(buildFileTree(relativepath));
+    } else {
+      res.status(400).json({ message: "No subdomain found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+>>>>>>> Stashed changes
 });
 
-app.post('/selected-node', (req, res) => {
+app.post("/selected-node", (req, res) => {
   req.session.selectedNode = req.body.selectedNode;
   console.log(req.session.selectedNode + " in selected node");
-  clickedNode = req.session.selectedNode
+  const clickedNode = req.session.selectedNode;
   console.log(clickedNode + " in clicked node");
   req.session.save(function (err) {
     if (err) {
       console.log(err);
-      res.status(500).json({ message: 'Session save error' });
+      res.status(500).json({ message: "Session save error" });
       return;
-    }else{
-      res.json({ message: 'Selected node updated' });
-      console.log('session saved');
+    } else {
+      res.json({ message: "Selected node updated" });
+      console.log("session saved");
     }
-});
+  });
 });
 
+<<<<<<< Updated upstream
 app.get('/dir-info', async (req, res) => {
   const size = await dirSize(relativepath);
   const totalStorage = 1000000; // get this from database
+=======
+app.get("/dir-info", async (req, res) => {
+  let relativepath = getRelativePath(req);
+  console.log("Relative path:", relativepath);
+  const size = await dirSize(relativepath);
+  let userPackage = await userService.getUserPackage(req);
+  let totalStorage;
+  if ((userPackage = "free")) {
+    totalStorage = 314572800;
+  }
+>>>>>>> Stashed changes
   const usedStorage = size;
   const storagePercentage = (usedStorage / totalStorage) * 100;
   res.json({ size, storagePercentage });
 });
 
-app.get('/delete-file', (req, res) => {
-  console.log('File deleted:', relativepath+clickedNode)
-  fs.unlinkSync( relativepath + clickedNode);
-  res.json({ message: 'File deleted'
-   });
+app.get("/delete-file", (req, res) => {
+  console.log("File deleted:", relativepath + clickedNode);
+  fs.unlinkSync(relativepath + clickedNode);
+  res.json({ message: "File deleted" });
 });
-
-
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let folderPath = path.join(relativepath, clickedNode, req.body.relativepath || '');
-    
-    // Check if the path is a file or a directory
-    if (fs.existsSync(folderPath)) {
-      const stats = fs.statSync(folderPath);
-      if (stats.isFile()) {
-        // If it's a file, get the directory of the file
-        folderPath = path.dirname(folderPath);
-      }
+    console.log("file:", file);
+    console.log("req:", req.body.paths);
+    let filePath;
+    if(Array.isArray(req.body.paths)) {
+      req.body.paths.forEach((p) => {
+        if(p.includes(file.originalname)) {
+          filePath = p;
+        }
+      });
     } else {
-      // If the path doesn't exist, create it
-      fs.mkdirSync(folderPath, { recursive: true });
+      filePath = req.body.paths;
+    }
+    let filePath2 = filePath.substring(0, filePath.lastIndexOf(`/`));
+    console.log("filePath:", filePath2);
+    const uploadPath = path.join("../Upload", filePath2);
+    console.log("upload path:", uploadPath);
+    // Create the directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
 
-    cb(null, folderPath);
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);
+    cb(null, path.basename(file.originalname || file.webkitRelativePath));
   },
 });
 
 const upload = multer({ storage: storage });
 
-app.post('/upload', upload.array("files") ,(req, res) => {
-  console.log('uploading files to path:', relativepath + clickedNode);
-  res.send('File uploaded successfully');
+app.post("/upload", upload.array("files"), (req, res) => {
+  res.json({ message: "Files uploaded successfully" });
 });
+<<<<<<< Updated upstream
 app.use(userRoutes);
+=======
+
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     let folderPath = path.join(relativepath, clickedNode, req.body.relativepath || '');
+
+//     // Check if the path is a file or a directory
+//     if (fs.existsSync(folderPath)) {
+//       const stats = fs.statSync(folderPath);
+//       if (stats.isFile()) {
+//         // If it's a file, get the directory of the file
+//         folderPath = path.dirname(folderPath);
+//       }
+//     } else {
+//       // If the path doesn't exist, create it
+//       fs.mkdirSync(folderPath, { recursive: true });
+//     }
+
+//     cb(null, folderPath);
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, file.originalname);
+//   },
+// });
+
+// const upload = multer({ storage: storage });
+
+// app.post('/upload', upload.array("files") ,(req, res) => {
+//   console.log('uploading files to path:', relativepath + clickedNode);
+//   res.send('File uploaded successfully');
+// });
+>>>>>>> Stashed changes
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
