@@ -1,6 +1,6 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import Joyride, { ACTIONS, EVENTS, ORIGIN, STATUS } from 'react-joyride';
+import { NavLink, useLocation } from "react-router-dom";
+import Joyride, { ACTIONS, EVENTS, ORIGIN, STATUS } from "react-joyride";
 
 export default function Navigation() {
   const [dialog, setDialog] = React.useState(false);
@@ -34,51 +34,61 @@ export default function Navigation() {
     setRun(true);
   };
 
-const joyrideSteps = [
-  {
-    target: '.joyride-step-1',
-    content: 'Vraag hier makkelijk je sub-domein aan!',
-    disableBeacon: true
-  },
-  {
-    target: '.joyride-step-2',
-    content: 'Een makkelijke handleiding om te weten hoe jij je sub-domein kan beheren!',
-  },
-  {
-    target: '.joyride-step-3',
-    content: 'Kies een pakket dat bij jou past!',
-  },
-  {
-    target: '.joyride-step-4',
-    content: 'Meerdere technologieën die wij ondersteunen!',
-  },
-];
+  const joyrideSteps = [
+    {
+      target: ".joyride-step-1",
+      content: "Vraag hier makkelijk je sub-domein aan!",
+      disableBeacon: true,
+    },
+    {
+      target: ".joyride-step-2",
+      content:
+        "Een makkelijke handleiding om te weten hoe jij je sub-domein kan beheren!",
+    },
+    {
+      target: ".joyride-step-3",
+      content: "Kies een pakket dat bij jou past!",
+    },
+    {
+      target: ".joyride-step-4",
+      content: "Meerdere technologieën die wij ondersteunen!",
+    },
+  ];
 
-const handleJoyrideCallback = (data = null) => {
-  const { action, index, origin, status, type } = data;
-  
-  if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-    // You need to set our running state to false, so we can restart if we click start again.
-    setRun(false);
-  }
-};
+  const handleJoyrideCallback = (data = null) => {
+    const { action, index, origin, status, type } = data;
+
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRun(false);
+    }
+  };
 
   return (
     <header className="bg-primary-green">
-      <Joyride callback={handleJoyrideCallback} steps={joyrideSteps} continuous={true} run={joyrideRun} showSkipButton={true} 
-      styles={{
+      <Joyride
+        callback={handleJoyrideCallback}
+        steps={joyrideSteps}
+        continuous={true}
+        run={joyrideRun}
+        showSkipButton={true}
+        styles={{
           options: {
-            primaryColor: '#006241'
+            primaryColor: "#006241",
           },
         }}
-        locale={{ back: 'Terug', close: 'Afsluiten', last: 'Afsluiten', next: 'Volgende', skip: 'Overslaan' }}
-        
-        />
+        locale={{
+          back: "Terug",
+          close: "Afsluiten",
+          last: "Afsluiten",
+          next: "Volgende",
+          skip: "Overslaan",
+        }}
+      />
       <nav className="lg:mx-auto flex max-w-full lg:items-center justify-between p-6">
         <div className="flex lg:flex-shrink-0 lg:flex-grow-0 lg:justify-start lg:gap-4">
-          <Link to="/" className="-m-1.5 p-1.5">
+          <NavLink to="/" className="-m-1.5 p-1.5">
             <img src="logo.png" className="w-16 h-16" />
-          </Link>
+          </NavLink>
         </div>
         <div
           className={"flex " + (dialog ? "hidden" : "lg:hidden")}
@@ -118,39 +128,54 @@ const handleJoyrideCallback = (data = null) => {
           >
             Technologien
           </button>
-          <Link
+          <NavLink
             to="/requestForm"
-            className="text-lg font-semibold leading-6 text-white"
+            className={({ isActive }) =>
+              isActive
+                ? "text-lg font-semibold leading-6 text-black"
+                : "text-lg font-semibold leading-6 text-white"
+            }
           >
             Aanvragen
-          </Link>
-          <Link
+          </NavLink>
+          <NavLink
             to="/handleiding"
-            className="text-lg font-semibold leading-6 text-white"
+            className={({ isActive }) =>
+              isActive
+                ? "text-lg font-semibold leading-6 text-black"
+                : "text-lg font-semibold leading-6 text-white"
+            }
           >
             Handleiding
-          </Link>
-          <button onClick={handleClickStart} className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
+          </NavLink>
+          <button
+            onClick={handleClickStart}
+            className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black"
+          >
             Introductie
           </button>
         </div>
         <div className="lg:flex lg:flex-shrink-0 lg:flex-grow lg:justify-end lg:items-center lg:gap-4 hidden">
-          <Link
+          <NavLink
             to="/login"
-            className="text-lg font-semibold leading-6 text-white"
+            className={({ isActive }) =>
+              isActive
+                ? "text-lg font-semibold leading-6 text-black"
+                : "text-lg font-semibold leading-6 text-white"
+            }
           >
             Login
-          </Link>
-          <Link to="/requestform">
+          </NavLink>
+          <NavLink to="/requestform">
             <button className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
               Account aanmaken
             </button>
-          </Link>
-          <Link to="/manage">
+          </NavLink>
+          <NavLink to="/manage">
             <button className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black">
               Jouw omgeving
             </button>
-          </Link>
+          </NavLink>
         </div>
         <div
           className={dialog ? "lg:hidden" : "hidden"}
@@ -160,9 +185,9 @@ const handleJoyrideCallback = (data = null) => {
           <div className="fixed inset-0 z-10"></div>
           <div className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
             <div className="flex items-center justify-between">
-              <Link to="/" className="-m-1.5 p-1.5">
+              <NavLink to="/" className="-m-1.5 p-1.5">
                 <img className="h-8 w-auto" src="logo.png" alt="" />
-              </Link>
+              </NavLink>
               <button
                 type="button"
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"
@@ -199,38 +224,58 @@ const handleJoyrideCallback = (data = null) => {
                   >
                     Technologien
                   </button>
-                  <Link
+                  <NavLink
                     to="/requestForm"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-black hover:bg-gray-50"
+                        : "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    }
                   >
                     Aanvragen
-                  </Link>
-                  <Link
+                  </NavLink>
+                  <NavLink
                     to="/handleiding"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-black hover:bg-gray-50"
+                        : "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    }
                   >
                     Handleiding
-                  </Link>
+                  </NavLink>
                 </div>
                 <div className="py-6">
-                  <Link
+                  <NavLink
                     to="/manage"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-black hover:bg-gray-50"
+                        : "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    }
                   >
                     Jouw Omgeving
-                  </Link>
-                  <Link
+                  </NavLink>
+                  <NavLink
                     to="/requestForm"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-black hover:bg-gray-50"
+                        : "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    }
                   >
                     Account Aanmaken
-                  </Link>
-                  <Link
+                  </NavLink>
+                  <NavLink
                     to="/login"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-black hover:bg-gray-50"
+                        : "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    }
                   >
                     Log in
-                  </Link>
+                  </NavLink>
                 </div>
               </div>
             </div>
