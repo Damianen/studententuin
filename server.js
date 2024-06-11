@@ -110,11 +110,6 @@ app.post("/selected-node", (req, res) => {
   });
 });
 
-<<<<<<< Updated upstream
-app.get('/dir-info', async (req, res) => {
-  const size = await dirSize(relativepath);
-  const totalStorage = 1000000; // get this from database
-=======
 app.get("/dir-info", async (req, res) => {
   let relativepath = getRelativePath(req);
   console.log("Relative path:", relativepath);
@@ -124,7 +119,6 @@ app.get("/dir-info", async (req, res) => {
   if ((userPackage = "free")) {
     totalStorage = 314572800;
   }
->>>>>>> Stashed changes
   const usedStorage = size;
   const storagePercentage = (usedStorage / totalStorage) * 100;
   res.json({ size, storagePercentage });
@@ -171,9 +165,6 @@ const upload = multer({ storage: storage });
 app.post("/upload", upload.array("files"), (req, res) => {
   res.json({ message: "Files uploaded successfully" });
 });
-<<<<<<< Updated upstream
-app.use(userRoutes);
-=======
 
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -204,7 +195,6 @@ app.use(userRoutes);
 //   console.log('uploading files to path:', relativepath + clickedNode);
 //   res.send('File uploaded successfully');
 // });
->>>>>>> Stashed changes
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
