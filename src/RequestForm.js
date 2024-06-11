@@ -95,7 +95,7 @@ export default function RequestForm() {
                 name="productPackage"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
                 id="productPackage"
-                value={JSON.parse(selectedPackage)}
+                value={selectedPackage ? JSON.parse(selectedPackage) : ""}
                 onChange={(e) => setSelectedPackage(e.target.value)}
               >
                 <option value="">Kies een pakket</option>
