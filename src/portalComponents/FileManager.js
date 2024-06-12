@@ -56,7 +56,7 @@ export default function FileManager() {
 
   function output(system_trees) {
     console.log(system_trees);
-    
+
     function checkFile(key, value) {
       if (value instanceof File) {
         return `{[File] ${value.name}, ${value.size}b}`;

@@ -14,19 +14,6 @@ function Component() {
     const [isLoading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await axios.get(
-                    "/api/getUserByEmailFromSession"
-                );
-                console.log("API response:", response.data); // Logging om de response te controleren
-                setUser(response.data);
-            } catch (error) {
-                console.error("Error fetching user:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
         const fetchUsedStorage = async () => {
             const response = await fetch("/dir-info", {
                 method: "GET",
@@ -42,7 +29,6 @@ function Component() {
                 setTotalStorage(data.totalStorage);
             }
         };
-        fetchUser(); // Call the async function
         fetchUsedStorage(); // Call the async function
     }, []);
     const availableStorage = totalStorage - usedStorage;
@@ -76,7 +62,7 @@ function Component() {
     uppy.use(XHRUpload, {
         endpoint:
             user && user.subDomainName
-                ? `https://${user.subDomainName}.studententuin.nl/upload/uppy`
+                ? `https://test.studententuin.nl/upload/uppy`
                 : "",
         fieldName: "files",
         formData: true,
