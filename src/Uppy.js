@@ -58,10 +58,7 @@ function Component() {
     }
 
     uppy.use(XHRUpload, {
-        endpoint:
-            user && user.subDomainName
-                ? `https://test.studententuin.nl/upload/uppy`
-                : "",
+        endpoint:`https://test.studententuin.nl/upload/uppy`,
         fieldName: "files",
         formData: true,
         allowedMetaFields: [{ id: "relativePath", name: "Relative Path" }],
