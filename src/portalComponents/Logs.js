@@ -61,7 +61,7 @@ const Logs = () => {
           {showStdout && (
             <div>
               <h1 className="text-xl font-bold">Stdout Logs</h1>
-              <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96">
+              <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96 whitespace-pre-wrap">
                 {stdoutLogs}
               </pre>
             </div>
@@ -69,7 +69,7 @@ const Logs = () => {
           {showStderr && (
             <div>
               <h1 className="text-xl font-bold">Stderr Logs</h1>
-              <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96">
+              <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96 whitespace-pre-wrap">
                 {stderrLogs}
               </pre>
             </div>
