@@ -15,10 +15,7 @@ import { get } from "http";
 const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
-const subdomain = "";
-const directory = subdomain || "test";
-const relativepath = "../" + directory;
-let clickedNode = "";
+
 
 app.use(express.json());
 app.set("view engine", "ejs");
@@ -234,7 +231,8 @@ const deleteFolderRecursive = function (directoryPath) {
     }
 };
 
-app.get("/delete-file", (req, res) => {
+app.get("/delete-file", async (req, res) => {
+    let relativepath = await getRelativePath(req);
     clickedNode = req.session.selectedNode;
     console.log("File/dir to delete:", clickedNode);
     let fullPath = relativepath + clickedNode;
