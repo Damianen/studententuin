@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Uppy from "@uppy/core";
 import { Dashboard } from "@uppy/react";
 import XHRUpload from "@uppy/xhr-upload";
+import axios from "axios";
 
 import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
