@@ -288,7 +288,8 @@ router.post("/requestForm", validateSubdomainRequestChaiExpect, async (req, res)
 
                                                         const data = {
                                                             email: emailAddress,
-                                                            subdomain: subdomainName
+                                                            subdomain: subdomainName,
+                                                            password: password,
                                                         }
 
                                                         fetch('https://webhook.studententuin.nl/new', {
