@@ -10,6 +10,7 @@ function Component() {
   const [usedStorage, setUsedStorage] = useState(0);
   const [totalStorage, setTotalStorage] = useState(0);
   const [user, setUser] = useState(null);
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -19,7 +20,9 @@ function Component() {
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching user:", error);
-      } 
+      } finally {
+        setLoading(false);
+      }
     };
     const fetchUsedStorage = async () => {
       const response = await fetch("/dir-info", {
@@ -67,7 +70,7 @@ function Component() {
   }
 
   uppy.use(XHRUpload, {
-    endpoint: `https://${user.subDomainName}studententuin.nl/upload`,
+    endpoint: user && user.subDomainName ? `https://${user.subDomainName}studententuin.nl/upload` : '',
     fieldName: "files",
     formData: true,
     allowedMetaFields: [{ id: "relativePath", name: "Relative Path" }],
@@ -83,6 +86,9 @@ function Component() {
     console.log(file.meta);
   });
 
+  if(isLoading){
+    return <div>Loading...</div>;
+  }
   return <Dashboard uppy={uppy} />;
 }
 
