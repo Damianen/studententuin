@@ -252,7 +252,7 @@ app.get("/delete-file", (req, res) => {
         }
     }
     console.log("File deleted:", fullPath);
-    res.json({ message: "File deleted" });
+    res.status(200).json({ message: "File deleted" });
 });
 
 const storage = multer.diskStorage({
@@ -292,6 +292,31 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post("/upload", upload.array("files"), (req, res) => {
+    res.status(200).json({ message: "Files uploaded successfully" });
+});
+
+
+const Uppystorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    let relativePath = await getRelativePath(req);
+    let clickedNode = req.session.selectedNode;
+
+    let stat = fs.statSync(path.join(relativePath, clickedNode));
+
+        if (stat.isFile()) {
+            // If clickedNode is a file, get the directory above it
+            clickedNode = path.dirname(clickedNode);
+        }
+    let folderPath = path.join(relativePath, clickedNode);
+    cb(null, folderPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+const uploadUppy = multer({ storage: Uppystorage });
+
+app.post("/upload/uppy", uploadUppy.array("files"), (req, res) => {
     res.status(200).json({ message: "Files uploaded successfully" });
 });
 

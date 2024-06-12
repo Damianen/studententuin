@@ -76,7 +76,7 @@ function Component() {
     uppy.use(XHRUpload, {
         endpoint:
             user && user.subDomainName
-                ? `https://${user.subDomainName}.studententuin.nl/upload`
+                ? `https://${user.subDomainName}.studententuin.nl/upload/uppy`
                 : "",
         fieldName: "files",
         formData: true,
@@ -92,6 +92,10 @@ function Component() {
         console.log(file);
         console.log(file.meta);
     });
+
+    uppy.on('complete', (result) => {
+      window.location.reload();
+  });
 
     if (isLoading) {
         return <div>Loading...</div>;

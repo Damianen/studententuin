@@ -113,11 +113,11 @@ function FileTree() {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
+        if (data.message === "File deleted") {
           console.log("File deleted successfully");
-        } else {
-          console.log("Failed to delete file");
           setRefresh(!refresh);
+        } else {
+          console.log("Failed to delete file", data.status, data.message);
         }
       });
   };
