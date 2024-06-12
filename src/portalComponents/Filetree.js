@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Treebeard } from "react-treebeard";
 import Uppy from "../Uppy.js";
+import FileManager from "./FileManager.js";
 import fs from "fs";
 
 const style = {
@@ -87,6 +88,7 @@ function FileTree() {
   const [selectedNode, setSelectedNode] = useState("");
   const [refresh, setRefresh] = useState(false);
   const [showUppy, setShowUppy] = useState(false);
+  const [showFileManager, setShowFileManager] = useState(false);
 
   useEffect(() => {
     fetch("/filetree")
@@ -95,6 +97,7 @@ function FileTree() {
   }, [refresh]);
 
   const handleDeleteFile = () => {
+    console.log("selected node in handle delete: " +selectedNode);
     fetch("/selected-node", {
       method: "POST",
       headers: {
@@ -110,16 +113,29 @@ function FileTree() {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
+        if (data.message === "File deleted") {
           console.log("File deleted successfully");
-        } else {
-          console.log("Failed to delete file");
           setRefresh(!refresh);
+        } else {
+          console.log("Failed to delete file", data.status, data.message);
         }
       });
   };
+  const handleUploadDirectory = () => {
+    setShowFileManager(!showFileManager);
+    fetch("/selected-node", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedNode: selectedNode }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.error(error));
+  };
 
-  const handleUpload = () => {
+  const handleUploadFile = () => {
     setShowUppy(!showUppy);
     fetch("/selected-node", {
       method: "POST",
@@ -168,6 +184,9 @@ function FileTree() {
     setFileTree(Object.assign({}, fileTree));
     setSelectedNode(node.path);
     console.log(node.path);
+    if(showFileManager){
+      setShowFileManager(!showFileManager);
+    }
     if(showUppy){
       setShowUppy(!showUppy);
     }
@@ -183,6 +202,9 @@ function FileTree() {
           <Uppy />
         </div>
       )}
+      {showFileManager && (
+        <FileManager />
+      )}
       <div>Path: {selectedNode}</div>{" "}
       <div className=" ">
         <button
@@ -193,9 +215,15 @@ function FileTree() {
         </button>
         <button
           className="inline-block border mx-5 border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green"
-          onClick={handleUpload}
+          onClick={handleUploadFile}
         >
-          Upload
+          Upload a single file
+        </button>
+        <button
+          className="inline-block border mx-5 border-transparent bg-primary-green px-6 py-2 text-center font-medium text-white hover:bg-house-green"
+          onClick={handleUploadDirectory}
+        >
+          Upload a directory
         </button>
       </div>
     </div>
