@@ -233,7 +233,7 @@ const deleteFolderRecursive = function (directoryPath) {
 
 app.get("/delete-file", async (req, res) => {
     let relativepath = await getRelativePath(req);
-    clickedNode = req.session.selectedNode;
+    let clickedNode = req.session.selectedNode;
     console.log("File/dir to delete:", clickedNode);
     let fullPath = relativepath + clickedNode;
     console.log("File/dir deleted:", fullPath);
