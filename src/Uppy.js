@@ -9,7 +9,18 @@ import "@uppy/dashboard/dist/style.min.css";
 function Component() {
   const [usedStorage, setUsedStorage] = useState(0);
   const [totalStorage, setTotalStorage] = useState(0);
+  const [user, setUser] = useState(null);
+
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("/api/getUserByEmailFromSession");
+        console.log("API response:", response.data); // Logging om de response te controleren
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } 
+    };
     const fetchUsedStorage = async () => {
       const response = await fetch("/dir-info", {
         method: "GET",
@@ -25,7 +36,7 @@ function Component() {
         setTotalStorage(data.totalStorage);
       }
     };
-
+    fetchUser(); // Call the async function
     fetchUsedStorage(); // Call the async function
   }, []);
   const availableStorage = totalStorage - usedStorage;
@@ -56,7 +67,7 @@ function Component() {
   }
 
   uppy.use(XHRUpload, {
-    endpoint: "https://studententuin.nl/upload",
+    endpoint: `https://${user.subDomainName}studententuin.nl/upload`,
     fieldName: "files",
     formData: true,
     allowedMetaFields: [{ id: "relativePath", name: "Relative Path" }],
