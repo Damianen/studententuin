@@ -76,7 +76,7 @@ function Component() {
     uppy.use(XHRUpload, {
         endpoint:
             user && user.subDomainName
-                ? `https://${user.subDomainName}studententuin.nl/upload`
+                ? `https://${user.subDomainName}.studententuin.nl/upload`
                 : "",
         fieldName: "files",
         formData: true,
