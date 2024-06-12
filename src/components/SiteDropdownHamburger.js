@@ -53,7 +53,7 @@ export default function AccountDropdownHamburger() {
         <button
           className={
             isOpen
-              ? " cursor-default bg-black opacity-50 fixed inset-0 w-full h-full"
+              ? " cursor-default opacity-50 fixed inset-0 w-full h-full"
               : "hidden"
           }
           onClick={closeDropdown}

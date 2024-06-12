@@ -48,7 +48,7 @@ export default function AccountDropdown() {
         <button
           className={
             isOpen
-              ? " cursor-default bg-black opacity-50 fixed inset-0 w-full h-full z-40"
+              ? " cursor-default opacity-50 fixed inset-0 w-full h-full z-40"
               : "hidden"
           }
           onClick={closeDropdown}
