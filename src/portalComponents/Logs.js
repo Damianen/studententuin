@@ -20,6 +20,20 @@ const Logs = () => {
       });
   }, []);
 
+  const handleToggleStdout = () => {
+    setShowStdout((prev) => !prev);
+    if (!showStdout) {
+      setShowStderr(false); // Hide stderr when toggling stdout
+    }
+  };
+
+  const handleToggleStderr = () => {
+    setShowStderr((prev) => !prev);
+    if (!showStderr) {
+      setShowStdout(false); // Hide stdout when toggling stderr
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <p className="text-lg mb-4">
@@ -34,26 +48,30 @@ const Logs = () => {
         <div className="space-y-4">
           <button
             className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
-            onClick={() => setShowStdout(!showStdout)}
+            onClick={handleToggleStdout}
           >
             {showStdout ? "Hide Stdout" : "Show Stdout"}
           </button>
           <button
             className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
-            onClick={() => setShowStderr(!showStderr)}
+            onClick={handleToggleStderr}
           >
             {showStderr ? "Hide Stderr" : "Show Stderr"}
           </button>
           {showStdout && (
             <div>
               <h1 className="text-xl font-bold">Stdout Logs</h1>
-              <pre className="bg-gray-200 p-4 rounded">{stdoutLogs}</pre>
+              <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96">
+                {stdoutLogs}
+              </pre>
             </div>
           )}
           {showStderr && (
             <div>
               <h1 className="text-xl font-bold">Stderr Logs</h1>
-              <pre className="bg-gray-200 p-4 rounded">{stderrLogs}</pre>
+              <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96">
+                {stderrLogs}
+              </pre>
             </div>
           )}
         </div>

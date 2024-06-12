@@ -183,7 +183,7 @@ const getNewestLogFiles = async (dir) => {
 
 router.get("/api/logs", async (req, res) => {
   try {
-    const logsDir = path.join(__dirname, "logs");
+    const logsDir = path.join(__dirname, "../logs");
     const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
 
     if (!newestStdout && !newestStderr) {
