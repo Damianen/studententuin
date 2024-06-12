@@ -11,8 +11,6 @@ function Component() {
     const [usedStorage, setUsedStorage] = useState(0);
     const [totalStorage, setTotalStorage] = useState(0);
     const [user, setUser] = useState(null);
-    const [isLoading, setLoading] = useState(true);
-
     useEffect(() => {
         const fetchUsedStorage = async () => {
             const response = await fetch("/dir-info", {
@@ -83,9 +81,6 @@ function Component() {
       window.location.reload();
   });
 
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
     return <Dashboard uppy={uppy} />;
 }
 
