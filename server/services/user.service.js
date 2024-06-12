@@ -1,9 +1,9 @@
 import pool from "../../dao/db-config.js";
 import sql from "mssql";
+import bcrypt from "bcryptjs"
 
 const userService = {
-  getByEmail: async (req, res, next) => {
-    const userEmail = req.params.userEmail;
+  getByEmail: async (userEmail, callback) => {
 
     try {
       const result = await pool
@@ -13,41 +13,14 @@ const userService = {
           "SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @userEmail"
         );
 
-      if (result.recordset) {
-        res.send({
-          status: 200,
-          message: "This is a message",
-          data: result.recordset,
-        });
+      if (result.recordset.length !== 0) {
+        callback({status: 200, data: result.recordset}, null);
       } else {
-        res.send({
-          status: 404,
-          message: "User not found",
-          data: {},
-        });
+        callback(null, {status: 404, message: "User not found"});
       }
     } catch (error) {
-      res.send({
-        status: 500,
-        message: "An error occurred",
-        error: error.message,
-      });
+      callback(null, {status: 500, message: error.message});
     }
-
-    // Code voorbeeld om de call in de frontend te maken
-    // fetch('http://localhost:3001/api/user/r@struijlaart.nl')
-    // .then(response => {
-    //   if (!response.ok) {
-    //     throw new Error('Network response was not ok ' + response.statusText);
-    //   }
-    //   return response.json();
-    // })
-    // .then(data => {
-    //   console.dir(data);
-    // })
-    // .catch(error => {
-    //   console.dir(error);
-    // });
   },
   getUserByEmail: async (email) => {
     try {
@@ -159,6 +132,27 @@ const userService = {
     } catch (error) {
       console.error("Error:", error);
       throw error;
+    }
+  },
+  insert: async (email, password, productPackage, callback) => {
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    try {
+
+      const result = await pool
+        .request()
+        .input("email", sql.NVarChar, email)
+        .input("password", sql.NVarChar, hashedPassword)
+        .input("package", sql.NVarChar, productPackage)
+        .query(
+          "INSERT INTO [studententuin].[dbo].[User] (email, password, package) VALUES (@email, @password, @package)"
+        );
+
+      callback({status: 200, message: "User succesvol toegevoegt"}, null);
+
+    } catch (err) {
+      callback(null, {status: 500, message: err.message});
     }
   }
 

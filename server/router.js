@@ -8,6 +8,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import session from "express-session";
 import fs from "fs/promises"; // gebruik fs/promises voor asynchrone file operaties
+import UserSubDomainService from "../server/services/user.subdomain.service.js"
+import validateSubdomainRequestChaiExpect from "./../src/ValidateSignUp.js";
 
 const router = Router();
 
@@ -264,5 +266,87 @@ router.get("/logout", (req, res) => {
         }
     });
 });
+
+router.post("/requestForm", validateSubdomainRequestChaiExpect, async (req, res) => {
+    const {subdomainName, emailAddress, password, productPackage} = req.body;
+  
+
+    await userService.getByEmail(emailAddress, (success, error) => {
+        if (success) {
+            if(success.status === 200){
+                res.status(409).json({
+                    status: 409,
+                    message: "De gebruikte email staat al geregistreerd in het systeem!",
+                });
+            }
+        }else{
+            
+            subDomainService.getByName(subdomainName, (success, error) => {
+                if(success){
+                    if(success.status === 200){
+                        res.status(409).json({
+                            status: 409,
+                            message: "Het opgegeven sub-domein naam is al in gebruik!",
+                        });
+                    }
+                }else{
+                    userService.insert(emailAddress, password, productPackage, (success, error) => {
+                        if(success){
+                            if(success.status === 200){
+                                subDomainService.insertDomainName(subdomainName, (success, error) => {
+                                    if(success){
+                                        if(success.status === 200){
+                                            UserSubDomainService.insert(emailAddress, subdomainName, (success, error) => {
+                                                if(success){
+                                                    if(success.status === 200){
+
+                                                        const data = {
+                                                            email: emailAddress,
+                                                            subdomain: subdomainName
+                                                        }
+
+                                                        fetch('https://webhook.studententuin.nl/new', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json'
+                                                            },
+                                                            body: JSON.stringify(data)
+                                                        });
+
+                                                        res.status(200).json({
+                                                            status: 200,
+                                                            message: "Gebruiker/Sub-domein succesvol geregistreerd!",
+                                                        });
+                                                    }
+                                                }else{
+                                                    res.status(error.status).json({
+                                                        status: error.status,
+                                                        message: error.message
+                                                    });
+                                                }
+                                            })
+                                            
+                                        }
+                                    }else{
+                                        res.status(error.status).json({
+                                            status: error.status,
+                                            message: error.message
+                                        });
+                                    }
+                                })
+                            }
+                        }else{
+                            res.status(error.status).json({
+                                status: error.status,
+                                message: error.message
+                            });
+                        }
+                    })
+                }
+            })
+            
+        }
+    });
+  });
 
 export default router;
