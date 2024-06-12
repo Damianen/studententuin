@@ -13,71 +13,71 @@ import Contact from "./contact.js";
 import Manual from "./Manual.js";
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: (
-      <Main>
-        <HomePage />
-      </Main>
-    ),
-  },
-  {
-    path: "login",
-    element: (
-      <Main>
-        <Login />
-      </Main>
-    ),
-  },
-  {
-    path: "requestForm",
-    element: (
-      <Main>
-        <RequestForm />
-      </Main>
-    ),
-  },
-  {
-    path: "handleiding",
-    element: (
-      <Main>
-        <Manual />
-      </Main>
-    ),
-  },
-  {
-    path: "manage",
-    element: (
-      <Main manage={true}>
-        <Manage />
-      </Main>
-    ),
-  },
-  {
-    path: "about",
-    element: (
-      <Main>
-        <About></About>
-      </Main>
-    ),
-  },
-  {
-    path: "contact",
-    element: (
-      <Main>
-        <Contact />
-      </Main>
-    ),
-  },
-  {
-    path: "wachtwoord",
-    element: <Main></Main>,
-  },
+    {
+        path: "/",
+        element: (
+            <Main>
+                <HomePage />
+            </Main>
+        ),
+    },
+    {
+        path: "login",
+        element: (
+            <Main>
+                <Login />
+            </Main>
+        ),
+    },
+    {
+        path: "requestForm",
+        element: (
+            <Main>
+                <RequestForm />
+            </Main>
+        ),
+    },
+    {
+        path: "handleiding",
+        element: (
+            <Main>
+                <Manual />
+            </Main>
+        ),
+    },
+    {
+        path: "manage",
+        element: (
+            <Main manage={true}>
+                <Manage />
+            </Main>
+        ),
+    },
+    {
+        path: "about",
+        element: (
+            <Main>
+                <About></About>
+            </Main>
+        ),
+    },
+    {
+        path: "contact",
+        element: (
+            <Main>
+                <Contact />
+            </Main>
+        ),
+    },
+    {
+        path: "wachtwoord",
+        element: <Main></Main>,
+    },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+    <React.StrictMode>
+        <RouterProvider router={router} />
+    </React.StrictMode>
 );

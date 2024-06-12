@@ -1,4 +1,4 @@
 module.exports = {
-    presets: ['@babel/react', '@babel/env'],
-    plugins: ['@babel/plugin-transform-class-properties'],
+    presets: ["@babel/react", "@babel/env"],
+    plugins: ["@babel/plugin-transform-class-properties"],
 };
