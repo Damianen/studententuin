@@ -1,8 +1,22 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import Joyride, { STATUS } from "react-joyride";
+import Joyride, { ACTIONS, EVENTS, ORIGIN, STATUS } from "react-joyride";
 
-export default function Navigation() {
+function IntroductionButton({ joyride, handleClickStart }) {
+  if (joyride === true) {
+    return (
+      <button
+        onClick={handleClickStart}
+        className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black"
+      >
+        Introductie
+      </button>
+    );
+  }
+  return null;
+}
+
+export default function Navigation(joyride) {
   const [dialog, setDialog] = React.useState(false);
   const location = useLocation();
 
@@ -47,19 +61,22 @@ export default function Navigation() {
       target: ".joyride-step-2",
       content:
         "Een makkelijke handleiding om te weten hoe jij je sub-domein kan beheren!",
+      disableBeacon: true,
     },
     {
       target: ".joyride-step-3",
       content: "Kies een pakket dat bij jou past!",
+      disableBeacon: true,
     },
     {
       target: ".joyride-step-4",
       content: "Meerdere technologieën die wij ondersteunen!",
+      disableBeacon: true,
     },
   ];
 
-  const handleJoyrideCallback = (data) => {
-    const { status } = data;
+  const handleJoyrideCallback = (data = null) => {
+    const { action, index, origin, status, type } = data;
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       setRun(false);
@@ -86,6 +103,7 @@ export default function Navigation() {
           next: "Volgende",
           skip: "Overslaan",
         }}
+        hideCloseButton={true}
       />
       <nav className="lg:mx-auto flex max-w-full lg:items-center justify-between p-6">
         <div className="flex lg:flex-shrink-0 lg:flex-grow-0 lg:justify-start lg:gap-4">
@@ -118,6 +136,10 @@ export default function Navigation() {
           </button>
         </div>
         <div className="lg:flex lg:flex-shrink-1 lg:flex-grow lg:justify-center lg:items-center lg:gap-4 lg:px-2 hidden">
+          <IntroductionButton
+            joyride={joyride.joyride}
+            handleClickStart={handleClickStart}
+          />
           <button
             onClick={handleScrollToPrice}
             className="text-lg font-semibold leading-6 text-white"
@@ -153,12 +175,6 @@ export default function Navigation() {
           >
             Handleiding
           </NavLink>
-          <button
-            onClick={handleClickStart}
-            className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black"
-          >
-            Introductie
-          </button>
         </div>
         <div className="lg:flex lg:flex-shrink-0 lg:flex-grow lg:justify-end lg:items-center lg:gap-4 hidden">
           <NavLink
