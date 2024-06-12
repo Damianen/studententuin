@@ -122,13 +122,13 @@ router.post("/requestForm", validateSubdomainRequestChaiExpect, async (req, res)
                                                             subdomain: subdomainName
                                                         }
 
-                                                        // fetch('https://webhook.studententuin.nl/new', {
-                                                        //     method: 'POST',
-                                                        //     headers: {
-                                                        //         'Content-Type': 'application/json'
-                                                        //     },
-                                                        //     body: JSON.stringify(data)
-                                                        // });
+                                                        fetch('https://webhook.studententuin.nl/new', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json'
+                                                            },
+                                                            body: JSON.stringify(data)
+                                                        });
 
                                                         res.status(200).json({
                                                             status: 200,
