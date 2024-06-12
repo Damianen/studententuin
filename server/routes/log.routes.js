@@ -1,27 +1,31 @@
 import { Router } from "express";
-import httpServer from "../../server.js";
-import { Server } from "socket.io";
 import { getNewestLogFiles } from "../services/log.services.js";
+import path from 'path';
+import fs from "fs/promises"; // gebruik fs/promises voor asynchrone file operaties
 const router = Router();
+const __dirname = path.resolve();
 
 router.get("/api/logs", async (req, res) => {
+    console.log("api");
+    res.sendStatus(200);
+});
 
-    const io = new Server(httpServer, {});
+const getLatestLogs = async (io) => {
     try {
-        const logsDir = path.resolve(__dirname, "../logs");
+        const logsDir = path.resolve(__dirname, "./logs");
         console.log(`Looking for logs in: ${logsDir}`);
 
         try {
             await fs.access(logsDir);
         } catch (err) {
             console.error(`Directory does not exist: ${logsDir}`, err);
-            return res.status(404).json({ error: "Logs directory does not exist" });
+            return { error: "Logs directory does not exist" };
         }
 
         const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
 
         if (!newestStdout && !newestStderr) {
-            return res.status(404).json({ error: "No log files found" });
+            return { error: "No log files found" };
         }
 
         const stdoutData = newestStdout
@@ -31,13 +35,11 @@ router.get("/api/logs", async (req, res) => {
             ? await fs.readFile(newestStderr, "utf8")
             : null;
 
-        res.json({ stdout: stdoutData, stderr: stderrData });
+        return { stdout: stdoutData, stderr: stderrData };
     } catch (err) {
         console.error("Error reading log files:", err);
-        res
-            .status(500)
-            .json({ error: "Error reading log files", details: err.message });
+        return { error: err }
     }
-});
+}
 
-export default router;
+export default getLatestLogs;

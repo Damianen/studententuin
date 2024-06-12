@@ -1,5 +1,5 @@
 import fs from "fs/promises"; // gebruik fs/promises voor asynchrone file operaties
-
+import path from "path";
 // Helper function to find the newest log files
 export const getNewestLogFiles = async (dir) => {
   const files = await fs.readdir(dir);

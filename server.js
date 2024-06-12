@@ -3,7 +3,7 @@ import session from "express-session";
 import router from "./server/router.js";
 import userRoutes from "./server/routes/user.routes.js";
 import userService from "./server/services/user.service.js";
-import logRoutes from "./server/routes/log.routes.js"
+import getLatestLogs from "./server/routes/log.routes.js"
 import fs, { readdir, stat, readFile } from "fs";
 import path, { relative } from "path";
 import multer from "multer";
@@ -12,6 +12,7 @@ import fastFolderSize from "fast-folder-size";
 import xml2js from "xml2js";
 import bodyParser from "body-parser";
 import { createServer } from "http";
+import { Server } from "socket.io";
 
 const app = express();
 const httpServer = createServer(app);
@@ -23,7 +24,6 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(router);
 app.use(userRoutes);
-app.use(logRoutes);
 app.use(bodyParser.json());
 
 const getRelativePath = async (req) => {
@@ -311,4 +311,12 @@ httpServer.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
-export default httpServer;
+const io = new Server(httpServer, {});
+io.on("connection", (socket) => {
+    console.log('connected');
+    socket.on("getLatestLogs", async () => {
+        console.log("on get latest")
+        const data = await getLatestLogs();
+        socket.emit("logs", data);
+    });
+});
