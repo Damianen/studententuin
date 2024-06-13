@@ -16,7 +16,6 @@ const app = express();
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
 
-
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
@@ -123,9 +122,9 @@ app.get("/api/appsettings", (req, res) => {
     });
 });
 
-app.delete("/api/appsettings/:key", (req, res) => {
+app.delete("/api/appsettings/:key", async (req, res) => {
     console.log("Deleting key:", req.params.key);
-    const configPath = path.join(__dirname, "web.config");
+    let configPath = await getRelativePath(req);
 
     try {
         const data = fs.readFileSync(configPath);
@@ -171,9 +170,9 @@ app.delete("/api/appsettings/:key", (req, res) => {
     }
 });
 
-app.post("/api/appsettings", (req, res) => {
+app.post("/api/appsettings", async (req, res) => {
     const { key, value } = req.body;
-    const configPath = path.join(__dirname, "web.config");
+    const configPath = await getRelativePath(req);
 
     fs.readFile(configPath, (err, data) => {
         if (err) {
@@ -293,24 +292,23 @@ app.post("/upload", upload.array("files"), (req, res) => {
     res.status(200).json({ message: "Files uploaded successfully" });
 });
 
-
 const Uppystorage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    let relativePath = await getRelativePath(req);
-    let clickedNode = req.session.selectedNode;
+    destination: async (req, file, cb) => {
+        let relativePath = await getRelativePath(req);
+        let clickedNode = req.session.selectedNode;
 
-    let stat = fs.statSync(path.join(relativePath, clickedNode));
+        let stat = fs.statSync(path.join(relativePath, clickedNode));
 
         if (stat.isFile()) {
             // If clickedNode is a file, get the directory above it
             clickedNode = path.dirname(clickedNode);
         }
-    let folderPath = path.join(relativePath, clickedNode);
-    cb(null, folderPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname);
-  },
+        let folderPath = path.join(relativePath, clickedNode);
+        cb(null, folderPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
 });
 const uploadUppy = multer({ storage: Uppystorage });
 
@@ -330,7 +328,13 @@ const readPostBuildCommandsFromFile = () => {
     }
 };
 
-const POST_BUILD_SCRIPT_PATH = "postbuild.sh";
+let relativePath;
+
+(async () => {
+    relativePath = await getRelativePath(req);
+})();
+
+const POST_BUILD_SCRIPT_PATH = `${relativePath}/postbuild.sh`;
 
 app.get("/api/postbuildcommands", (req, res) => {
     const commands = readPostBuildCommandsFromFile();
