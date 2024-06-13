@@ -392,7 +392,7 @@ io.on("connection", (socket) => {
     console.log('connected');
     socket.on("getLatestLogs", async () => {
         console.log("on get latest")
-        const data = await getLatestLogs();
+        const data = await getLatestLogs(subdomain);
         socket.emit("logs", data);
     });
 });

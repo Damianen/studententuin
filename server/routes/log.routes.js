@@ -10,9 +10,9 @@ router.get("/api/logs", async (req, res) => {
     res.sendStatus(200);
 });
 
-const getLatestLogs = async (io) => {
+const getLatestLogs = async (subdomain) => {
     try {
-        const logsDir = path.resolve(__dirname, "./logs");
+        const logsDir = path.resolve(__dirname, `../${subdomain}/logs`);
         console.log(`Looking for logs in: ${logsDir}`);
 
         try {

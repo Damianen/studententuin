@@ -43,7 +43,7 @@ const Logs = () => {
     useEffect(() => {
         const interval = setInterval(() => {
             setState(!state);
-            socket.emit('getLatestLogs');
+            socket.emit('getLatestLogs', "test");
         }, 1000);
 
         return () => clearInterval(interval);
