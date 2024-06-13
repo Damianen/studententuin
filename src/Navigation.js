@@ -2,7 +2,21 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import Joyride, { ACTIONS, EVENTS, ORIGIN, STATUS } from "react-joyride";
 
-export default function Navigation() {
+function IntroductionButton({ joyride, handleClickStart }) {
+  if (joyride === true) {
+    return (
+      <button
+        onClick={handleClickStart}
+        className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black"
+      >
+        Introductie
+      </button>
+    );
+  }
+  return null;
+}
+
+export default function Navigation(joyride) {
   const [dialog, setDialog] = React.useState(false);
   const location = useLocation();
 
@@ -17,21 +31,24 @@ export default function Navigation() {
     } else {
       window.location.href = "/#technologieen";
     }
+    toggleDialog();
   };
 
   const handleScrollToPrice = () => {
     if (location.pathname === "/") {
-      const techSection = document.getElementById("pakketen");
-      techSection.scrollIntoView({ behavior: "smooth" });
+      const priceSection = document.getElementById("pakketen");
+      priceSection.scrollIntoView({ behavior: "smooth" });
     } else {
       window.location.href = "/#pakketen";
     }
+    toggleDialog();
   };
 
   const [joyrideRun, setRun] = React.useState(false);
 
   const handleClickStart = () => {
     setRun(true);
+    toggleDialog();
   };
 
   const joyrideSteps = [
@@ -44,14 +61,17 @@ export default function Navigation() {
       target: ".joyride-step-2",
       content:
         "Een makkelijke handleiding om te weten hoe jij je sub-domein kan beheren!",
+      disableBeacon: true,
     },
     {
       target: ".joyride-step-3",
       content: "Kies een pakket dat bij jou past!",
+      disableBeacon: true,
     },
     {
       target: ".joyride-step-4",
       content: "Meerdere technologieën die wij ondersteunen!",
+      disableBeacon: true,
     },
   ];
 
@@ -83,11 +103,12 @@ export default function Navigation() {
           next: "Volgende",
           skip: "Overslaan",
         }}
+        hideCloseButton={true}
       />
       <nav className="lg:mx-auto flex max-w-full lg:items-center justify-between p-6">
         <div className="flex lg:flex-shrink-0 lg:flex-grow-0 lg:justify-start lg:gap-4">
           <NavLink to="/" className="-m-1.5 p-1.5">
-            <img src="logo.png" className="w-16 h-16" />
+            <img src="logo.png" className="w-16 h-16" alt="Logo" />
           </NavLink>
         </div>
         <div
@@ -115,6 +136,10 @@ export default function Navigation() {
           </button>
         </div>
         <div className="lg:flex lg:flex-shrink-1 lg:flex-grow lg:justify-center lg:items-center lg:gap-4 lg:px-2 hidden">
+          <IntroductionButton
+            joyride={joyride.joyride}
+            handleClickStart={handleClickStart}
+          />
           <button
             onClick={handleScrollToPrice}
             className="text-lg font-semibold leading-6 text-white"
@@ -135,6 +160,7 @@ export default function Navigation() {
                 ? "text-lg font-semibold leading-6 text-black"
                 : "text-lg font-semibold leading-6 text-white"
             }
+            onClick={toggleDialog}
           >
             Aanvragen
           </NavLink>
@@ -145,15 +171,10 @@ export default function Navigation() {
                 ? "text-lg font-semibold leading-6 text-black"
                 : "text-lg font-semibold leading-6 text-white"
             }
+            onClick={toggleDialog}
           >
             Handleiding
           </NavLink>
-          <button
-            onClick={handleClickStart}
-            className="inline-block border border-transparent bg-house-green px-8 py-2 text-center font-medium text-white hover:bg-light-green hover:text-black"
-          >
-            Introductie
-          </button>
         </div>
         <div className="lg:flex lg:flex-shrink-0 lg:flex-grow lg:justify-end lg:items-center lg:gap-4 hidden">
           <NavLink
@@ -163,6 +184,7 @@ export default function Navigation() {
                 ? "text-lg font-semibold leading-6 text-black"
                 : "text-lg font-semibold leading-6 text-white"
             }
+            onClick={toggleDialog}
           >
             Login
           </NavLink>
@@ -186,7 +208,7 @@ export default function Navigation() {
           <div className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
             <div className="flex items-center justify-between">
               <NavLink to="/" className="-m-1.5 p-1.5">
-                <img className="h-8 w-auto" src="logo.png" alt="" />
+                <img className="h-8 w-auto" src="logo.png" alt="Logo" />
               </NavLink>
               <button
                 type="button"
@@ -231,6 +253,7 @@ export default function Navigation() {
                         ? "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-black hover:bg-gray-50"
                         : "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                     }
+                    onClick={toggleDialog}
                   >
                     Aanvragen
                   </NavLink>
@@ -241,6 +264,7 @@ export default function Navigation() {
                         ? "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-black hover:bg-gray-50"
                         : "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                     }
+                    onClick={toggleDialog}
                   >
                     Handleiding
                   </NavLink>
@@ -253,6 +277,7 @@ export default function Navigation() {
                         ? "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-black hover:bg-gray-50"
                         : "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                     }
+                    onClick={toggleDialog}
                   >
                     Jouw Omgeving
                   </NavLink>
@@ -263,6 +288,7 @@ export default function Navigation() {
                         ? "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-black hover:bg-gray-50"
                         : "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                     }
+                    onClick={toggleDialog}
                   >
                     Account Aanmaken
                   </NavLink>
@@ -273,6 +299,7 @@ export default function Navigation() {
                         ? "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-black hover:bg-gray-50"
                         : "-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                     }
+                    onClick={toggleDialog}
                   >
                     Log in
                   </NavLink>

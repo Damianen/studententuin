@@ -6,12 +6,12 @@ export default function AccountDropdownHamburger() {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const navigate = useNavigate();
-  
-  const handleLogout = () => { 
+
+  const handleLogout = () => {
     localStorage.removeItem("token");
-      console.log("Token removed");
+    console.log("Token removed");
     navigate("/");
-    console.log("Navigated to login")
+    console.log("Navigated to login");
   };
 
   const toggleDropdown = () => {
@@ -53,7 +53,7 @@ export default function AccountDropdownHamburger() {
         <button
           className={
             isOpen
-              ? " cursor-default bg-black opacity-50 fixed inset-0 w-full h-full"
+              ? " cursor-default opacity-50 fixed inset-0 w-full h-full"
               : "hidden"
           }
           onClick={closeDropdown}
@@ -66,26 +66,14 @@ export default function AccountDropdownHamburger() {
               : "hidden"
           }
         >
-          <a
-            href="#"
-            className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
-          >
-            Account settings
-          </a>
-          <a
-            href="#"
-            className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
-          >
-            Support
-          </a>
           <span>
-          <a
-            href="/logout"
-            className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
-            onClick={handleLogout}
-          >
-            Sign Out 
-          </a>
+            <a
+              href="/logout"
+              className="block px-4 py-2 text-gray-800 hover:bg-green-400 hover:text-white"
+              onClick={handleLogout}
+            >
+              Sign Out
+            </a>
           </span>
         </div>
       </div>

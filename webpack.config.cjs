@@ -1,11 +1,11 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-    entry: './src/index.js',
-    mode: 'development',
+    entry: "./src/index.js",
+    mode: "development",
     output: {
-        path: path.resolve('public'),
-        filename: 'bundle.js'
+        path: path.resolve("public"),
+        filename: "bundle.js",
     },
     module: {
         rules: [
@@ -13,18 +13,18 @@ module.exports = {
                 test: /\.js$/,
                 exclude: /node_modules/,
                 use: {
-                    loader: 'babel-loader',
+                    loader: "babel-loader",
                 },
             },
             {
                 test: /\.css$/i,
-                use: ['style-loader', 'css-loader', 'postcss-loader'],
+                use: ["style-loader", "css-loader", "postcss-loader"],
             },
             {
                 test: /\.svg$/,
                 use: [
                     {
-                        loader: 'svg-url-loader',
+                        loader: "svg-url-loader",
                         options: {
                             limit: 10000,
                         },
@@ -35,8 +35,8 @@ module.exports = {
     },
     resolve: {
         fallback: {
-            "fs": false,
-            path: require.resolve("path-browserify")
+            fs: false,
+            path: require.resolve("path-browserify"),
         },
     },
 };

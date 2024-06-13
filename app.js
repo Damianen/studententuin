@@ -9,22 +9,23 @@ const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.get("/", (req, res) => {
-  fs.readFile(path.resolve("./public/index.html"), "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send("An error occurred");
-    }
+    fs.readFile(path.resolve("./public/index.html"), "utf8", (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("An error occurred");
+        }
 
-    render();
+        render();
 
-    return res.send(data);
-  });
+        return res.send(data);
+    });
 });
 
 app.use(
-  express.static(path.resolve(__dirname, ".", "dist"), { maxAge: "30d" })
+    express.static(path.resolve(__dirname, ".", "dist"), { maxAge: "30d" })
 );
 
 app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
+    console.log(`Server is listening on port ${PORT}`);
 });
+

@@ -7,6 +7,9 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import session from "express-session";
+import fs from "fs/promises"; // gebruik fs/promises voor asynchrone file operaties
+import UserSubDomainService from "../server/services/user.subdomain.service.js"
+import validateSubdomainRequestChaiExpect from "./../src/ValidateSignUp.js";
 
 const router = Router();
 
@@ -81,9 +84,10 @@ router.get("/api/getUserByEmailFromSession", async (req, res) => {
     }
   } catch (error) {
     console.error("Error in getUserByEmailFromSession route:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred", details: error.message });
+    res.status(500).json({
+      message: "An error occurred",
+      details: error.message,
+    });
   }
 });
 
@@ -93,6 +97,78 @@ router.get("/about", (req, res) => {
 
 router.get("/contact", (req, res) => {
   res.render("index.ejs");
+});
+
+// Helper function to find the newest log files
+const getNewestLogFiles = async (dir) => {
+  const files = await fs.readdir(dir);
+
+  const stdoutFiles = files.filter(
+    (file) =>
+      file.startsWith("STUDENTENTUIN01-") &&
+      file.includes("-stdout-") &&
+      file.endsWith(".txt")
+  );
+
+  const stderrFiles = files.filter(
+    (file) =>
+      file.startsWith("STUDENTENTUIN01-") &&
+      file.includes("-stderr-") &&
+      file.endsWith(".txt")
+  );
+
+  stdoutFiles.sort((a, b) => {
+    const timestampA = parseInt(a.split("-")[3].replace(".txt", ""));
+    const timestampB = parseInt(b.split("-")[3].replace(".txt", ""));
+    return timestampB - timestampA;
+  });
+
+  stderrFiles.sort((a, b) => {
+    const timestampA = parseInt(a.split("-")[3].replace(".txt", ""));
+    const timestampB = parseInt(b.split("-")[3].replace(".txt", ""));
+    return timestampB - timestampA;
+  });
+
+  const newestStdout =
+    stdoutFiles.length > 0 ? path.join(dir, stdoutFiles[0]) : null;
+  const newestStderr =
+    stderrFiles.length > 0 ? path.join(dir, stderrFiles[0]) : null;
+
+  return { newestStdout, newestStderr };
+};
+
+router.get("/api/logs", async (req, res) => {
+  try {
+    const logsDir = path.resolve(__dirname, "../logs");
+    console.log(`Looking for logs in: ${logsDir}`);
+
+    try {
+      await fs.access(logsDir);
+    } catch (err) {
+      console.error(`Directory does not exist: ${logsDir}`, err);
+      return res.status(404).json({ error: "Logs directory does not exist" });
+    }
+
+    const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
+
+    if (!newestStdout && !newestStderr) {
+      return res.status(404).json({ error: "No log files found" });
+    }
+
+    const stdoutData = newestStdout
+      ? await fs.readFile(newestStdout, "utf8")
+      : null;
+    const stderrData = newestStderr
+      ? await fs.readFile(newestStderr, "utf8")
+      : null;
+
+    res.json({ stdout: stdoutData, stderr: stderrData });
+  } catch (err) {
+    console.error("Error reading log files:", err);
+    res
+      .status(500)
+      .json({ error: "Error reading log files", details: err.message });
+  }
 });
 
 router.post("/register", async (req, res) => {
@@ -110,7 +186,11 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Sla de gebruiker op in de database
-    const user = await userService.createUser(email, hashedPassword, userPackage);
+    const user = await userService.createUser(
+      email,
+      hashedPassword,
+      userPackage
+    );
 
     // Geef een succesbericht terug met de redirect-url
     res.json({ redirectUrl: "/manage", sessionId: req.sessionID });
@@ -180,5 +260,88 @@ router.get("/logout", (req, res) => {
     }
   });
 });
+
+router.post("/requestForm", validateSubdomainRequestChaiExpect, async (req, res) => {
+    const {subdomainName, emailAddress, password, productPackage} = req.body;
+  
+
+    await userService.getByEmail(emailAddress, (success, error) => {
+        if (success) {
+            if(success.status === 200){
+                res.status(409).json({
+                    status: 409,
+                    message: "De gebruikte email staat al geregistreerd in het systeem!",
+                });
+            }
+        }else{
+            
+            subDomainService.getByName(subdomainName, (success, error) => {
+                if(success){
+                    if(success.status === 200){
+                        res.status(409).json({
+                            status: 409,
+                            message: "Het opgegeven sub-domein naam is al in gebruik!",
+                        });
+                    }
+                }else{
+                    userService.insert(emailAddress, password, productPackage, (success, error) => {
+                        if(success){
+                            if(success.status === 200){
+                                subDomainService.insertDomainName(subdomainName, (success, error) => {
+                                    if(success){
+                                        if(success.status === 200){
+                                            UserSubDomainService.insert(emailAddress, subdomainName, (success, error) => {
+                                                if(success){
+                                                    if(success.status === 200){
+
+                                                        const data = {
+                                                            email: emailAddress,
+                                                            subdomain: subdomainName,
+                                                            password: password,
+                                                        }
+
+                                                        fetch('https://webhook.studententuin.nl/new', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json'
+                                                            },
+                                                            body: JSON.stringify(data)
+                                                        });
+
+                                                        res.status(200).json({
+                                                            status: 200,
+                                                            message: "Gebruiker/Sub-domein succesvol geregistreerd!",
+                                                        });
+                                                    }
+                                                }else{
+                                                    res.status(error.status).json({
+                                                        status: error.status,
+                                                        message: error.message
+                                                    });
+                                                }
+                                            })
+                                            
+                                        }
+                                    }else{
+                                        res.status(error.status).json({
+                                            status: error.status,
+                                            message: error.message
+                                        });
+                                    }
+                                })
+                            }
+                        }else{
+                            res.status(error.status).json({
+                                status: error.status,
+                                message: error.message
+                            });
+                        }
+                    })
+                }
+            })
+            
+        }
+    });
+  });
 
 export default router;

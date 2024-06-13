@@ -88,7 +88,7 @@ const SiteConfiguration = () => {
       })
       .then((data) => {
         console.log("Command removed successfully:", data);
-        // Only update state if delete was successful on the server
+
         setPostBuildCommands(
           postBuildCommands.filter((command) => command.id !== commandId)
         );
@@ -104,10 +104,18 @@ const SiteConfiguration = () => {
 
   const addVariableHandler = (e) => {
     e.preventDefault();
-    const variableName = document.getElementById("variableName").value;
-    const variableValue = document.getElementById("variableValue").value;
-    console.log(variableName, variableValue);
+    const variableName = document.getElementById("variableName").value.trim();
+    const variableValue = document.getElementById("variableValue").value.trim();
     if (!variableName || !variableValue) return;
+
+    if (
+      variables.some(
+        (variable) => variable.key.toLowerCase() === variableName.toLowerCase()
+      )
+    ) {
+      alert("Variable name already exists. Please use a different name.");
+      return;
+    }
 
     const newVariable = {
       id: variables.length + 1,
@@ -146,7 +154,7 @@ const SiteConfiguration = () => {
       })
       .then((data) => {
         console.log("Variable removed successfully:", data);
-        // Only update state if delete was successful on the server
+
         setVariables(
           variables.filter((variable) => variable.key !== variableKey)
         );
