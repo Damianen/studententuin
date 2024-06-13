@@ -328,13 +328,7 @@ const readPostBuildCommandsFromFile = () => {
     }
 };
 
-let relativePath;
-
-(async () => {
-    relativePath = await getRelativePath(req);
-})();
-
-const POST_BUILD_SCRIPT_PATH = `${relativePath}/postbuild.sh`;
+const POST_BUILD_SCRIPT_PATH = `postbuild.sh`;
 
 app.get("/api/postbuildcommands", (req, res) => {
     const commands = readPostBuildCommandsFromFile();
