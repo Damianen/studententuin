@@ -58,7 +58,7 @@ function Component() {
     }
 
     uppy.use(XHRUpload, {
-        endpoint:`https://test.studententuin.nl/upload/uppy`,
+        endpoint:`https://studententuin.nl/upload/uppy`,
         fieldName: "files",
         formData: true,
         allowedMetaFields: [{ id: "relativePath", name: "Relative Path" }],

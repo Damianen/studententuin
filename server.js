@@ -101,8 +101,9 @@ app.post("/selected-node", (req, res) => {
     });
 });
 
-app.get("/api/appsettings", (req, res) => {
-    const configPath = path.join(__dirname, "web.config");
+app.get("/api/appsettings", async (req, res) => {
+    let relativepath = await getRelativePath(req);
+    const configPath = path.join(relativepath, "web.config");
 
     fs.readFile(configPath, (err, data) => {
         if (err) {
@@ -175,7 +176,8 @@ app.delete("/api/appsettings/:key", async (req, res) => {
 
 app.post("/api/appsettings", async (req, res) => {
     const { key, value } = req.body;
-    const configPath = await getRelativePath(req);
+    let relativepath = await getRelativePath(req);
+    const configPath = path.join(relativepath, "web.config");
 
     fs.readFile(configPath, (err, data) => {
         if (err) {
@@ -319,66 +321,63 @@ app.post("/upload/uppy", uploadUppy.array("files"), (req, res) => {
     res.status(200).json({ message: "Files uploaded successfully" });
 });
 
-const readPostBuildCommandsFromFile = () => {
+const readPostBuildCommandsFromFile = (path) => {
     try {
-        const data = fs.readFileSync("postbuild.sh", "utf8");
-        // Split the data by newline characters to get each line as a command
-        const commands = data.split("\n").filter((line) => line.trim() !== "");
-        return commands;
+        return fs.readFileSync(path, "utf8").split("\n").filter(Boolean);
     } catch (err) {
-        console.error("Error reading post build commands file:", err);
+        console.error("Error reading post build commands from file:", err);
         return [];
     }
 };
 
-let relativePath;
+const POST_BUILD_SCRIPT_PATH = `postbuild.sh`;
 
-(async () => {
-    relativePath = await getRelativePath(req);
-})();
-
-const POST_BUILD_SCRIPT_PATH = `${relativePath}/postbuild.sh`;
-
-app.get("/api/postbuildcommands", (req, res) => {
-    const commands = readPostBuildCommandsFromFile();
+app.get("/api/postbuildcommands", async (req, res) => {
+    const relativepath = await getRelativePath(req);
+    const path = `${relativepath}/${POST_BUILD_SCRIPT_PATH}`;
+    const commands = readPostBuildCommandsFromFile(path);
     res.json(commands);
 });
 
-const writePostBuildCommandsToFile = (commands) => {
+const writePostBuildCommandsToFile = (path, commands) => {
     try {
-        fs.writeFileSync(POST_BUILD_SCRIPT_PATH, commands.join("\n"), "utf8");
+        fs.writeFileSync(path, commands.join("\n"), "utf8");
         console.log("Post build commands written to file successfully");
     } catch (err) {
         console.error("Error writing post build commands to file:", err);
     }
 };
 
-app.post("/api/postbuildcommands", (req, res) => {
+app.post("/api/postbuildcommands", async (req, res) => {
     const { command } = req.body;
     if (!command) {
         return res.status(400).json({ error: "Command is required" });
     }
 
-    const commands = readPostBuildCommandsFromFile();
+    const relativepath = await getRelativePath(req);
+    const path = `${relativepath}/${POST_BUILD_SCRIPT_PATH}`;
+    const commands = readPostBuildCommandsFromFile(path);
     commands.push(command);
-    writePostBuildCommandsToFile(commands);
+    writePostBuildCommandsToFile(path, commands);
 
     res.status(201).send("Command added successfully");
 });
 
-app.delete("/api/postbuildcommands/:index", (req, res) => {
+app.delete("/api/postbuildcommands/:index", async (req, res) => {
     const index = parseInt(req.params.index);
     if (isNaN(index) || index < 1) {
         return res.status(400).json({ error: "Invalid command index" });
     }
 
-    const commands = readPostBuildCommandsFromFile();
+    const relativepath = await getRelativePath(req);
+    const path = `${relativepath}/${POST_BUILD_SCRIPT_PATH}`;
+    const commands = readPostBuildCommandsFromFile(path);
     if (index - 1 < 0 || index - 1 >= commands.length) {
         return res.status(404).json({ error: "Command index out of bounds" });
     }
 
     commands.splice(index - 1, 1);
-    writePostBuildCommandsToFile(commands);
+    writePostBuildCommandsToFile(path, commands);
 
     res.send("Command removed successfully");
 });
