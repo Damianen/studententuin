@@ -98,8 +98,9 @@ app.post("/selected-node", (req, res) => {
     });
 });
 
-app.get("/api/appsettings", (req, res) => {
-    const configPath = path.join(__dirname, "web.config");
+app.get("/api/appsettings", async (req, res) => {
+    let relativepath = await getRelativePath(req);
+    const configPath = path.join(relativepath, "web.config");
 
     fs.readFile(configPath, (err, data) => {
         if (err) {
@@ -172,7 +173,8 @@ app.delete("/api/appsettings/:key", async (req, res) => {
 
 app.post("/api/appsettings", async (req, res) => {
     const { key, value } = req.body;
-    const configPath = await getRelativePath(req);
+    let relativepath = await getRelativePath(req);
+    const configPath = path.join(relativepath, "web.config");
 
     fs.readFile(configPath, (err, data) => {
         if (err) {
