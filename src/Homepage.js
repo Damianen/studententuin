@@ -208,7 +208,7 @@ function Homepage() {
                                 to={{
                                     pathname: "/requestForm", // URL van de andere pagina
                                     search: `?package=${encodeURIComponent(
-                                        JSON.stringify("Gratis")
+                                        JSON.stringify("free")
                                     )}`, // Querystring met het geselecteerde pakket
                                 }}
                             >
@@ -292,7 +292,7 @@ function Homepage() {
                                 to={{
                                     pathname: "/requestForm", // URL van de andere pagina
                                     search: `?package=${encodeURIComponent(
-                                        JSON.stringify("Basis")
+                                        JSON.stringify("basic")
                                     )}`, // Querystring met het geselecteerde pakket
                                 }}
                             >
@@ -376,7 +376,7 @@ function Homepage() {
                                 to={{
                                     pathname: "/requestForm", // URL van de andere pagina
                                     search: `?package=${encodeURIComponent(
-                                        JSON.stringify("Premium")
+                                        JSON.stringify("premium")
                                     )}`, // Querystring met het geselecteerde pakket
                                 }}
                             >

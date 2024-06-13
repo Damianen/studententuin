@@ -4,6 +4,15 @@ import { useLocation } from "react-router-dom";
 export default function RequestForm() {
   const location = useLocation();
 
+  // Helper function to safely parse JSON
+  const safeJsonParse = (str) => {
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      return str;
+    }
+  };
+
   // Directly initialize the state from the URL parameters
   const queryParams = new URLSearchParams(location.search);
   const initialPackage = queryParams.get("package") || "";
@@ -197,7 +206,7 @@ export default function RequestForm() {
                 className="p-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-green sm:text-sm sm:leading-6 focus:outline-none"
                 id="productPackage"
                 required
-                value={selectedPackage ? JSON.parse(selectedPackage) : ""}
+                value={safeJsonParse(selectedPackage)}
                 onChange={handlePackageAndChange}
               >
                 <option value="">Kies een pakket</option>
