@@ -3,6 +3,7 @@ import session from "express-session";
 import router from "./server/router.js";
 import userRoutes from "./server/routes/user.routes.js";
 import userService from "./server/services/user.service.js";
+import getLatestLogs from "./server/routes/log.routes.js"
 import fs, { readdir, stat, readFile } from "fs";
 import path, { relative } from "path";
 import multer from "multer";
@@ -10,9 +11,12 @@ import { promisify } from "util";
 import fastFolderSize from "fast-folder-size";
 import xml2js from "xml2js";
 import bodyParser from "body-parser";
-import { get } from "http";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import pool from "./dao/db-config.js";
 
 const app = express();
+const httpServer = createServer(app);
 const port = process.env.PORT || 3001;
 const __dirname = path.resolve();
 
@@ -379,6 +383,33 @@ app.delete("/api/postbuildcommands/:index", async (req, res) => {
     res.send("Command removed successfully");
 });
 
-app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
+httpServer.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});
+
+const io = new Server(httpServer, {});
+io.on("connection", (socket) => {
+    console.log('connected');
+    socket.on("getLatestLogs", async (data) => {
+        console.log("on get latest");
+        try {
+            const result = await pool
+                .request()
+                .input("userEmail", sql.NVarChar, data.email)
+                .input("subdomainName", sql.NVarChat, data.subdomainName)
+                .query(
+                    "SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @userEmail AND Email in (SELECT userEmail FROM UserSubDomain WHERE @subDomainName = subdomainName)"
+                );
+            if (!result) {
+                console.log("email subdomain validation not correct")
+                return;
+            }
+
+        } catch (error) {
+            console.log({ status: 500, message: error.message });
+        }
+
+        const logs = await getLatestLogs(data.subdomainName);
+        socket.emit("logs", logs);
+    });
 });

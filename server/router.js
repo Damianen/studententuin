@@ -139,7 +139,16 @@ const getNewestLogFiles = async (dir) => {
 
 router.get("/api/logs", async (req, res) => {
   try {
-    const logsDir = path.join(__dirname, "../logs");
+    const logsDir = path.resolve(__dirname, "../logs");
+    console.log(`Looking for logs in: ${logsDir}`);
+
+    try {
+      await fs.access(logsDir);
+    } catch (err) {
+      console.error(`Directory does not exist: ${logsDir}`, err);
+      return res.status(404).json({ error: "Logs directory does not exist" });
+    }
+
     const { newestStdout, newestStderr } = await getNewestLogFiles(logsDir);
 
     if (!newestStdout && !newestStderr) {
@@ -156,10 +165,9 @@ router.get("/api/logs", async (req, res) => {
     res.json({ stdout: stdoutData, stderr: stderrData });
   } catch (err) {
     console.error("Error reading log files:", err);
-    res.status(500).json({
-      error: "Error reading log files",
-      details: err.message,
-    });
+    res
+      .status(500)
+      .json({ error: "Error reading log files", details: err.message });
   }
 });
 

@@ -1,24 +1,70 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 
+    const socket = io();
 const Logs = () => {
-  const [stdoutLogs, setStdoutLogs] = useState("");
-  const [stderrLogs, setStderrLogs] = useState("");
-  const [error, setError] = useState(null);
-  const [showStdout, setShowStdout] = useState(true);
-  const [showStderr, setShowStderr] = useState(false);
 
-  useEffect(() => {
-    axios
-      .get("https://studententuin.nl/api/logs")
-      .then((response) => {
-        setStdoutLogs(response.data.stdout || "");
-        setStderrLogs(response.data.stderr || "");
-      })
-      .catch((error) => {
-        setError("Error fetching logs" + error);
-      });
-  }, []);
+    const [stdoutLogs, setStdoutLogs] = useState("");
+    const [stderrLogs, setStderrLogs] = useState("");
+    const [error, setError] = useState(null);
+    const [showStdout, setShowStdout] = useState(true);
+    const [showStderr, setShowStderr] = useState(false);
+    const [isConnected, setIsConnected] = useState(socket.connected);
+    const [state, setState] = useState(false);
+    const [user, setUser] = useState(undefined);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await axios.get("/api/getUserByEmailFromSession");
+                console.log("API response:", response.data); // Logging om de response te controleren
+                setUser(response.data);
+            } catch (error) {
+                console.error("Error fetching user:", error);
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    useEffect(() => {
+        function onLogs(logs) {
+            setStdoutLogs(logs.stdout);
+            setStderrLogs(logs.stderr);
+            console.log("logs received");
+        }
+
+        function onConnect() {
+            console.log("connected");
+            setIsConnected(true);
+        }
+
+        function onDisconnect() {
+            setIsConnected(false);
+        }
+
+        socket.on('logs', onLogs);
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+
+        return () => {
+            socket.off('connect', onConnect);
+            socket.off('disconnect', onDisconnect);
+            socket.off('logs', onLogs);
+        }
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setState(!state);
+            if (user) {
+                socket.emit('getLatestLogs', { subdomainName: user.subDomainName, email: user.userEmail});
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [state])
 
   const handleToggleStdout = () => {
     setShowStdout((prev) => !prev);
@@ -42,8 +88,8 @@ const Logs = () => {
         verbergen. Klik op de knop "Show Stderr" om de stderr-logs weer te geven
         of te verbergen.
       </p>
-      {error ? (
-        <p className="text-red-500">{error}</p>
+      {user == undefined ? (
+        <p>Loading...</p>
       ) : (
         <div className="space-y-4">
           <button
@@ -76,8 +122,8 @@ const Logs = () => {
           )}
         </div>
       )}
-    </div>
-  );
+      </div>
+    );
 };
 
 export default Logs;
