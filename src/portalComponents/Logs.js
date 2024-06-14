@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 
-const socket = io();
+const socket = io("/", { autoConnect: false });
 const Logs = () => {
     const [stdoutLogs, setStdoutLogs] = useState("");
     const [stderrLogs, setStderrLogs] = useState("");
@@ -21,12 +21,17 @@ const Logs = () => {
                 );
                 console.log("API response:", response.data); // Logging om de response te controleren
                 setUser(response.data);
+                socket.connect();
             } catch (error) {
                 console.error("Error fetching user:", error);
             }
         };
 
         fetchUser();
+
+        return () => {
+            socket.disconnect();
+        }
     }, []);
 
     useEffect(() => {
@@ -43,6 +48,7 @@ const Logs = () => {
 
         function onDisconnect() {
             setIsConnected(false);
+            console.log("disconnected");
         }
 
         socket.on("logs", onLogs);
@@ -92,7 +98,7 @@ const Logs = () => {
                 te geven of te verbergen. Klik op de knop "Show Stderr" om de
                 stderr-logs weer te geven of te verbergen.
             </p>
-            {user == undefined ? (
+            {!isConnected ? (
                 <p>Laden...</p>
             ) : (
                 <div className="space-y-4">
