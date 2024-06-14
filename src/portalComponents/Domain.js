@@ -33,7 +33,10 @@ function Domain() {
 
     return (
         <div>
-            <h1 className="mb-10">Dit is de domein pagina</h1>
+            <h1 className="mb-10">
+                Dit is de domein pagina, hier kan je een preview zien van je
+                gedeployde website
+            </h1>
             <div
                 style={{
                     position: "relative",
@@ -50,17 +53,17 @@ function Domain() {
                     <iframe
                         src={`https://${user.subDomainName}.studententuin.nl`}
                         style={{
-                            width: "200%",
-                            height: "200%",
+                            width: "166.67%", // (100% / 0.6)
+                            height: "166.67%", // (100% / 0.6)
                             transform: "scale(0.6)",
-                            transformOrigin: "top left",
+                            transformOrigin: "0 0",
                             border: "none",
                             pointerEvents: "none",
                         }}
                         title="Studententuin"
                     ></iframe>
                 ) : (
-                    <p>No user data available</p>
+                    <p>Geen website beschikbaar</p>
                 )}
                 <div
                     style={{
