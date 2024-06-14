@@ -100,17 +100,19 @@ const Logs = () => {
                         className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
                         onClick={handleToggleStdout}
                     >
-                        {showStdout ? "Hide Stdout" : "Show Stdout"}
+                        {showStdout ? "Verberg Stdout" : "Toon Stdout"}
                     </button>
                     <button
                         className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
                         onClick={handleToggleStderr}
                     >
-                        {showStderr ? "Hide Stderr" : "Show Stderr"}
+                        {showStderr ? "Verberg Stderr" : "Toon Stderr"}
                     </button>
                     {showStdout && (
                         <div>
-                            <h1 className="text-xl font-bold">Stdout Logs</h1>
+                            <h1 className="text-xl font-bold">
+                                Stdout Logboek
+                            </h1>
                             <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96 whitespace-pre-wrap">
                                 {stdoutLogs}
                             </pre>
@@ -118,7 +120,9 @@ const Logs = () => {
                     )}
                     {showStderr && (
                         <div>
-                            <h1 className="text-xl font-bold">Stderr Logs</h1>
+                            <h1 className="text-xl font-bold">
+                                Stderr Logboek
+                            </h1>
                             <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96 whitespace-pre-wrap">
                                 {stderrLogs}
                             </pre>
