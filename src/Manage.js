@@ -13,7 +13,7 @@ import FileManager from "./portalComponents/FileManager.js";
 import FileTree from "./portalComponents/Filetree.js";
 
 function Manage() {
-    const [selectedItem, setSelectedItem] = useState("Files");
+    const [selectedItem, setSelectedItem] = useState("Bestanden");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -83,15 +83,12 @@ function Manage() {
                                 Bestanden
                             </li>
                         </a>
-                        <a
-                            href="#"
-                            onClick={() => setSelectedItem("Analytics")}
-                        >
+                        <a href="#" onClick={() => setSelectedItem("Opslag")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
                                 Opslag
                             </li>
                         </a>
-                        <a href="#" onClick={() => setSelectedItem("Domain")}>
+                        <a href="#" onClick={() => setSelectedItem("Domein")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
                                 Domein
                             </li>
@@ -101,13 +98,15 @@ function Manage() {
                             onClick={() => setSelectedItem("Deployment")}
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Opbouw server
+                                Deployment
                             </li>
                         </a>
                         <a
                             href="#"
                             onClick={() =>
-                                setSelectedItem("Site Configuration")
+                                setSelectedItem(
+                                    "Website configuratie/omgevings variablen"
+                                )
                             }
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
@@ -119,7 +118,7 @@ function Manage() {
                                 Git
                             </li>
                         </a>
-                        <a href="#" onClick={() => setSelectedItem("Logs")}>
+                        <a href="#" onClick={() => setSelectedItem("Logboek")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
                                 Logboek
                             </li>
