@@ -88,8 +88,8 @@ const Logs = () => {
         <div className="container mx-auto px-4 py-8">
             <p className="text-lg mb-4">
                 Op deze pagina kunt u de stdout- en stderr-logs bekijken en
-                bedienen. Klik op de knop "Show Stdout" om de stdout-logs weer
-                te geven of te verbergen. Klik op de knop "Show Stderr" om de
+                bedienen. Klik op de knop "Toon Stdout" om de stdout-logs weer
+                te geven of te verbergen. Klik op de knop "Toon Stderr" om de
                 stderr-logs weer te geven of te verbergen.
             </p>
             {user == undefined ? (
