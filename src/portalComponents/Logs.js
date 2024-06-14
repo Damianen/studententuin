@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
-import Cookies from "js-cookie";
 
     const socket = io();
 const Logs = () => {
@@ -60,7 +59,7 @@ const Logs = () => {
         const interval = setInterval(() => {
             setState(!state);
             if (user) {
-                socket.emit('getLatestLogs', { session_id: user.subDomainName});
+                socket.emit('getLatestLogs', { subdomainName: user.subDomainName, email: user.userEmail});
             }
         }, 1000);
 
