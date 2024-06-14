@@ -75,7 +75,7 @@ const Login = () => {
                                 htmlFor="password"
                                 className="block text-sm font-medium leading-6 text-gray-900"
                             >
-                                Password
+                                Wachtwoord
                             </label>
                             <input
                                 type="password"
@@ -109,7 +109,7 @@ const Login = () => {
                                 href="#"
                                 className="hover:underline text-primary-green h-100%"
                             >
-                                Sign up Here
+                                Hier registreren
                             </a>
                         </div>
                         {/* Sign up Link */}
@@ -119,7 +119,7 @@ const Login = () => {
                                 onClick={handleBack}
                                 className="rounded-full bg-gray-500 px-5 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                             >
-                                Back
+                                Terug
                             </button>
                             {/* Login Button */}
                             <button

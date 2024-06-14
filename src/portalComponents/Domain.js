@@ -33,7 +33,10 @@ function Domain() {
 
     return (
         <div>
-            <h1 className="mb-10">Dit is de domein pagina</h1>
+            <h1 className="mb-10">
+                Dit is de domein pagina, hier kan je een preview zien van je
+                gedeployde website
+            </h1>
             <div
                 style={{
                     position: "relative",
@@ -60,7 +63,7 @@ function Domain() {
                         title="Studententuin"
                     ></iframe>
                 ) : (
-                    <p>No user data available</p>
+                    <p>Geen website beschikbaar</p>
                 )}
                 <div
                     style={{
