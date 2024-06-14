@@ -77,7 +77,7 @@ function Manage() {
                     <ul className="py-4">
                         <a href="#" onClick={() => setSelectedItem("Files")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Files
+                                Bestanden
                             </li>
                         </a>
                         <a
@@ -85,12 +85,12 @@ function Manage() {
                             onClick={() => setSelectedItem("Analytics")}
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Analytics
+                                Opslag
                             </li>
                         </a>
                         <a href="#" onClick={() => setSelectedItem("Domain")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Domain
+                                Domein
                             </li>
                         </a>
                         <a
@@ -98,7 +98,7 @@ function Manage() {
                             onClick={() => setSelectedItem("Deployment")}
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Deployment
+                                Opbouw server
                             </li>
                         </a>
                         <a
@@ -108,7 +108,7 @@ function Manage() {
                             }
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Site Configuration
+                                Website configuratie/omgevings variablen
                             </li>
                         </a>
                         <a href="#" onClick={() => setSelectedItem("Git")}>
@@ -118,7 +118,7 @@ function Manage() {
                         </a>
                         <a href="#" onClick={() => setSelectedItem("Logs")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Logs
+                                Logboek
                             </li>
                         </a>
                     </ul>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const Deployment = () => {
     const [logs, setLogs] = useState([]);
@@ -16,7 +16,7 @@ const Deployment = () => {
         <div>
             <h1>Dit is de Deployment page</h1>
             <ul>
-                {logs.map(log => (
+                {logs.map((log) => (
                     <li key={log.id}>
                         {}
                         {log.content}
