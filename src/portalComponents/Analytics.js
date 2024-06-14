@@ -35,7 +35,7 @@ const Analytics = () => {
     return (
         <div>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-            <h2>Storage usage</h2>
+            <h2>Opslag in gebruik</h2>
 
             <div className="w-1/2 bg-gray-200 rounded-full h-8 mb-4 dark:bg-gray-700 flex-1">
                 <div

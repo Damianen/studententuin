@@ -300,6 +300,11 @@ function Homepage() {
                                     kies dit pakket
                                 </button>
                             </Link>
+                            <div className="absolute inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center">
+                                <span className="text-white text-2xl font-bold">
+                                    Coming Soon
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -384,6 +389,11 @@ function Homepage() {
                                     Kies dit pakket
                                 </button>
                             </Link>
+                            <div className="absolute inset-0 bg-gray-500 bg-opacity-35 flex items-center justify-center">
+                                <span className="text-white text-2xl font-bold">
+                                    Coming Soon
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -420,7 +430,12 @@ function Homepage() {
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl ">
+                    <div className="relative inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center">
+                        <span className="text-white text-2xl font-bold">
+                            Coming Soon
+                        </span>
+                    </div>
+                    <div className=" hidden flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl ">
                         <div className="flex flex-col items-center justify-center h-full text-center p-4">
                             <img
                                 className="w-32 h-32 object-contain mb-4"
@@ -450,7 +465,12 @@ function Homepage() {
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl ">
+                    <div className="relative inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center">
+                        <span className="text-white text-2xl font-bold">
+                            Coming Soon
+                        </span>
+                    </div>
+                    <div className="hidden flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl ">
                         <div className="flex flex-col items-center justify-center h-full text-center p-4">
                             <img
                                 className="w-32 h-32 object-contain mb-4"

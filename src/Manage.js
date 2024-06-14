@@ -33,7 +33,7 @@ function Manage() {
 
     return (
         <div>
-            <header className="bg-house-green">
+            <header className="bg-primary-green">
                 <nav className="mx-auto flex max-w-full items-center justify-start p-6">
                     <div className="flex flex-1 gap-4 text-center items-center">
                         <div className="flex justify-start">
@@ -48,30 +48,19 @@ function Manage() {
                                 className="hidden w-full md:block md:w-auto"
                                 id="navbar-default"
                             >
-                                <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-house-green md:dark:bg-house-green dark:border-gray-700">
-                                    <li>
-                                        <button className="inline-block border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400">
-                                            Upgraden
-                                        </button>
-                                    </li>
+                                <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
                                     <li>
                                         <NavLink
                                             to="/handleiding"
-                                            className="inline-block px-8 py-2 text-center font-medium text-white"
+                                            className="inline-block px-8 py-3 text-center font-medium text-white"
                                         >
                                             Handleiding
                                         </NavLink>
                                     </li>
+
                                     <li>
                                         <div className="flex items-center gap-1">
-                                            <button className="relative block h-8 w-8 border-2 border-gray-600 rounded-full overflow-hidden">
-                                                <img
-                                                    className="w-full h-full"
-                                                    src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&q=80"
-                                                    alt="Your avatar"
-                                                />
-                                            </button>
-                                            <div className="inline-block text-left z-10">
+                                            <div className="inline-block px-8 py-2 text-center font-medium text-white z-10">
                                                 <SiteDropdown />
                                             </div>
                                         </div>
@@ -88,7 +77,7 @@ function Manage() {
                     <ul className="py-4">
                         <a href="#" onClick={() => setSelectedItem("Files")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Files
+                                Bestanden
                             </li>
                         </a>
                         <a
@@ -96,12 +85,12 @@ function Manage() {
                             onClick={() => setSelectedItem("Analytics")}
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Analytics
+                                Opslag
                             </li>
                         </a>
                         <a href="#" onClick={() => setSelectedItem("Domain")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Domain
+                                Domein
                             </li>
                         </a>
                         <a
@@ -109,7 +98,7 @@ function Manage() {
                             onClick={() => setSelectedItem("Deployment")}
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Deployment
+                                Opbouw server
                             </li>
                         </a>
                         <a
@@ -119,7 +108,7 @@ function Manage() {
                             }
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Site Configuration
+                                Website configuratie/omgevings variablen
                             </li>
                         </a>
                         <a href="#" onClick={() => setSelectedItem("Git")}>
@@ -129,7 +118,7 @@ function Manage() {
                         </a>
                         <a href="#" onClick={() => setSelectedItem("Logs")}>
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Logs
+                                Logboek
                             </li>
                         </a>
                     </ul>
