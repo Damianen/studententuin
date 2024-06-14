@@ -45,7 +45,7 @@ function Domain() {
                 onClick={handleClick}
             >
                 {loading ? (
-                    <p>Loading...</p>
+                    <p>Laden...</p>
                 ) : user && user.subDomainName ? (
                     <iframe
                         src={`https://${user.subDomainName}.studententuin.nl`}
