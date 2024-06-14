@@ -90,32 +90,32 @@ export default function Manual() {
                 </Tab>
                 <Tab label="Domein beheren">
                     <Tabs>
-                        <Tab label="Files">
+                        <Tab label="Bestanden">
                             {" "}
                             <div className="py-4">
                                 <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-4xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Domein beheren: Files
+                                            Domein beheren: Bestanden
                                         </h2>
                                         <p className="mt-3">
                                             Deze pagina dient als handleiding
-                                            voor het tabje files op jouw
+                                            voor het tabje Bestanden op jouw
                                             omgeving. Hierin wordt er uitgelegd
-                                            wat precies de files tab is en waar
-                                            je het kan vinden.
+                                            wat precies de Bestanden tab is en
+                                            waar je het kan vinden.
                                         </p>
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Wat kan ik met het files tabje?
+                                            Wat kan ik met het Bestanden tabje?
                                         </h2>
                                         <p className="mt-3">
                                             Natuurlijk wil je als gebruiker ook
-                                            je bestanden uploaden, delete of
-                                            zels folders uploaden. Met het files
-                                            tabje kan je alle je bestanden
+                                            je bestanden uploaden, verwijderen
+                                            of zels folders uploaden. Met het
+                                            files tabje kan je alle je bestanden
                                             uploaden en deleten en ook je
                                             folders. Hiermee kan je makkelijk je
                                             code op jouw domein zetten en
@@ -188,7 +188,7 @@ export default function Manual() {
                                 </div>
                             </div>
                         </Tab>
-                        <Tab label="Analytics">
+                        <Tab label="Opslag">
                             <div className="py-4">
                                 <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
@@ -261,27 +261,31 @@ export default function Manual() {
                             </div>
                         </Tab>
 
-                        <Tab label="Site Configuration">
+                        <Tab label="Omgevings variablen/post build commands">
                             {" "}
                             <div className="py-4">
                                 <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-4xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Domein beheren: Site Configuration
+                                            Domein beheren: Omgevings
+                                            variablen/post build commands
                                         </h2>
                                         <p className="mt-3">
                                             Deze pagina dient als handleiding
-                                            voor het tabje Site Configuration op
+                                            voor het tabje Omgevings
+                                            variablen/post build commands op
                                             jouw omgeving. Hierin wordt precies
                                             uitgelegd wat je kan doen met de
-                                            Site Configuration tab en waar je
-                                            het kan vinden.
+                                            Omgevings variablen/post build
+                                            commands tab en waar je het kan
+                                            vinden.
                                         </p>
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Wat is Site Configuration?
+                                            Wat zijn Omgevings variablen en post
+                                            build commands?
                                         </h2>
                                         <p className="mt-3">
                                             Site Configuration is een tab waar
@@ -432,12 +436,12 @@ export default function Manual() {
                                 </div>
                             </div>
                         </Tab>
-                        <Tab label="Logs">
+                        <Tab label="Logboek">
                             <div className="py-4">
                                 <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-4xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Domein beheren: Logs
+                                            Domein beheren: Logboek
                                         </h2>
                                         <p className="mt-3">
                                             Deze pagina dient als handleiding
