@@ -302,7 +302,7 @@ function Homepage() {
                             </Link>
                             <div className="absolute inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center">
                                 <span className="text-white text-2xl font-bold">
-                                    Coming Soon
+                                    Komt binnenkort
                                 </span>
                             </div>
                         </div>
@@ -391,7 +391,7 @@ function Homepage() {
                             </Link>
                             <div className="absolute inset-0 bg-gray-500 bg-opacity-35 flex items-center justify-center">
                                 <span className="text-white text-2xl font-bold">
-                                    Coming Soon
+                                    Komt binnenkort
                                 </span>
                             </div>
                         </div>
@@ -432,7 +432,7 @@ function Homepage() {
                     </div>
                     <div className="relative inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center">
                         <span className="text-white text-2xl font-bold">
-                            Coming Soon
+                            Komt binnenkort
                         </span>
                     </div>
                     <div className=" hidden flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl ">
@@ -467,7 +467,7 @@ function Homepage() {
                     </div>
                     <div className="relative inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center">
                         <span className="text-white text-2xl font-bold">
-                            Coming Soon
+                            Komt binnenkort
                         </span>
                     </div>
                     <div className="hidden flex flex-col items-center justify-center h-full text-center border bg-white shadow-xl ">
