@@ -10,43 +10,60 @@ const Git = () => {
     const [subdomain, setSubdomain] = useState("");
     const [branchFromDb, setBranchFromDb] = useState("master");
     const [customBranchName, setCustomBranchName] = useState("");
+    const [user, setUser] = useState({});
 
     useEffect(() => {
-        const fetchSubdomain = async () => {
-            const response = await axios.get("/api/getUserByEmailFromSession");
-            const subdomain = response.data.SubDomainName;
-            setSubdomain(subdomain);
-            console.log(subdomain);
-            return subdomain;
+        const fetchUser = async () => {
+            try {
+                const response = await axios.get(
+                    "/api/getUserByEmailFromSession"
+                );
+                console.log("API response:", response.data); // Logging to check the response
+                setUser(response.data);
+            } catch (error) {
+                console.error("Error fetching user:", error);
+            }
         };
 
-        fetchSubdomain().then((subdomain) => {
-            fetch(
-                `/api/getRepoFromSubdomain/${encodeURIComponent(subdomain)}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            )
-                .then((response) => response.json())
-                .then((data) => {
-                    setRepositoryName(data.github);
-                });
-
-            fetch(`/api/getBranch/${encodeURIComponent(subdomain)}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    setBranchFromDb(data.githubBranch);
-                });
-        });
+        fetchUser();
     }, []);
+
+    useEffect(() => {
+        const fetchRepo = async () => {
+            if (user && user.subDomainName) {
+                try {
+                    const response = await axios.get(
+                        `/api/getRepoFromSubdomain/${encodeURIComponent(
+                            user.subDomainName
+                        )}`
+                    );
+                    setRepositoryName(response.data.github);
+                } catch (error) {
+                    console.error("Error fetching repo:", error);
+                }
+            }
+        };
+
+        const fetchBranch = async () => {
+            if (user && user.subDomainName) {
+                try {
+                    const response = await axios.get(
+                        `/api/getBranch/${encodeURIComponent(
+                            user.subDomainName
+                        )}`
+                    );
+                    setBranchFromDb(response.data.githubBranch);
+                } catch (error) {
+                    console.error("Error fetching branch:", error);
+                }
+            }
+        };
+
+        if (user) {
+            fetchRepo();
+            fetchBranch();
+        }
+    }, [user]);
 
     const showExplanationHandler = () => {
         setShowExplanation(!showExplanation);
@@ -61,7 +78,25 @@ const Git = () => {
     };
 
     const generateSshKey = () => {
-        // Get the generated ssh key from the script
+        fetch(`/getSSHKey/${user.subDomainName}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                console.log(data);
+                setSshKey(data.key);
+            })
+            .catch((error) => {
+                console.error("Error fetching SSH key:", error);
+            });
     };
 
     const handleBranchChange = (e) => {
@@ -91,15 +126,23 @@ const Git = () => {
             <h1>Git integratie</h1>
             <p> Verbind hier je eigen repository met je domein</p>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-            <h2>Stap 1 check de gekoppelde github Repo</h2>
+            <h2>Stap 1 kopieer de SSH key en voeg hem toe aan je repository als je al een key hebt gegenereerd wordt de oude key overschreven</h2>
+            <button
+                className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
+                onClick={generateSshKey}
+            >
+                Genereer SSH key
+            </button>
+            <p className="text-center">{sshKey} </p>
+            <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+            <h2>Stap 2 check de gekoppelde github Repo</h2>
             <div>
                 {repositoryName !== "" ? (
                     <p>Repository: {repositoryName}</p>
                 ) : (
                     <div>
                         <h2>
-                            Stap 1 vul de naam van je repository in met SSH
-                            encriptie
+                            Stap 1 vul de naam van je repository in met SSH url
                         </h2>
                         <form>
                             <input
@@ -121,11 +164,6 @@ const Git = () => {
                     </div>
                 )}
             </div>
-
-            <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-
-            <h2>Stap 2 kopieer de SSH key en voeg hem toe aan je repository</h2>
-            <p className="text-center">{sshKey}</p>
 
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
             <h2>Stap 3 kies de branch die je wilt deployen</h2>
