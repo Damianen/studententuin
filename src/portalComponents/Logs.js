@@ -31,7 +31,7 @@ const Logs = () => {
 
         return () => {
             socket.disconnect();
-        }
+        };
     }, []);
 
     useEffect(() => {
@@ -94,8 +94,8 @@ const Logs = () => {
         <div className="container mx-auto px-4 py-8">
             <p className="text-lg mb-4">
                 Op deze pagina kunt u de stdout- en stderr-logs bekijken en
-                bedienen. Klik op de knop "Toon Stdout" om de stdout-logs weer
-                te geven of te verbergen. Klik op de knop "Toon Stderr" om de
+                bedienen. Klik op de knop "Toon logs" om de stdout-logs weer te
+                geven of te verbergen. Klik op de knop "Toon errors" om de
                 stderr-logs weer te geven of te verbergen.
             </p>
             {!isConnected ? (
@@ -106,13 +106,13 @@ const Logs = () => {
                         className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
                         onClick={handleToggleStdout}
                     >
-                        {showStdout ? "Verberg Stdout" : "Toon Stdout"}
+                        {showStdout ? "Verberg logs" : "Toon logs"}
                     </button>
                     <button
                         className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
                         onClick={handleToggleStderr}
                     >
-                        {showStderr ? "Verberg Stderr" : "Toon Stderr"}
+                        {showStderr ? "Verberg errors" : "Toon errors"}
                     </button>
                     {showStdout && (
                         <div>
