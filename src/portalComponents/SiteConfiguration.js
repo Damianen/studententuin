@@ -181,7 +181,7 @@ const SiteConfiguration = () => {
             <div>
                 <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
                 <h1 className="font-sans text-xl font-medium">
-                    Voeg hier je environmental variables toe
+                    Voeg hier je omgevings variablen toe
                 </h1>
                 <ul className="shadow-md rounded-lg">
                     {variables.map((variable) => (
@@ -238,7 +238,7 @@ const SiteConfiguration = () => {
             </div>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
             <h1 className="font-sans text-xl font-medium">
-                Post build commands
+                Voeg hier je post build commands toe
             </h1>
             <div>
                 <ul className="shadow-md rounded-lg">
