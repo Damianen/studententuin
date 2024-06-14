@@ -75,7 +75,10 @@ function Manage() {
             <div className="flex">
                 <div className="w-4/12 bg-light-green">
                     <ul className="py-4">
-                        <a href="#" onClick={() => setSelectedItem("Files")}>
+                        <a
+                            href="#"
+                            onClick={() => setSelectedItem("Bestanden")}
+                        >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
                                 Bestanden
                             </li>
@@ -131,7 +134,7 @@ function Manage() {
                         <h1 className="text-2xl font-semibold">
                             {selectedItem}
                         </h1>
-                        {selectedItem === "Files" ? (
+                        {selectedItem === "Bestanden" ? (
                             <FileTree />
                         ) : selectedItem === "Analytics" ? (
                             <Analytics />
