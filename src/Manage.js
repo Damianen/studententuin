@@ -135,13 +135,14 @@ function Manage() {
                         </h1>
                         {selectedItem === "Bestanden" ? (
                             <FileTree />
-                        ) : selectedItem === "Analytics" ? (
+                        ) : selectedItem === "Opslag" ? (
                             <Analytics />
-                        ) : selectedItem === "Domain" ? (
+                        ) : selectedItem === "Domein" ? (
                             <Domain />
                         ) : selectedItem === "Deployment" ? (
                             <Deployment />
-                        ) : selectedItem === "Site Configuration" ? (
+                        ) : selectedItem ===
+                          "Website configuratie/omgevings variablen" ? (
                             <SiteConfiguration />
                         ) : selectedItem === "Git" ? (
                             <Git />
