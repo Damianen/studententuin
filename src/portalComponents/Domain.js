@@ -53,10 +53,10 @@ function Domain() {
                     <iframe
                         src={`https://${user.subDomainName}.studententuin.nl`}
                         style={{
-                            width: "200%",
-                            height: "200%",
+                            width: "166.67%", // (100% / 0.6)
+                            height: "166.67%", // (100% / 0.6)
                             transform: "scale(0.6)",
-                            transformOrigin: "top left",
+                            transformOrigin: "0 0",
                             border: "none",
                             pointerEvents: "none",
                         }}
