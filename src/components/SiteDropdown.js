@@ -35,30 +35,30 @@ export default function AccountDropdown() {
     return (
         <div>
             <div className="relative">
-              <div className="flex items-center">
-                <button
-                    className="relative block h-8 w-8 border-2 border-gray-600 rounded-full overflow-hidden"
-                    onClick={toggleDropdown}
-                >
-                    <img
-                        className="w-full h-full"
-                        src="profile.png"
-                        alt="Your avatar"
-                    />
-                </button>
-                <button
-                    onClick={toggleDropdown}
-                    className="relative overflow-hidden focus:outline-none focus:border-white text-lg font-semibold leading-6 text-white text-center"
-                >
-                    <a>
-                        {loading
-                            ? "Loading..."
-                            : user && user
-                            ? `${user.subDomainName}.studententuin.nl`
-                            : "No user data"}
-                    </a>
-                </button>
-              </div>
+                <div className="flex items-center">
+                    <button
+                        className="relative block h-8 w-8 border-2 border-gray-600 rounded-full overflow-hidden"
+                        onClick={toggleDropdown}
+                    >
+                        <img
+                            className="w-full h-full"
+                            src="profile.png"
+                            alt="Your avatar"
+                        />
+                    </button>
+                    <button
+                        onClick={toggleDropdown}
+                        className="relative overflow-hidden focus:outline-none focus:border-white text-lg font-semibold leading-6 text-white text-center"
+                    >
+                        <a>
+                            {loading
+                                ? "Loading..."
+                                : user && user
+                                ? `${user.subDomainName}.studententuin.nl`
+                                : "No user data"}
+                        </a>
+                    </button>
+                </div>
                 <button
                     className={
                         isOpen
@@ -79,7 +79,7 @@ export default function AccountDropdown() {
                         href="/logout"
                         className="block px-4 py-2 text-gray-800 hover:bg-green-400 hover:text-white"
                     >
-                        Sign Out
+                        Logout
                     </a>
                 </div>
             </div>
