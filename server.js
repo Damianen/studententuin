@@ -13,7 +13,6 @@ import xml2js from "xml2js";
 import bodyParser from "body-parser";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import pool from "./dao/db-config.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -391,24 +390,6 @@ const io = new Server(httpServer, {});
 io.on("connection", (socket) => {
     console.log('connected');
     socket.on("getLatestLogs", async (data) => {
-        console.log("on get latest");
-        try {
-            const result = await pool
-                .request()
-                .input("userEmail", sql.NVarChar, data.email)
-                .input("subdomainName", sql.NVarChat, data.subdomainName)
-                .query(
-                    "SELECT * FROM [studententuin].[dbo].[User] WHERE Email = @userEmail AND Email in (SELECT userEmail FROM UserSubDomain WHERE @subDomainName = subdomainName)"
-                );
-            if (!result) {
-                console.log("email subdomain validation not correct")
-                return;
-            }
-
-        } catch (error) {
-            console.log({ status: 500, message: error.message });
-        }
-
         const logs = await getLatestLogs(data.subdomainName);
         socket.emit("logs", logs);
     });
