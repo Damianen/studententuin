@@ -389,9 +389,11 @@ httpServer.listen(port, () => {
 const io = new Server(httpServer, {});
 io.on("connection", (socket) => {
     console.log('connected');
-    socket.on("getLatestLogs", async () => {
-        console.log("on get latest")
-        const data = await getLatestLogs(subdomain);
-        socket.emit("logs", data);
+    socket.on("getLatestLogs", async (data) => {
+        console.log("on get latest");
+        // some user validation
+
+        const logs = await getLatestLogs(data.session_id);
+        socket.emit("logs", logs);
     });
 });

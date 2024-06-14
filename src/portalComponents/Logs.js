@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import Cookies from "js-cookie";
 
     const socket = io();
 const Logs = () => {
@@ -12,6 +13,21 @@ const Logs = () => {
     const [showStderr, setShowStderr] = useState(false);
     const [isConnected, setIsConnected] = useState(socket.connected);
     const [state, setState] = useState(false);
+    const [user, setUser] = useState(undefined);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await axios.get("/api/getUserByEmailFromSession");
+                console.log("API response:", response.data); // Logging om de response te controleren
+                setUser(response.data);
+            } catch (error) {
+                console.error("Error fetching user:", error);
+            }
+        };
+
+        fetchUser();
+    }, []);
 
     useEffect(() => {
         function onLogs(logs) {
@@ -43,7 +59,9 @@ const Logs = () => {
     useEffect(() => {
         const interval = setInterval(() => {
             setState(!state);
-            socket.emit('getLatestLogs', "test");
+            if (user) {
+                socket.emit('getLatestLogs', { session_id: user.subDomainName});
+            }
         }, 1000);
 
         return () => clearInterval(interval);
@@ -71,8 +89,8 @@ const Logs = () => {
         verbergen. Klik op de knop "Show Stderr" om de stderr-logs weer te geven
         of te verbergen.
       </p>
-      {error ? (
-        <p className="text-red-500">{error}</p>
+      {user == undefined ? (
+        <p>Loading...</p>
       ) : (
         <div className="space-y-4">
           <button
