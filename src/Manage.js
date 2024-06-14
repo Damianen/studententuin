@@ -105,12 +105,12 @@ function Manage() {
                             href="#"
                             onClick={() =>
                                 setSelectedItem(
-                                    "Website configuratie/omgevings variablen"
+                                    "Omgevings variablen/post build commands"
                                 )
                             }
                         >
                             <li className="px-4 py-2 cursor-pointer hover:bg-green-900 hover:text-white">
-                                Website configuratie/omgevings variablen
+                                Omgevings variablen/post build commands
                             </li>
                         </a>
                         <a href="#" onClick={() => setSelectedItem("Git")}>
@@ -135,13 +135,14 @@ function Manage() {
                         </h1>
                         {selectedItem === "Bestanden" ? (
                             <FileTree />
-                        ) : selectedItem === "Analytics" ? (
+                        ) : selectedItem === "Opslag" ? (
                             <Analytics />
-                        ) : selectedItem === "Domain" ? (
+                        ) : selectedItem === "Domein" ? (
                             <Domain />
                         ) : selectedItem === "Deployment" ? (
                             <Deployment />
-                        ) : selectedItem === "Site Configuration" ? (
+                        ) : selectedItem ===
+                          "Omgevings variablen/post build commands" ? (
                             <SiteConfiguration />
                         ) : selectedItem === "Git" ? (
                             <Git />

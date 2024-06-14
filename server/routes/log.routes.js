@@ -13,7 +13,6 @@ router.get("/api/logs", async (req, res) => {
 const getLatestLogs = async (subdomain) => {
     try {
         const logsDir = path.resolve(__dirname, `../${subdomain}/logs`);
-        console.log(`Looking for logs in: ${logsDir}`);
 
         try {
             await fs.access(logsDir);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 
-const socket = io();
+const socket = io("/", { autoConnect: false });
 const Logs = () => {
     const [stdoutLogs, setStdoutLogs] = useState("");
     const [stderrLogs, setStderrLogs] = useState("");
@@ -21,12 +21,17 @@ const Logs = () => {
                 );
                 console.log("API response:", response.data); // Logging om de response te controleren
                 setUser(response.data);
+                socket.connect();
             } catch (error) {
                 console.error("Error fetching user:", error);
             }
         };
 
         fetchUser();
+
+        return () => {
+            socket.disconnect();
+        }
     }, []);
 
     useEffect(() => {
@@ -43,6 +48,7 @@ const Logs = () => {
 
         function onDisconnect() {
             setIsConnected(false);
+            console.log("disconnected");
         }
 
         socket.on("logs", onLogs);
@@ -88,11 +94,11 @@ const Logs = () => {
         <div className="container mx-auto px-4 py-8">
             <p className="text-lg mb-4">
                 Op deze pagina kunt u de stdout- en stderr-logs bekijken en
-                bedienen. Klik op de knop "Show Stdout" om de stdout-logs weer
-                te geven of te verbergen. Klik op de knop "Show Stderr" om de
+                bedienen. Klik op de knop "Toon Stdout" om de stdout-logs weer
+                te geven of te verbergen. Klik op de knop "Toon Stderr" om de
                 stderr-logs weer te geven of te verbergen.
             </p>
-            {user == undefined ? (
+            {!isConnected ? (
                 <p>Laden...</p>
             ) : (
                 <div className="space-y-4">
@@ -100,17 +106,19 @@ const Logs = () => {
                         className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
                         onClick={handleToggleStdout}
                     >
-                        {showStdout ? "Hide Stdout" : "Show Stdout"}
+                        {showStdout ? "Verberg Stdout" : "Toon Stdout"}
                     </button>
                     <button
                         className="bg-primary-green hover:bg-green-400 text-white font-bold py-2 px-4 rounded mr-2"
                         onClick={handleToggleStderr}
                     >
-                        {showStderr ? "Hide Stderr" : "Show Stderr"}
+                        {showStderr ? "Verberg Stderr" : "Toon Stderr"}
                     </button>
                     {showStdout && (
                         <div>
-                            <h1 className="text-xl font-bold">Stdout Logs</h1>
+                            <h1 className="text-xl font-bold">
+                                Stdout Logboek
+                            </h1>
                             <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96 whitespace-pre-wrap">
                                 {stdoutLogs}
                             </pre>
@@ -118,7 +126,9 @@ const Logs = () => {
                     )}
                     {showStderr && (
                         <div>
-                            <h1 className="text-xl font-bold">Stderr Logs</h1>
+                            <h1 className="text-xl font-bold">
+                                Stderr Logboek
+                            </h1>
                             <pre className="bg-gray-200 p-4 rounded overflow-x-auto max-h-96 whitespace-pre-wrap">
                                 {stderrLogs}
                             </pre>
