@@ -5,7 +5,7 @@ const Git = () => {
     const [selectedBranch, setSelectedBranch] = useState("master");
     const [showExplanation, setShowExplanation] = useState(false);
     const [sshKey, setSshKey] = useState("");
-    const [repositoryName, setRepositoryName] = useState("");
+    const [repositoryName, setRepositoryName] = useState(null);
     const [showRepoChange, setShowRepoChange] = useState(false);
     const [subdomain, setSubdomain] = useState("");
     const [branchFromDb, setBranchFromDb] = useState("master");
@@ -38,6 +38,7 @@ const Git = () => {
                         )}`
                     );
                     setRepositoryName(response.data.github);
+                    console.log(response.data.github);
                 } catch (error) {
                     console.error("Error fetching repo:", error);
                 }
@@ -78,11 +79,14 @@ const Git = () => {
     };
 
     const generateSshKey = () => {
-        fetch(`/getSSHKey/${user.subDomainName}`, {
-            method: "GET",
+        fetch("https://webhook.studententuin.nl/getSSH", {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+                subdomain: user.subDomainName,
+            })
         })
             .then((response) => {
                 if (!response.ok) {
@@ -98,6 +102,20 @@ const Git = () => {
                 console.error("Error fetching SSH key:", error);
             });
     };
+
+    const addRepo = () => {
+       fetch('https://webhook.studententuin.nl/newRepo', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                subdomain: user.subDomainName,
+                repo: customBranchName,
+                branch: "release"
+            });
+        })
+    }
 
     const handleBranchChange = (e) => {
         e.preventDefault();
@@ -137,7 +155,7 @@ const Git = () => {
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
             <h2>Stap 2 check de gekoppelde github Repo</h2>
             <div>
-                {repositoryName !== "" ? (
+                {repositoryName ? (
                     <p>Repository: {repositoryName}</p>
                 ) : (
                     <div>
@@ -157,6 +175,7 @@ const Git = () => {
                             <button
                                 className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
                                 type="submit"
+                                onCLick={addRepo}
                             >
                                 Voeg repository
                             </button>
@@ -174,9 +193,9 @@ const Git = () => {
                     value={selectedBranch}
                     onChange={(e) => setSelectedBranch(e.target.value)}
                 >
-                    <option value="main">Main</option>
-                    <option value="develop">Develop</option>
                     <option value="release">Release</option>
+                    <option value="develop">Develop</option>
+                    <option value="main">Main</option>
                     <option value="custom">Custom</option>
                 </select>
                 {selectedBranch === "custom" && (
