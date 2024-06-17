@@ -3,7 +3,8 @@ import session from "express-session";
 import router from "./server/router.js";
 import userRoutes from "./server/routes/user.routes.js";
 import userService from "./server/services/user.service.js";
-import getLatestLogs from "./server/routes/log.routes.js"
+import subDomainService from "./server/services/subdomain.service.js";
+import getLatestLogs from "./server/routes/log.routes.js";
 import fs, { readdir, stat, readFile } from "fs";
 import path, { relative } from "path";
 import multer from "multer";
@@ -209,17 +210,22 @@ app.post("/api/appsettings", async (req, res) => {
 app.post("/newRepo", async (req, res) => {
     const { subdomain, repo, branch } = req.body;
     console.log("New repository request:", req.body);
-    subDomainService.insertNewRepo(subdomain, repo, branch, (success, error) => {
-        if (success) {
-            if (success.status === 200) {
-                console.log("New repository added to db");
+    await subDomainService.insertNewRepo(
+        subdomain,
+        repo,
+        branch,
+        (success, error) => {
+            if (success) {
+                if (success.status === 200) {
+                    console.log("New repository added to db");
+                }
+            } else {
+                res.status(error.status).json({ message: error.message });
             }
-        } else {
-            res.status(error.status).json({ message: error.message });
         }
-    });
+    );
 
-    try { 
+    try {
         const response = await fetch(
             "https://webhook.studententuin.nl/newRepo",
             {
@@ -233,7 +239,7 @@ app.post("/newRepo", async (req, res) => {
                     branch: branch,
                 }),
             }
-        )
+        );
         if (!response.ok) {
             throw new Error("Failed to add new repository");
         }
@@ -243,7 +249,6 @@ app.post("/newRepo", async (req, res) => {
         res.status(500).json({ error: "Failed to add new repository" });
     }
 });
-
 
 app.get("/dir-info", async (req, res) => {
     let relativepath = await getRelativePath(req);
@@ -422,17 +427,17 @@ app.delete("/api/postbuildcommands/:index", async (req, res) => {
 });
 
 httpServer.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+    console.log(`Server listening on port ${port}`);
 });
 
 const io = new Server(httpServer, {
     cors: {
         origin: "http://localhost:3001",
-        methods: ["GET", "POST"]
-    }
+        methods: ["GET", "POST"],
+    },
 });
 io.on("connection", (socket) => {
-    console.log('connected');
+    console.log("connected");
     socket.on("getLatestLogs", async (data) => {
         const logs = await getLatestLogs(data.subdomainName);
         socket.emit("logs", logs);
