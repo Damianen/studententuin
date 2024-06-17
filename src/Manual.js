@@ -194,49 +194,58 @@ export default function Manual() {
                                 <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-4xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Domein beheren: Analytics
+                                            Domein beheren: Opslag
                                         </h2>
                                         <p className="mt-3">
                                             Deze pagina dient als handleiding
-                                            voor het tabje analytics op jouw
+                                            voor het tabje opslag op jouw
                                             omgeving. Hierin wordt er uitgelegd
-                                            wat precies de analytics zijn en
-                                            waar je ze kan vinden.
+                                            wat precies de opslag zijn en waar
+                                            je ze kan vinden.
                                         </p>
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Wat zijn analytics?
+                                            Wat is opslag?
                                         </h2>
                                         <p className="mt-3">
-                                            analytics zijn een handige tool om
-                                            te zien hoeveel "resources" jouw
-                                            site gebruikt. hiermee kan je zien
-                                            of je te veel opslag gebruikt of
-                                            hoeveel opslag je nog over hebt. Met
-                                            deze informatie kan je misschien
-                                            besluiten om je site te
-                                            optimaliseren of om een upgrade te
-                                            doen.
+                                            Opslag is hoeveel data jouw site
+                                            gebruikt op de site. Voor gratis
+                                            gebruikers is de opslag beperkt tot
+                                            300MB. Dit is vooral zodat zoveel
+                                            mogelijk mensen hun code kunnen
+                                            hosten op onze server en ze veel
+                                            kunnen leren. Voor betaalde
+                                            gebruikers zijn er binnenkort opties
+                                            om meer opslag aan te vragen als ze
+                                            dat nodig hebben. Opslag is een
+                                            belangrijk onderdeel van het hosten
+                                            van je site. Als je site te veel
+                                            opslag gebruikt kan het erook voor
+                                            zorgen dat je site niet goed is
+                                            geoptamiliseerd en het dus langzaam
+                                            kan laden voor gebruikers wat je
+                                            natuurlijk niet wilt. Opslag is dus
+                                            een cruciaal onderdeel van het
+                                            hosten van je site/applicatie.
                                         </p>
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Waar kan ik mijn analytics tab
-                                            vinden?
+                                            Waar kan ik mijn opslag tab vinden?
                                         </h2>
-                                        <p className="mt-3"></p>De analytics tab
+                                        <p className="mt-3"></p>De opslag tab
                                         kan je vinden onder "jouw omgeving". Om
                                         naar jouw omgeving te gaan kan je
                                         klikken op de knop jouw omgeving rechts
-                                        bovenin. Hierna kan je op de tab
-                                        analytics klikken om de analytics te
-                                        bekijken. hierbij zie je verschillende
-                                        grafieken en tabellen die je een goed
-                                        beeld geven van hoeveel resources je
-                                        site gebruikt zoals je opslag gebruik.
+                                        bovenin. Hierna kan je op de tab opslag
+                                        klikken om de opslag te bekijken.
+                                        hierbij zie je verschillende grafieken
+                                        en tabellen die je een goed beeld geven
+                                        van hoeveel resources je site gebruikt
+                                        zoals je opslag gebruik.
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                 </div>
