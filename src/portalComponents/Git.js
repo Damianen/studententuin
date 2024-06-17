@@ -83,13 +83,10 @@ const Git = () => {
     };
 
     const generateSshKey = () => {
-        fetch("https://webhook.studententuin.nl/getSSH", {
-            method: "POST",
-            headers: {
+        fetch(`/getSSHKey/${user.subDomainName}`, {
+            method: "GET",
+            headers: new Headers({
                 "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                subdomain: user.subDomainName,
             }),
         })
             .then((response) => {
@@ -106,21 +103,6 @@ const Git = () => {
                 console.error("Error fetching SSH key:", error);
             });
     };
-
-    const addRepo = () => {
-        fetch("https://webhook.studententuin.nl/newRepo", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                subdomain: user.subDomainName,
-                repo: customBranchName,
-                branch: "release",
-            }),
-        });
-    };
-
     const handleBranchChange = (e) => {
         e.preventDefault();
         const branchToSet =
@@ -204,7 +186,6 @@ const Git = () => {
                             <button
                                 className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
                                 type="submit"
-                                onCLick={addRepo}
                             >
                                 Voeg repository
                             </button>
