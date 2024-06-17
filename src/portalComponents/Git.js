@@ -86,7 +86,7 @@ const Git = () => {
             },
             body: JSON.stringify({
                 subdomain: user.subDomainName,
-            })
+            }),
         })
             .then((response) => {
                 if (!response.ok) {
@@ -104,7 +104,7 @@ const Git = () => {
     };
 
     const addRepo = () => {
-       fetch('https://webhook.studententuin.nl/newRepo', {
+        fetch("https://webhook.studententuin.nl/newRepo", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -112,10 +112,10 @@ const Git = () => {
             body: JSON.stringify({
                 subdomain: user.subDomainName,
                 repo: customBranchName,
-                branch: "release"
-            });
-        })
-    }
+                branch: "release",
+            }),
+        });
+    };
 
     const handleBranchChange = (e) => {
         e.preventDefault();
@@ -144,7 +144,10 @@ const Git = () => {
             <h1>Git integratie</h1>
             <p> Verbind hier je eigen repository met je domein</p>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-            <h2>Stap 1 kopieer de SSH key en voeg hem toe aan je repository als je al een key hebt gegenereerd wordt de oude key overschreven</h2>
+            <h2>
+                Stap 1 kopieer de SSH key en voeg hem toe aan je repository als
+                je al een key hebt gegenereerd wordt de oude key overschreven
+            </h2>
             <button
                 className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
                 onClick={generateSshKey}
