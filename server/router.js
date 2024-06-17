@@ -206,43 +206,6 @@ router.get("/getSSHKey/:subdomain", async (req, res) => {
     }
 });
 
-router.post("/newRepo", async (req, res) => {
-    const { subdomain, repo, branch } = req.body;
-    console.log("New repository request:", req.body);
-    subDomainService.insertNewRepo(subdomain, repo, branch, (success, error) => {
-        if (success) {
-            if (success.status === 200) {
-                console.log("New repository added to db");
-            }
-        } else {
-            res.status(error.status).json({ message: error.message });
-        }
-    });
-
-    try { 
-        const response = await fetch(
-            "https://webhook.studententuin.nl/newRepo",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    subdomain: subdomain,
-                    repo: repo,
-                    branch: branch,
-                }),
-            }
-        )
-        if (!response.ok) {
-            throw new Error("Failed to add new repository");
-        }
-        res.status(200).json({ message: "Repository added" });
-    } catch (error) {
-        console.error("Error adding new repository:", error);
-        res.status(500).json({ error: "Failed to add new repository" });
-    }
-});
 
 
 
