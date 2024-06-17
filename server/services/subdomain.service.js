@@ -101,6 +101,21 @@ const subDomainService = {
             callback(null, {status: 500, message: error.message});
           }
         },
+
+        insertNewRepo: async (subDomainName, github, branch, callback) => {
+          try{
+            const result = await pool
+            .request()
+            .input("subDomainName", sql.NVarChar, subDomainName)
+            .input("github", sql.NVarChar, github)
+            .input("branch", sql.NVarChar, branch)
+            .query(
+              "UPDATE [studententuin].[dbo].[Subdomain] SET github = @github, githubBranch = @branch WHERE name = @subDomainName");
+            callback({status: 200, message: "Sub-domain succesvol toegevoegt"}, null);
+          } catch (error) {
+            callback(null, {status: 500, message: error.message});
+          }
+        },
       
         insertDomainName: async (subDomainName, callback) => {
           try {

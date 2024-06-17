@@ -1,5 +1,7 @@
 import React from "react";
 import { Tabs, Tab } from "./components/Tabs.js";
+import Popup from "reactjs-popup";
+import "reactjs-popup/dist/index.css";
 
 export default function Manual() {
     return (
@@ -424,13 +426,111 @@ export default function Manual() {
                                             settings te gaan. Hier kan je naar
                                             deploy keys gaan en een nieuwe key
                                             toevoegen. Hier kan je de key
-                                            toevoegen die je krijgt van ons.
-                                            Hierna kan je de repository
+                                            toevoegen die je krijgt van ons{" "}
+                                            <Popup
+                                                trigger={
+                                                    <button>
+                                                        <img
+                                                            src="questionMark.png"
+                                                            style={{
+                                                                width: "10px",
+                                                                height: "10px",
+                                                            }}
+                                                        />
+                                                    </button>
+                                                }
+                                                modal
+                                                nested
+                                            >
+                                                <div
+                                                    style={{
+                                                        width: "950px",
+                                                        height: "400px",
+                                                    }}
+                                                >
+                                                    <img
+                                                        src="AddShh.jpg"
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </Popup>{" "}
+                                            . Hierna kan je de repository
                                             toevoegen aan jouw omgeving.
                                             Vervolgens kies je de branch die je
                                             wilt toevoegen aan jouw omgeving.
                                             Ten slotte klik je op automatisch
-                                            deployen.
+                                            deployen. Dan kopieer je de link
+                                            (https://webhook.studententuin.nl/)
+                                            en die kun je toevoegen aan je
+                                            github repository bij setting en dan
+                                            webhooks{" "}
+                                            <Popup
+                                                trigger={
+                                                    <button>
+                                                        <img
+                                                            src="questionMark.png"
+                                                            style={{
+                                                                width: "10px",
+                                                                height: "10px",
+                                                            }}
+                                                        />
+                                                    </button>
+                                                }
+                                                modal
+                                                nested
+                                            >
+                                                <div
+                                                    style={{
+                                                        width: "950px",
+                                                        height: "400px",
+                                                    }}
+                                                >
+                                                    <img
+                                                        src="Webhook-add.jpg"
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </Popup>{" "}
+                                            . Vergeet niet de content type te
+                                            veranderen naar application/json
+                                            anders zal het niet werken{" "}
+                                            <Popup
+                                                trigger={
+                                                    <button>
+                                                        <img
+                                                            src="questionMark.png"
+                                                            style={{
+                                                                width: "10px",
+                                                                height: "10px",
+                                                            }}
+                                                        />
+                                                    </button>
+                                                }
+                                                modal
+                                                nested
+                                            >
+                                                <div
+                                                    style={{
+                                                        width: "950px",
+                                                        height: "400px",
+                                                    }}
+                                                >
+                                                    <img
+                                                        src="Webhook-contentType.jpg"
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </Popup>{" "}
+                                            !
                                         </p>
                                     </div>
                                 </div>

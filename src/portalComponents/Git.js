@@ -6,6 +6,7 @@ const Git = () => {
     const [showExplanation, setShowExplanation] = useState(false);
     const [sshKey, setSshKey] = useState("");
     const [repositoryName, setRepositoryName] = useState("");
+    const [selectedRepo, setSelectedRepo] = useState("");
     const [showRepoChange, setShowRepoChange] = useState(false);
     const [subdomain, setSubdomain] = useState("");
     const [branchFromDb, setBranchFromDb] = useState("master");
@@ -37,7 +38,7 @@ const Git = () => {
                             user.subDomainName
                         )}`
                     );
-                    setRepositoryName(response.data.github);
+                    setSelectedRepo(response.data.github);
                 } catch (error) {
                     console.error("Error fetching repo:", error);
                 }
@@ -52,7 +53,11 @@ const Git = () => {
                             user.subDomainName
                         )}`
                     );
-                    setBranchFromDb(response.data.githubBranch);
+                    if (response.data.githubBranch) {
+                        setBranchFromDb(response.data.githubBranch);
+                    } else {
+                        setBranchFromDb("master");
+                    }
                 } catch (error) {
                     console.error("Error fetching branch:", error);
                 }
@@ -111,7 +116,7 @@ const Git = () => {
             },
             body: JSON.stringify({
                 branch: branchToSet,
-                subDomainName: subdomain,
+                subDomainName: user.subDomainName,
             }),
         })
             .then((response) => response.json())
@@ -120,13 +125,35 @@ const Git = () => {
             });
         setBranchFromDb(branchToSet);
     };
+    const handleNewRepo = (e) => {
+        e.preventDefault();
+        setSelectedRepo(e.target.value);
+        fetch(`/newRepo`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                repo: repositoryName,
+                subdomain: user.subDomainName,
+                branch: branchFromDb,
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+            });
+    };
 
     return (
         <div className="text-black text-base md:text-lg p-4">
             <h1>Git integratie</h1>
             <p> Verbind hier je eigen repository met je domein</p>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-            <h2>Stap 1 kopieer de SSH key en voeg hem toe aan je repository als je al een key hebt gegenereerd wordt de oude key overschreven</h2>
+            <h2>
+                Stap 1 kopieer de SSH key en voeg hem toe aan je repository als
+                je al een key hebt gegenereerd wordt de oude key overschreven
+            </h2>
             <button
                 className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
                 onClick={generateSshKey}
@@ -135,23 +162,26 @@ const Git = () => {
             </button>
             <p className="text-center">{sshKey} </p>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-            <h2>Stap 2 check de gekoppelde github Repo</h2>
+
             <div>
-                {repositoryName !== "" ? (
-                    <p>Repository: {repositoryName}</p>
+                {selectedRepo ? (
+                    <div>
+                        <h2>Stap 2 check de gekoppelde github Repo</h2>
+                        <p>Repository: {selectedRepo}</p>
+                    </div>
                 ) : (
                     <div>
                         <h2>
-                            Stap 1 vul de naam van je repository in met SSH url
+                            Stap 2 vul de naam van je repository in met SSH url
                         </h2>
-                        <form>
+                        <form onSubmit={handleNewRepo}>
                             <input
                                 className="p-4 px-8 py-2"
                                 type="text"
                                 placeholder="Enter repository name"
-                                value={customBranchName}
+                                value={repositoryName}
                                 onChange={(e) =>
-                                    setCustomBranchName(e.target.value)
+                                    setRepositoryName(e.target.value)
                                 }
                             />
                             <button
@@ -201,8 +231,8 @@ const Git = () => {
             </h2>
             <p>
                 Let op! Dit zal de huidige branch pullen en daarna al je post
-                build commands uitvoeren (deze kun je in de SiteConfiguration
-                veranderen)
+                build commands uitvoeren (deze kun je in het tabje Omgevings
+                variablen/post build commands veranderen)
             </p>
             <button
                 className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
@@ -229,7 +259,7 @@ const Git = () => {
                         repository
                     </p>
                     <p className="text-center p-8">
-                        https://studententuin.nl/api/webhook
+                        https://webhook.studententuin.nl/
                     </p>
                     <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
                     <p>
