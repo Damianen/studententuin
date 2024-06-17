@@ -8,6 +8,7 @@ const Deployment = () => {
     const [isConnected, setIsConnected] = useState(socket.connected);
     const [user, setUser] = useState(undefined);
     const [logs, setLogs] = useState("");
+    const [state, setState] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -17,7 +18,7 @@ const Deployment = () => {
                 );
                 console.log("API response:", response.data); // Logging om de response te controleren
                 setUser(response.data);
-                io.connect();
+                socket.connect();
             } catch (error) {
                 console.error("Error fetching user:", error);
             }
@@ -32,7 +33,7 @@ const Deployment = () => {
 
     useEffect(() => {
         function onLogs(logs) {
-            setLogs(logs + "\n" + logs.logs);
+            setLogs(logs.logs);
         }
 
         function onConnect() {
@@ -54,6 +55,20 @@ const Deployment = () => {
             socket.off("logs", onLogs);
         };
     }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setState(!state);
+            if (user) {
+                socket.emit("logRequest", {
+                    subdomainName: user.subDomainName,
+                });
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [state]);
+
 
     return (
         <div className="container mx-auto px-4 py-8">

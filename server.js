@@ -386,7 +386,12 @@ httpServer.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
-const io = new Server(httpServer, {});
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:3001",
+        methods: ["GET", "POST"]
+    }
+});
 io.on("connection", (socket) => {
     console.log('connected');
     socket.on("getLatestLogs", async (data) => {

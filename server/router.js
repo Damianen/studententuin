@@ -362,6 +362,8 @@ router.post(
         const { subdomainName, emailAddress, password, productPackage } =
             req.body;
 
+        console.log("Request body:", req.body);
+
         await userService.getByEmail(emailAddress, (success, error) => {
             if (success) {
                 if (success.status === 200) {

@@ -133,11 +133,12 @@ export default function Manual() {
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Hoe werkt ik met het files tabje?
+                                            Hoe werkt ik met het bestanden
+                                            tabje?
                                         </h2>
                                         <p className="mt-3">
-                                            Om files te deleten klik je op de
-                                            file die je wilt verwijderen,
+                                            Om bestanden te verwijderen klik je
+                                            op de file die je wilt verwijderen,
                                             Vervolgens klik je op het knopje
                                             "Delete" hiermee verwijder je het
                                             geselecteerde bestand. Om een
@@ -145,15 +146,15 @@ export default function Manual() {
                                             tussen een losse file of een
                                             directory of te wel een folder.{" "}
                                             <br></br>
-                                            <br></br>Om losse files te uploaden
-                                            klik je op het knopje "upload single
-                                            file", Vervolgens verschijnt een
-                                            drag en drop box op je scherm hier
-                                            mee kan je of je bestanden slepen
-                                            naar het vakje of indien je dit niet
-                                            wilt ook klikken op "browse files"
-                                            om zelf te kiezen in windows
-                                            explorer. <br></br>
+                                            <br></br>Om losse bestanden te
+                                            uploaden klik je op het knopje
+                                            "upload single file", Vervolgens
+                                            verschijnt een drag en drop box op
+                                            je scherm hier mee kan je of je
+                                            bestanden slepen naar het vakje of
+                                            indien je dit niet wilt ook klikken
+                                            op "browse files" om zelf te kiezen
+                                            in windows explorer. <br></br>
                                             <br></br>Om een folder te uploaden
                                             moet je op het knopje "Upload a
                                             directory klikken" Vervolgens komt
@@ -195,49 +196,58 @@ export default function Manual() {
                                 <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-4xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Domein beheren: Analytics
+                                            Domein beheren: Opslag
                                         </h2>
                                         <p className="mt-3">
                                             Deze pagina dient als handleiding
-                                            voor het tabje analytics op jouw
+                                            voor het tabje opslag op jouw
                                             omgeving. Hierin wordt er uitgelegd
-                                            wat precies de analytics zijn en
-                                            waar je ze kan vinden.
+                                            wat precies de opslag zijn en waar
+                                            je ze kan vinden.
                                         </p>
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Wat zijn analytics?
+                                            Wat is opslag?
                                         </h2>
                                         <p className="mt-3">
-                                            analytics zijn een handige tool om
-                                            te zien hoeveel "resources" jouw
-                                            site gebruikt. hiermee kan je zien
-                                            of je te veel opslag gebruikt of
-                                            hoeveel opslag je nog over hebt. Met
-                                            deze informatie kan je misschien
-                                            besluiten om je site te
-                                            optimaliseren of om een upgrade te
-                                            doen.
+                                            Opslag is hoeveel data jouw site
+                                            gebruikt op de site. Voor gratis
+                                            gebruikers is de opslag beperkt tot
+                                            300MB. Dit is vooral zodat zoveel
+                                            mogelijk mensen hun code kunnen
+                                            hosten op onze server en ze veel
+                                            kunnen leren. Voor betaalde
+                                            gebruikers zijn er binnenkort opties
+                                            om meer opslag aan te vragen als ze
+                                            dat nodig hebben. Opslag is een
+                                            belangrijk onderdeel van het hosten
+                                            van je site. Als je site te veel
+                                            opslag gebruikt kan het erook voor
+                                            zorgen dat je site niet goed is
+                                            geoptamiliseerd en het dus langzaam
+                                            kan laden voor gebruikers wat je
+                                            natuurlijk niet wilt. Opslag is dus
+                                            een cruciaal onderdeel van het
+                                            hosten van je site/applicatie.
                                         </p>
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                         <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Waar kan ik mijn analytics tab
-                                            vinden?
+                                            Waar kan ik mijn opslag tab vinden?
                                         </h2>
-                                        <p className="mt-3"></p>De analytics tab
+                                        <p className="mt-3"></p>De opslag tab
                                         kan je vinden onder "jouw omgeving". Om
                                         naar jouw omgeving te gaan kan je
                                         klikken op de knop jouw omgeving rechts
-                                        bovenin. Hierna kan je op de tab
-                                        analytics klikken om de analytics te
-                                        bekijken. hierbij zie je verschillende
-                                        grafieken en tabellen die je een goed
-                                        beeld geven van hoeveel resources je
-                                        site gebruikt zoals je opslag gebruik.
+                                        bovenin. Hierna kan je op de tab opslag
+                                        klikken om de opslag te bekijken.
+                                        hierbij zie je verschillende grafieken
+                                        en tabellen die je een goed beeld geven
+                                        van hoeveel resources je site gebruikt
+                                        zoals je opslag gebruik.
                                     </div>
                                     <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                 </div>
@@ -245,20 +255,66 @@ export default function Manual() {
                         </Tab>
                         <Tab label="Deployment">
                             <div className="py-4">
-                                <div className="flex min-h-full flex-col items-center justify-center object-center text-center px-6 py-12 lg:px-8 space-y-7">
+                                <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                                     <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
-                                        <h1 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                            Nog onder constructie, kom later
-                                            terug voor meer informatie
-                                        </h1>
-                                        <div class="flex justify-center items-center pt-12">
-                                            <img
-                                                className=" content-center"
-                                                alt="under construction"
-                                                src="https://t4.ftcdn.net/jpg/00/89/02/67/360_F_89026793_eyw5a7WCQE0y1RHsizu41uhj7YStgvAA.jpg"
-                                            />
-                                        </div>
+                                        <h2 className="text-4xl font-bold leading-9 tracking-tight text-gray-900">
+                                            Domein beheren: Deployment
+                                        </h2>
+                                        <p className="mt-3">
+                                            Deze pagina dient als handleiding
+                                            voor het tabje Deployment op jouw
+                                            omgeving. Hierin wordt er uitgelegd
+                                            waarvoor de Deployment tabje voor
+                                            dient en waar je het kan vinden.
+                                        </p>
                                     </div>
+                                    <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
+                                    <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
+                                        <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                                            Wat is deployment
+                                        </h2>
+                                        <p className="mt-3">
+                                            Deployment is het proces waarbij je
+                                            code van je lokale machine naar een
+                                            server wordt geupload en ook wordt
+                                            opgezet. Dit is handig als je
+                                            bijvoorbeeld een website of een
+                                            applicatie wilt deployen. Met
+                                            deployment kan je makkelijk inzien
+                                            of je code correct is geupload en
+                                            ook of er geen problemen zijn
+                                            onstaan zoals bij het opzetten van
+                                            de server. Deployment is een
+                                            belangrijk onderdeel van het
+                                            ontwikkelen van een website of
+                                            applicatie. Hiermee kan je dus
+                                            realtime volgen of er problemen zijn
+                                            met je code of met het opzetten van
+                                            je server. Het is dus een handig
+                                            tool om zowel te debuggen en
+                                            natuurlijk om te leren.
+                                        </p>
+                                    </div>
+                                    <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
+                                    <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
+                                        <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                                            Waar kan ik mijn Deployment tab
+                                            vinden?
+                                        </h2>
+                                        <p className="mt-3"></p>De Deployment
+                                        tab kan je vinden onder "jouw omgeving".
+                                        Om naar jouw omgeving te gaan kan je
+                                        klikken op de knop jouw omgeving rechts
+                                        bovenin. Hierna kan je op de tab
+                                        Deployment klikken om de Deployment
+                                        status te bekijken. Hierbij zie je de
+                                        volledige logboek van jouw server
+                                        tijdens het opzetten van je website of
+                                        applicatie. Hierbij kan je ook zien of
+                                        er problemen zijn opgetreden tijdens het
+                                        deployen van je code.
+                                    </div>
+                                    <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                                 </div>
                             </div>
                         </Tab>
