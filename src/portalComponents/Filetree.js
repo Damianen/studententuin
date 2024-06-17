@@ -207,7 +207,7 @@ function FileTree() {
                 </div>
             )}
             {showFileManager && <FileManager />}
-            <div>Path: {selectedNode}</div>{" "}
+            <div>Pad: {selectedNode}</div>{" "}
             <div className=" ">
                 <button
                     className="inline-block  border border-transparent bg-primary-green px-6 py-2 mx-5 text-center font-medium text-white hover:bg-house-green"

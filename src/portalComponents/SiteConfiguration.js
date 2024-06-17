@@ -181,7 +181,7 @@ const SiteConfiguration = () => {
             <div>
                 <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
                 <h1 className="font-sans text-xl font-medium">
-                    Voeg hier je environmental variables toe
+                    Voeg hier je omgevings variablen toe
                 </h1>
                 <ul className="shadow-md rounded-lg">
                     {variables.map((variable) => (
@@ -238,7 +238,7 @@ const SiteConfiguration = () => {
             </div>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
             <h1 className="font-sans text-xl font-medium">
-                Post build commands
+                Voeg hier je post build commands toe
             </h1>
             <div>
                 <ul className="shadow-md rounded-lg">
@@ -261,7 +261,7 @@ const SiteConfiguration = () => {
                     className="bg-house-green hover:bg-green-600 text-white font-bold py-2 px-4 float-right rounded"
                     onClick={showPostBuildCommandsHandler}
                 >
-                    Voeg Post Build Commands
+                    Post Build Command toevoegen
                 </button>
             </div>
             {showPostBuildCommands && (
@@ -278,7 +278,7 @@ const SiteConfiguration = () => {
                             type="submit"
                             className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
                         >
-                            Post Build Command toevoegen
+                            Voeg Post Build Commands
                         </button>
                     </form>
                 </div>
