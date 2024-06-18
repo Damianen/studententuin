@@ -673,20 +673,65 @@ export default function Manual() {
                 </Tab>
                 <Tab label="HTML">
                     <div className="py-4">
-                        <div className="flex min-h-full flex-col items-center justify-center object-center text-center px-6 py-12 lg:px-8 space-y-7">
+                        <div className="flex min-h-full flex-col justify-start px-6 py-12 lg:px-8 space-y-7">
                             <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
-                                <h1 className="text-2xl font-bold leading-9 tracking-tight text-gray-900 mt-24">
-                                    Nog onder constructie, kom later terug voor
-                                    meer informatie
-                                </h1>
-                                <div class="flex justify-center items-center pt-12">
-                                    <img
-                                        className=" content-center"
-                                        alt="under construction"
-                                        src="https://t4.ftcdn.net/jpg/00/89/02/67/360_F_89026793_eyw5a7WCQE0y1RHsizu41uhj7YStgvAA.jpg"
-                                    />
-                                </div>
+                                <h2 className="text-4xl font-bold leading-9 tracking-tight text-gray-900">
+                                    HTML website
+                                </h2>
+                                <p className="mt-3">
+                                    Deze pagina dient als handleiding voor het
+                                    hosten van een HTML website. Hierin wordt er
+                                    uitgelegd wat precies HTML hosting is en hoe
+                                    je een HTML website kan hosten op onze
+                                    servers.
+                                </p>
                             </div>
+                            <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
+                            <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
+                                <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                                    Hoe host ik een HTML website?
+                                </h2>
+                                <p className="mt-3">
+                                    Een HTML website hosten op studententuin is
+                                    zo makkelijk mogelijk gemaakt. Als studenten
+                                    weten we helaas hoe lastig het soms kan zijn
+                                    om makkelijk en snel een website te hosten
+                                    is. om je website te hosten. Iedere student
+                                    kent het wel Je hoeft bij onze niks af te
+                                    weten van hoe en wat. Alles wat je moet doen
+                                    is of je html files up te loaden naar de
+                                    public folder of kan je ook zelf je eigen
+                                    public folder up te loaden met behulp van de
+                                    bestanden tabje in jouw omgeving. Hiermee
+                                    kan je makkelijk je website hosten op onze
+                                    servers en kan je makkelijk je website delen
+                                    met anderen. Dit is handig als je
+                                    bijvoorbeeld een assignment hebt voor
+                                    bijvoorbeeld vakken waarbij je een website
+                                    moet hosten. Naast dat studententuin sneller
+                                    is dan andere gratis concurrent is het
+                                    uploaden en testen van je website veel
+                                    makkelijker.
+                                </p>
+                            </div>
+                            <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
+                            <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
+                                <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                                    Waar kan ik mijn logs vinden?
+                                </h2>
+                                <p className="mt-3">
+                                    Je kan logs vinden onder de knop je "jouw
+                                    omgeving" rechts bovenin. Hierna kan je op
+                                    de jouw omgeving pagina op logs klikken om
+                                    de logs te bekijken. Hier kan je alle logs
+                                    zien die betrekking hebben op jouw
+                                    applicatie. Ze staan op chronologische
+                                    volgorde geordend. Zoals eerder benoemd kan
+                                    je de logs weer gebruiken om je code te
+                                    debuggen en errors op te sporen.
+                                </p>
+                            </div>
+                            <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                         </div>
                     </div>
                 </Tab>
