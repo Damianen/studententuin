@@ -236,7 +236,7 @@ const SiteConfiguration = () => {
                     </div>
                 )}
             </div>
-            <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
+            <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700 mt-12" />
             <h1 className="font-sans text-xl font-medium">
                 Voeg hier je post build commands toe
             </h1>

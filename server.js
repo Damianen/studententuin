@@ -129,24 +129,31 @@ app.get("/api/appsettings", async (req, res) => {
 
 app.delete("/api/appsettings/:key", async (req, res) => {
     console.log("Deleting key:", req.params.key);
-    let configPath = await getRelativePath(req);
+    let relativepath = await getRelativePath(req);
+    const configPath = path.join(relativepath, "web.config");
 
-    try {
-        const data = fs.readFileSync(configPath);
+    fs.readFile(configPath, (err, data) => {
+        if (err) {
+            console.error("Error reading config file:", err);
+            return res
+                .status(500)
+                .json({ message: "Error reading config file" });
+        }
 
         xml2js.parseString(data, (err, result) => {
             if (err) {
-                console.error("Error parsing XML:", err);
-                return res.status(500).json({ message: "Error parsing XML" });
+                console.error("Error parsing config file:", err);
+                return res
+                    .status(500)
+                    .json({ message: "Error parsing config file" });
             }
 
             const appSettings = result.configuration.appSettings[0];
-
             const settings = appSettings?.add || [];
 
-            const settingIndexToRemove = settings.findIndex((setting) => {
-                return setting.$.key === req.params.key;
-            });
+            const settingIndexToRemove = settings.findIndex(
+                (setting) => setting.$.key === req.params.key
+            );
 
             if (settingIndexToRemove !== -1) {
                 settings.splice(settingIndexToRemove, 1);
@@ -154,25 +161,21 @@ app.delete("/api/appsettings/:key", async (req, res) => {
                 const builder = new xml2js.Builder();
                 const updatedXml = builder.buildObject(result);
 
-                try {
-                    fs.writeFileSync(configPath, updatedXml);
+                fs.writeFile(configPath, updatedXml, (err) => {
+                    if (err) {
+                        console.error("Error writing to config file:", err);
+                        return res
+                            .status(500)
+                            .json({ message: "Error writing to config file" });
+                    }
+
                     res.json({ message: "Variable removed successfully" });
-                } catch (err) {
-                    console.error("Error writing file:", err);
-                    return res
-                        .status(500)
-                        .json({ message: "Error writing appsettings file" });
-                }
+                });
             } else {
                 res.status(404).json({ message: "Variable not found" });
             }
         });
-    } catch (err) {
-        console.error("Error reading file:", err);
-        return res
-            .status(500)
-            .json({ message: "Error reading appsettings file" });
-    }
+    });
 });
 
 app.post("/api/appsettings", async (req, res) => {
