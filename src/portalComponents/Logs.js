@@ -38,7 +38,6 @@ const Logs = () => {
         function onLogs(logs) {
             setStdoutLogs(logs.stdout);
             setStderrLogs(logs.stderr);
-            console.log("logs received");
         }
 
         function onConnect() {

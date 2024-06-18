@@ -20,7 +20,6 @@ const Analytics = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("dir size:" + data.size);
                 console.log("storage percentage:" + data.storagePercentage);
                 setUsedStorage(data.size); // Update usedStorage with the fetched size
                 setStoragePercentage(data.storagePercentage);

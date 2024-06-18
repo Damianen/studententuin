@@ -187,7 +187,6 @@ function FileTree() {
         setCursor(node);
         setFileTree(Object.assign({}, fileTree));
         setSelectedNode(node.path);
-        console.log(node.path);
         if (showFileManager) {
             setShowFileManager(!showFileManager);
         }

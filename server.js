@@ -209,8 +209,8 @@ app.post("/api/appsettings", async (req, res) => {
 
 app.post("/newRepo", async (req, res) => {
     const { subdomain, repo, branch } = req.body;
-    console.log("New repository request:", req.body);
-    await subDomainService.insertNewRepo(
+
+    subDomainService.insertNewRepo(
         subdomain,
         repo,
         branch,

@@ -55,8 +55,6 @@ export default function FileManager() {
   }
 
   function output(system_trees) {
-    console.log(system_trees);
-
     function checkFile(key, value) {
       if (value instanceof File) {
         return `{[File] ${value.name}, ${value.size}b}`;
@@ -79,11 +77,9 @@ export default function FileManager() {
     files.forEach((file) => {
       formData.append('paths', file.webkitRelativePath);
       formData.append('files', file, file.webkitRelativePath );
-      console.log(`File met: ${file.webkitRelativePath}`);
     });
     const json = JSON.stringify(system_trees, null, 2);
-    console.log("json")
-    console.log(json);
+
 
     fetch('/upload', {
       method: 'POST',

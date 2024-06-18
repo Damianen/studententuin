@@ -96,7 +96,6 @@ const Git = () => {
                 return response.json();
             })
             .then((data) => {
-                console.log(data);
                 setSshKey(data.key);
             })
             .catch((error) => {
