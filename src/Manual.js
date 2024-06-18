@@ -671,7 +671,7 @@ export default function Manual() {
                         </div>
                     </div>
                 </Tab>
-                <Tab label=".NET">
+                <Tab label="HTML">
                     <div className="py-4">
                         <div className="flex min-h-full flex-col items-center justify-center object-center text-center px-6 py-12 lg:px-8 space-y-7">
                             <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
@@ -691,25 +691,6 @@ export default function Manual() {
                     </div>
                 </Tab>
                 <Tab label="Microsoft SQL">
-                    <div className="py-4">
-                        <div className="flex min-h-full flex-col items-center justify-center object-center text-center px-6 py-12 lg:px-8 space-y-7">
-                            <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
-                                <h1 className="text-2xl font-bold leading-9 tracking-tight text-gray-900 mt-24">
-                                    Nog onder constructie, kom later terug voor
-                                    meer informatie
-                                </h1>
-                                <div class="flex justify-center items-center pt-12">
-                                    <img
-                                        className=" content-center"
-                                        alt="under construction"
-                                        src="https://t4.ftcdn.net/jpg/00/89/02/67/360_F_89026793_eyw5a7WCQE0y1RHsizu41uhj7YStgvAA.jpg"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </Tab>
-                <Tab label="MySQL">
                     <div className="py-4">
                         <div className="flex min-h-full flex-col items-center justify-center object-center text-center px-6 py-12 lg:px-8 space-y-7">
                             <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
