@@ -37,7 +37,7 @@ const Analytics = () => {
         <div>
             <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"></hr>
             <h2>Opslag in gebruik</h2>
-            {isLoaded ? (
+            {!isLoaded ? (
                 <p>Laden...</p>
             ) : (
                 <div>
