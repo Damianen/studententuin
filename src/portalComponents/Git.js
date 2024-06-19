@@ -186,7 +186,7 @@ const Git = () => {
                                 className="inline-block rounded-md border border-transparent bg-primary-green px-8 py-2 text-center font-medium text-white hover:bg-green-400"
                                 type="submit"
                             >
-                                Voeg repository
+                                Voeg repository url toe
                             </button>
                         </form>
                     </div>
