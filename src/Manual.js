@@ -697,16 +697,81 @@ export default function Manual() {
                                     weten we helaas hoe lastig het soms kan zijn
                                     om makkelijk en snel een website te hosten
                                     is. om je website te hosten. Iedere student
-                                    kent het wel Je hoeft bij onze niks af te
-                                    weten van hoe en wat. Alles wat je moet doen
-                                    is of je html files up te loaden naar de
-                                    public folder of kan je ook zelf je eigen
-                                    public folder up te loaden met behulp van de
-                                    bestanden tabje in jouw omgeving. Hiermee
-                                    kan je makkelijk je website hosten op onze
-                                    servers en kan je makkelijk je website delen
-                                    met anderen. Dit is handig als je
-                                    bijvoorbeeld een assignment hebt voor
+                                    kent het wel je wilt een website hosten voor
+                                    een vak maar het werkt of heel traag of soms
+                                    helemaal niet waardoor je allemaal meer
+                                    stress net voor de inlevering. Bij
+                                    studententuin werkt het meteen en is het ook
+                                    zonder gedoe! Alles wat je maar hoeft te
+                                    doen is of je html files up te loaden naar
+                                    de public folder{" "}
+                                    <Popup
+                                        trigger={
+                                            <button>
+                                                <img
+                                                    src="questionMark.png"
+                                                    style={{
+                                                        width: "10px",
+                                                        height: "10px",
+                                                    }}
+                                                />
+                                            </button>
+                                        }
+                                        modal
+                                        nested
+                                    >
+                                        <div
+                                            style={{
+                                                width: "950px",
+                                                height: "400px",
+                                            }}
+                                        >
+                                            <img
+                                                src="uploadfolderFile.jpg"
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                }}
+                                            />
+                                        </div>
+                                    </Popup>{" "}
+                                    of kan je ook zelf je eigen public folder up
+                                    te loaden met behulp van de bestanden tabje
+                                    in jouw omgeving.{" "}
+                                    <Popup
+                                        trigger={
+                                            <button>
+                                                <img
+                                                    src="questionMark.png"
+                                                    style={{
+                                                        width: "10px",
+                                                        height: "10px",
+                                                    }}
+                                                />
+                                            </button>
+                                        }
+                                        modal
+                                        nested
+                                    >
+                                        <div
+                                            style={{
+                                                width: "950px",
+                                                height: "400px",
+                                            }}
+                                        >
+                                            <img
+                                                src="uploadfolderFile.jpg"
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                }}
+                                            />
+                                        </div>
+                                    </Popup>{" "}
+                                    Hiermee kan je makkelijk je website hosten
+                                    op onze servers en kan je makkelijk je
+                                    website delen met anderen. Dit is handig als
+                                    je bijvoorbeeld een assignment hebt voor
                                     bijvoorbeeld vakken waarbij je een website
                                     moet hosten. Naast dat studententuin sneller
                                     is dan andere gratis concurrent is het
@@ -717,18 +782,21 @@ export default function Manual() {
                             <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
                             <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
                                 <h2 className="text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                                    Waar kan ik mijn logs vinden?
+                                    Kan ik ook mijn CSS Uploaden?
                                 </h2>
                                 <p className="mt-3">
-                                    Je kan logs vinden onder de knop je "jouw
-                                    omgeving" rechts bovenin. Hierna kan je op
-                                    de jouw omgeving pagina op logs klikken om
-                                    de logs te bekijken. Hier kan je alle logs
-                                    zien die betrekking hebben op jouw
-                                    applicatie. Ze staan op chronologische
-                                    volgorde geordend. Zoals eerder benoemd kan
-                                    je de logs weer gebruiken om je code te
-                                    debuggen en errors op te sporen.
+                                    Je kan bij studententuin ook natuurlijk
+                                    naast alleen html ook een css uploaden
+                                    zolang je dit goed upload naar de "public"
+                                    folder op jouw omgeving. Vervolgens je het
+                                    goed verwerkt in je html file zoals je
+                                    normaal zou doen. Hiermee kan je makkelijk
+                                    je website stylen en ook je website
+                                    responsive maken. Dit is handig als je
+                                    bijvoorbeeld een website wilt maken voor een
+                                    vak of voor een project. Hiermee kan je je
+                                    website er mooi uit laten zien en ook goed
+                                    laten werken op verschillende schermen.
                                 </p>
                             </div>
                             <hr className="h-0.5 my-8 w-9/12 mx-auto border-0 bg-primary-green opacity-20" />
