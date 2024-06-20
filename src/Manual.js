@@ -735,6 +735,8 @@ export default function Manual() {
                                             />
                                         </div>
                                     </Popup>{" "}
+                                    <br></br>
+                                    <br></br>
                                     of kan je ook zelf je eigen public folder up
                                     te loaden met behulp van de bestanden tabje
                                     in jouw omgeving.{" "}
@@ -768,6 +770,8 @@ export default function Manual() {
                                             />
                                         </div>
                                     </Popup>{" "}
+                                    <br></br>
+                                    <br></br>
                                     Hiermee kan je makkelijk je website hosten
                                     op onze servers en kan je makkelijk je
                                     website delen met anderen. Dit is handig als
