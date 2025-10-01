@@ -118,7 +118,12 @@ export async function AppSidebar({ id, ...props }: React.ComponentProps<typeof S
     : data.user
 
   // Fetch user's applications and databases
-  let documents = [
+  let documents: Array<{
+    id?: string
+    name: string
+    url: string
+    iconType: "folder" | "world" | "database"
+  }> = [
     {
       name: "All Projects",
       url: "/projects",

@@ -42,7 +42,7 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => {
             const isActive = pathname === item.url ||
-              (item.title === "Overview" && pathname && pathname.match(/^\/dashboard\/[^\/]+$/))
+              Boolean(item.title === "Overview" && pathname && pathname.match(/^\/dashboard\/[^\/]+$/))
             const Icon = item.iconType ? iconMap[item.iconType] : null
 
             return (
