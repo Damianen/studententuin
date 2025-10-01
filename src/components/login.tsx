@@ -1,6 +1,6 @@
 'use client'
 
-import { LogoIcon } from '@/components/logo'
+import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
@@ -16,9 +16,9 @@ export default function LoginPage() {
                         <Link
                             href="/"
                             aria-label="go home">
-                            <LogoIcon />
+                            <Logo />
                         </Link>
-                        <h1 className="mb-1 mt-4 text-xl font-semibold">Sign In to Tailark</h1>
+                        <h1 className="mb-1 mt-4 text-xl font-semibold">Sign In to Studententuin</h1>
                         <p>Welcome back! Sign in to continue</p>
                     </div>
 
