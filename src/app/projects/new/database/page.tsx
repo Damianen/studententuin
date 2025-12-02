@@ -1,6 +1,5 @@
 import { auth } from "@/modules/auth/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import {
   Card,
@@ -32,14 +31,8 @@ export default async function NewDatabasePage() {
     const subdomain = formData.get("subdomain") as string;
     const type = formData.get("type") as string;
 
-    await prisma.database.create({
-      data: {
-        name,
-        subdomain,
-        type,
-        userId: session.user.id,
-      },
-    });
+    // TODO: Replace with API call to create database
+    console.log("Creating database:", { name, subdomain, type, userId: session.user.id });
 
     revalidatePath("/projects");
     redirect("/projects");

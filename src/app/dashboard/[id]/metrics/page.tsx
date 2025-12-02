@@ -1,5 +1,4 @@
 import { auth } from "@/modules/auth/infrastructure/auth";
-import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -22,31 +21,18 @@ export default async function MetricsPage({
 
     const { id } = await params;
 
-    // Try to find as web application first
-    let application = await prisma.webApplication.findUnique({
-        where: { id },
-    });
+    // TODO: Replace with API call to fetch application/database details
+    const mockData: Record<string, any> = {
+        "app-1": { id: "app-1", name: "My Application", userId: session.user.id },
+        "db-1": { id: "db-1", name: "My Database", userId: session.user.id },
+    };
 
-    // If not found, try to find as database
-    let database = null;
-    if (!application) {
-        database = await prisma.database.findUnique({
-            where: { id },
-        });
-    }
-
-    // If neither found, return 404
-    if (!application && !database) {
+    const resource = mockData[id];
+    if (!resource) {
         notFound();
     }
 
-    // Check ownership
-    const resource = application || database;
-    if (resource!.userId !== session.user.id) {
-        redirect("/projects");
-    }
-
-    const name = resource!.name;
+    const name = resource.name;
 
     return (
         <SidebarProvider

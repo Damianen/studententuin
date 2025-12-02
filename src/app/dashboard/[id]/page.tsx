@@ -1,5 +1,4 @@
 import { auth } from "@/modules/auth/infrastructure/auth";
-import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
@@ -25,38 +24,39 @@ export default async function DashboardPage({
 
     const { id } = await params;
 
-    // Try to find as web application first
-    let application = await prisma.webApplication.findUnique({
-        where: { id },
-    });
+    // TODO: Replace with API call to fetch application/database details
+    const mockData: Record<string, any> = {
+        "app-1": {
+            id: "app-1",
+            name: "My Application",
+            subdomain: "myapp",
+            runtime: "nodejs",
+            userId: session.user.id,
+            isApplication: true,
+        },
+        "db-1": {
+            id: "db-1",
+            name: "My Database",
+            subdomain: "mydb",
+            type: "postgresql",
+            userId: session.user.id,
+            isApplication: false,
+        },
+    };
 
-    // If not found, try to find as database
-    let database = null;
-    if (!application) {
-        database = await prisma.database.findUnique({
-            where: { id },
-        });
-    }
-
-    // If neither found, return 404
-    if (!application && !database) {
+    const resource = mockData[id];
+    if (!resource) {
         notFound();
     }
 
-    // Check ownership
-    const resource = application || database;
-    if (resource!.userId !== session.user.id) {
-        redirect("/projects");
-    }
-
-    const isApplication = !!application;
-    const name = resource!.name;
-    const subdomain = application?.subdomain || database!.subdomain;
-    const type = application
-        ? application.runtime === "nodejs"
+    const isApplication = resource.isApplication;
+    const name = resource.name;
+    const subdomain = resource.subdomain;
+    const type = isApplication
+        ? resource.runtime === "nodejs"
             ? "Node.js"
             : ".NET"
-        : database!.type === "mysql"
+        : resource.type === "mysql"
             ? "MySQL"
             : "PostgreSQL";
 

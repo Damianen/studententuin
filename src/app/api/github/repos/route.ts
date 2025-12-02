@@ -1,6 +1,8 @@
 import { auth } from "@/modules/auth/infrastructure/auth"
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { db } from "@/lib/db"
+import { accounts } from "@/lib/db/schema"
+import { eq, and } from "drizzle-orm"
 
 export async function GET() {
     try {
@@ -11,12 +13,18 @@ export async function GET() {
         }
 
         // Get GitHub access token from the user's account
-        const account = await prisma.account.findFirst({
-            where: {
-                userId: session.user.id,
-                provider: "github",
-            },
-        })
+        const accountResults = await db
+            .select()
+            .from(accounts)
+            .where(
+                and(
+                    eq(accounts.userId, session.user.id),
+                    eq(accounts.provider, "github")
+                )
+            )
+            .limit(1)
+
+        const account = accountResults[0]
 
         if (!account?.access_token) {
             return NextResponse.json(

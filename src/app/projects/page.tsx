@@ -1,5 +1,4 @@
 import { auth } from "@/modules/auth/infrastructure/auth";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import {
   Card,
@@ -18,16 +17,23 @@ export default async function ProjectsPage() {
     redirect("/login");
   }
 
-  const [webApplications, databases] = await Promise.all([
-    prisma.webApplication.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.database.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
+  // TODO: Replace with API call to fetch user's applications and databases
+  const webApplications = [
+    {
+      id: "app-1",
+      name: "My Application",
+      runtime: "nodejs",
+      subdomain: "myapp"
+    },
+  ];
+  const databases = [
+    {
+      id: "db-1",
+      name: "My Database",
+      type: "postgresql",
+      subdomain: "mydb"
+    },
+  ];
 
   return (
     <div className="container mx-auto py-10 pt-24">

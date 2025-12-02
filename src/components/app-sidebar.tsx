@@ -32,7 +32,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { auth } from "@/modules/auth/infrastructure/auth"
-import { prisma } from "@/lib/prisma"
 
 const data = {
   user: {
@@ -132,16 +131,13 @@ export async function AppSidebar({ id, ...props }: React.ComponentProps<typeof S
   ]
 
   if (session?.user?.id) {
-    const [applications, databases] = await Promise.all([
-      prisma.webApplication.findMany({
-        where: { userId: session.user.id },
-        select: { id: true, name: true, runtime: true },
-      }),
-      prisma.database.findMany({
-        where: { userId: session.user.id },
-        select: { id: true, name: true, type: true },
-      }),
-    ])
+    // TODO: Replace with API call to fetch user's applications and databases
+    const applications = [
+      { id: "app-1", name: "My App", runtime: "nodejs" },
+    ]
+    const databases = [
+      { id: "db-1", name: "My Database", type: "postgresql" },
+    ]
 
     const userResources = [
       ...applications.map((app) => ({

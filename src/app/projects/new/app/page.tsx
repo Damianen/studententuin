@@ -1,6 +1,5 @@
 import { auth } from "@/modules/auth/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import {
   Card,
@@ -35,16 +34,8 @@ export default async function NewApplicationPage() {
     const githubRepo = formData.get("githubRepo") as string | null;
     const githubBranch = formData.get("githubBranch") as string | null;
 
-    await prisma.webApplication.create({
-      data: {
-        name,
-        subdomain,
-        runtime,
-        githubRepo: githubRepo || null,
-        githubBranch: githubBranch || "main",
-        userId: session.user.id,
-      },
-    });
+    // TODO: Replace with API call to create application
+    console.log("Creating application:", { name, subdomain, runtime, githubRepo, githubBranch, userId: session.user.id });
 
     revalidatePath("/projects");
     redirect("/projects");
