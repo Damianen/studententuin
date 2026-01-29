@@ -1,0 +1,23 @@
+package domain
+
+import (
+	"time"
+	"github.com/google/uuid"
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
+)
+
+type AuthIdentity struct {
+	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UserID uuid.UUID `gorm:"type:uuid;not null;index"`
+	User User `gorm:"constraint:OnDelete:CASCADE"`
+	Provider string `gorm:"type:text;not null;index"`
+	ProviderUserID *string `gorm:"type:text"`
+	Email *string `gorm:"type:citext"`
+	EmailVerified *bool
+	LastLoginAt *time.Time
+	Metadata datatypes.JSON `gorm:"type:jsonb;not null;default:'{}'"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
