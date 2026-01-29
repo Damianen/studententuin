@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type PasswordCredentials struct {
+type PasswordCredential struct {
 	UserId uuid.UUID `gorm:"type:uuid;primaryKey"`
 	User User `gorm:"constraint:OnDelete:CASCADE"`
 	PasswordHash string `gorm:"type:text;not null"`

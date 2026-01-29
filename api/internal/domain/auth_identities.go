@@ -13,7 +13,7 @@ type AuthIdentity struct {
 	User User `gorm:"constraint:OnDelete:CASCADE"`
 	Provider string `gorm:"type:text;not null;index"`
 	ProviderUserID *string `gorm:"type:text"`
-	Email *string `gorm:"type:citext"`
+	Email *string `gorm:"type:text"`
 	EmailVerified *bool
 	LastLoginAt *time.Time
 	Metadata datatypes.JSON `gorm:"type:jsonb;not null;default:'{}'"`

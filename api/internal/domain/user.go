@@ -9,9 +9,9 @@ import (
 
 type User struct {
 	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Email string `gorm:"type:citex;uniqueIndex"`
+	Email string `gorm:"type:text;uniqueIndex"`
 	EmailVerifiedAt *time.Time
-	DisplayName *string
+	DisplayName string
 	Status string `gorm:"type:text;not null;default:'active'"`
 	Created_at time.Time
 	Updated_at time.Time
