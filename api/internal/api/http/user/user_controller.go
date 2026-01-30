@@ -31,7 +31,7 @@ func (c *Controller) Create(ginc *gin.Context) {
 	userInput := user.UserInput{
 		Email: req.Email,
 		Name: req.Name,
-		Password: req.Name,
+		Password: req.Password,
 	}
 
 	err = c.service.Create.Execute(context, userInput)

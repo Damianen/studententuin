@@ -9,8 +9,8 @@ import (
 )
 
 type JwtTokenizer struct {
-	clock utils.SystemClock
-	secretKey string
+	Clock utils.SystemClock
+	SecretKey string
 }
 
 type Claims struct {
@@ -22,10 +22,10 @@ func (t *JwtTokenizer) CreateToken(userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"id": userID,
-			"exp": t.clock.Now().Add(time.Hour * 24).Unix(),
+			"exp": t.Clock.Now().Add(time.Hour * 24).Unix(),
 		})
 
-	tokenString, err := token.SignedString([]byte(t.secretKey))
+	tokenString, err := token.SignedString([]byte(t.SecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -38,7 +38,7 @@ func (t *JwtTokenizer) VerifyToken(tokenStr string) (string, error) {
 		tokenStr,
 		&Claims{},
 		func(token *jwt.Token) (interface{}, error) {
-			return t.secretKey, nil
+			return t.SecretKey, nil
 		},
 	)
 	if err != nil {

@@ -12,7 +12,7 @@ type GormPasswordRepo struct {
 
 func (repo *GormPasswordRepo) FindById(id string, context context.Context) (*domain.PasswordCredential, error) {
 	var passwordCred domain.PasswordCredential
-	err := repo.DB.WithContext(context).First(&passwordCred, "id = ?", id).Error
+	err := repo.DB.WithContext(context).First(&passwordCred, "user_id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}

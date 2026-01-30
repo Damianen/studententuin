@@ -13,8 +13,8 @@ type User struct {
 	EmailVerifiedAt *time.Time
 	DisplayName string
 	Status string `gorm:"type:text;not null;default:'active'"`
-	Created_at time.Time
-	Updated_at time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 	AuthIdentities []AuthIdentity `gorm:"contraint:OnDelete:CASCADE"`
 	PasswordCred *PasswordCredential `gorm:"contraint:OnDelete:CASCADE"`

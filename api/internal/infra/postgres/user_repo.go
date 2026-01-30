@@ -25,7 +25,7 @@ func (repo *GormUserRepo) FindByID(id string, context context.Context) (*domain.
 
 func (repo *GormUserRepo) FindByEmail(id string, context context.Context) (*domain.User, error) {
 	var user domain.User
-	err := repo.DB.WithContext(context).First(&user, "id = ?", id).Error
+	err := repo.DB.WithContext(context).First(&user, "email = ?", id).Error
 
 	if err != nil {
 		return nil, err
