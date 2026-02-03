@@ -12,6 +12,6 @@ func SetupRouter(d auth.Dependencies, r *gin.Engine) {
 	auth := r.Group("/auth")
 	{
 		auth.POST("login", c.Login)
-		auth.POST("logout", c.logout)
+		auth.POST("logout", c.Logout)
 	}
 }

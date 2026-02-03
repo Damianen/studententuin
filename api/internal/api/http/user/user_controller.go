@@ -26,6 +26,7 @@ func (c *Controller) Create(ginc *gin.Context) {
 	if err != nil {
 		fmt.Println(err.Error())
 		ginc.JSON(400, gin.H{"error": "invalid JSON or missing values"})
+		return
 	}
 
 	userInput := user.UserInput{
@@ -41,5 +42,5 @@ func (c *Controller) Create(ginc *gin.Context) {
 		return
 	}
 
-	ginc.JSON(200, gin.H{"success": "user was created!"})
+	ginc.JSON(201, gin.H{"success": "user was created!"})
 }

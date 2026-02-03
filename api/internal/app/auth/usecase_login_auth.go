@@ -35,7 +35,7 @@ func (c *LoginAuth) Execute(ctx context.Context, li LoginInput) (string, error) 
 		return "", err
 	}
 	if !same {
-		return "", errors.New("")
+		return "", errors.New("invalid credentials")
 	}
 
 	token, err := c.jwtTokenizer.CreateToken(user.ID.String())

@@ -48,23 +48,21 @@ func (c *Controller) Login(ginc *gin.Context) {
 		Path: "/",
 		Expires: c.clock.Now().Add(24 * time.Hour),
 		MaxAge: 86400,
-		Secure: true,
+		Secure: false,
 		HttpOnly: true,
-		Domain: "localhost",
 		SameSite: http.SameSiteLaxMode,
 	})
 	ginc.JSON(200, gin.H{"success": "login was successful"})
 }
 
-func (c *Controller) logout(ginc *gin.Context) {
+func (c *Controller) Logout(ginc *gin.Context) {
 	ginc.SetCookieData(&http.Cookie{
 		Name: "AuthToken",
 		Value: "",
 		Path: "/",
 		MaxAge: -1,
-		Secure: true,
+		Secure: false,
 		HttpOnly: true,
-		Domain: "localhost",
 		SameSite: http.SameSiteLaxMode,
 	})
 	ginc.JSON(200, gin.H{"success": "logout was successful"})
