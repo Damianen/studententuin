@@ -10,3 +10,8 @@ type LoginUserRequest struct {
 	Email string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
+
+type UpdateUserRequest struct {
+	Email *string `json:"email,omitempty" binding:"omitempty,email"`
+	Name  *string `json:"name,omitempty" binding:"omitempty"`
+}

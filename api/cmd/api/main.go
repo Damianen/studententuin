@@ -3,6 +3,7 @@ package main
 import (
 	"api/internal/api/http/auth"
 	"api/internal/api/http/user"
+	"api/internal/api/middlewares"
 	appAuth "api/internal/app/auth"
 	appUser "api/internal/app/user"
 	authUtils "api/internal/infra/auth"
@@ -38,6 +39,9 @@ func main() {
 		SecretKey: jwtToken,
 		Clock: clock,
 	}
+	middleware := middlewares.AuthMiddleware{
+		JwtTokenizer: jwtTokenizer,
+	}
 	userDeps := appUser.Dependencies{
 		UserRepo: &userRepo,
 		PasswordRepo: &passwordRepo,
@@ -52,9 +56,8 @@ func main() {
 		JwtTokenizer: &jwtTokenizer,
 	}
 
-	user.SetupRouter(userDeps, router)
+	user.SetupRouter(userDeps, middleware, router)
 	auth.SetupRouter(authDeps, router)
-
 
 	router.Run(":8080")
 }

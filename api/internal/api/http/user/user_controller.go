@@ -2,6 +2,7 @@ package user
 
 import (
 	"api/internal/api/dtos"
+	"api/internal/api/middlewares"
 	"api/internal/app/user"
 	"fmt"
 
@@ -25,7 +26,7 @@ func (c *Controller) Create(ginc *gin.Context) {
 	err := ginc.ShouldBindBodyWithJSON(&req)
 	if err != nil {
 		fmt.Println(err.Error())
-		ginc.JSON(400, gin.H{"error": "invalid JSON or missing values"})
+		middlewares.Respond(ginc, 400, "invalid JSON or missing values", nil)
 		return
 	}
 
@@ -38,14 +39,68 @@ func (c *Controller) Create(ginc *gin.Context) {
 	err = c.service.Create.Execute(context, userInput)
 	if err != nil {
 		fmt.Println(err.Error())
-		ginc.JSON(500, gin.H{"error": "failed to create user"})
+		middlewares.Respond(ginc, 500, "failed to create user", nil)
 		return
 	}
 
-	ginc.JSON(201, gin.H{"success": "user was created!"})
+	middlewares.Respond(ginc, 201, "success", nil)
 }
 
 func (c *Controller) Update(ginc *gin.Context) {
 	context := ginc.Request.Context()
 
+	var req dtos.UpdateUserRequest
+	err := ginc.ShouldBindBodyWithJSON(&req)
+	if err != nil {
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, 400, "invalid JSON or missing values", nil)
+		return
+	}
+
+	userID := ginc.GetString("userID")
+	userInput := user.UserUpdateInput{
+		ID: userID,
+		Email: req.Email,
+		Name: req.Name,
+	}
+
+	err = c.service.Update.Execute(context, userInput)
+	if err != nil {
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, 500, "failed to update user", nil)
+		return
+	}
+
+	middlewares.Respond(ginc, 201, "success", nil)
+}
+
+
+func (c *Controller) Delete(ginc *gin.Context) {
+	context := ginc.Request.Context()
+
+	userID := ginc.GetString("userID")
+
+	err := c.service.Delete.Execute(context, userID)
+	if err != nil {
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, 500, "failed to delete user", nil)
+		return
+	}
+
+	middlewares.Respond(ginc, 201, "success", nil)
+}
+
+func (c *Controller) Get(ginc *gin.Context) {
+	context := ginc.Request.Context()
+
+	userID := ginc.GetString("userID")
+
+	user, err := c.service.Get.Execute(context, userID)
+	if err != nil {
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, 500, "failed to get user", nil)
+		return
+	}
+
+	middlewares.Respond(ginc, 201, "success", user)
 }

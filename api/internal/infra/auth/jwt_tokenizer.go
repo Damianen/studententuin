@@ -14,7 +14,7 @@ type JwtTokenizer struct {
 }
 
 type Claims struct {
-	UserID string `json:"string"`
+	UserID string `json:"id"`
 	jwt.RegisteredClaims
 }
 
@@ -37,8 +37,8 @@ func (t *JwtTokenizer) VerifyToken(tokenStr string) (string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenStr,
 		&Claims{},
-		func(token *jwt.Token) (interface{}, error) {
-			return t.SecretKey, nil
+		func(token *jwt.Token) (any, error) {
+			return []byte(t.SecretKey), nil
 		},
 	)
 	if err != nil {
