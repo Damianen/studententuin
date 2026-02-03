@@ -3,8 +3,6 @@ package domain
 import (
 	"time"
 	"github.com/google/uuid"
-
-	"gorm.io/gorm"
 )
 
 type User struct {
@@ -15,7 +13,6 @@ type User struct {
 	Status string `gorm:"type:text;not null;default:'active'"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
 	AuthIdentities []AuthIdentity `gorm:"constraint:OnDelete:CASCADE"`
 	PasswordCred *PasswordCredential `gorm:"constraint:OnDelete:CASCADE"`
 }

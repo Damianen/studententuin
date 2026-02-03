@@ -49,12 +49,14 @@ func (c *CreateUser) Execute(ctx context.Context, ui UserInput) error {
 		PasswordUpdatedAt: now,
 	}
 
-	err = c.userRepo.Create(user, ctx)
+	user.PasswordCred = passwordCred
+
+	err = c.passwordRepo.Create(passwordCred, ctx)
 	if err != nil {
 		return err
 	}
 
-	err = c.passwordRepo.Create(passwordCred, ctx)
+	err = c.userRepo.Create(user, ctx)
 	if err != nil {
 		return err
 	}
