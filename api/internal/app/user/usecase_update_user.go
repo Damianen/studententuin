@@ -34,6 +34,5 @@ func (u *UpdateUser) Execute(ctx context.Context, ui UserUpdateInput) error {
 
 	user.UpdatedAt = now
 
-	err = u.userRepo.Update(user, ctx)
-	return err
+	return u.userRepo.Update(user, ctx)
 }

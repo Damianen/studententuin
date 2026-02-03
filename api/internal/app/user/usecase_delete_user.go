@@ -15,6 +15,5 @@ func (d *DeleteUser) Execute(ctx context.Context, userID string) error {
 		return err
 	}
 
-	err = d.userRepo.Delete(user, ctx)
-	return err
+	return d.userRepo.Delete(user, ctx)
 }
