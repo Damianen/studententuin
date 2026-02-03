@@ -19,7 +19,7 @@ func NewController(d user.Dependencies) *Controller {
 }
 
 func (c *Controller) Create(ginc *gin.Context) {
-	context := ginc.Request.Context();
+	context := ginc.Request.Context()
 
 	var req dtos.CreateUserRequest
 	err := ginc.ShouldBindBodyWithJSON(&req)
@@ -43,4 +43,9 @@ func (c *Controller) Create(ginc *gin.Context) {
 	}
 
 	ginc.JSON(201, gin.H{"success": "user was created!"})
+}
+
+func (c *Controller) Update(ginc *gin.Context) {
+	context := ginc.Request.Context()
+
 }
