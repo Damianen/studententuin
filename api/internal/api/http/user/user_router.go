@@ -15,6 +15,6 @@ func SetupRouter(d user.Dependencies, middleware middlewares.AuthMiddleware, r *
 		user.POST("/register", c.Create)
 		user.GET("", middleware.Auth, c.Get)
 		user.DELETE("", middleware.Auth, c.Delete)
-		user.PUT("/update", middleware.Auth, c.Update)
+		user.PATCH("", middleware.Auth, c.Update)
 	}
 }

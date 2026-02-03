@@ -71,7 +71,7 @@ func (c *Controller) Update(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, 201, "success", nil)
+	middlewares.Respond(ginc, 204, "success", nil)
 }
 
 
@@ -87,7 +87,7 @@ func (c *Controller) Delete(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, 201, "success", nil)
+	middlewares.Respond(ginc, 204, "success", nil)
 }
 
 func (c *Controller) Get(ginc *gin.Context) {
@@ -102,5 +102,11 @@ func (c *Controller) Get(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, 201, "success", user)
+	userResponse := dtos.UserResponse{
+		Email:       user.Email,
+    	DisplayName: user.DisplayName,
+    	Status:      user.Status,
+	}
+
+	middlewares.Respond(ginc, 200, "success", userResponse)
 }

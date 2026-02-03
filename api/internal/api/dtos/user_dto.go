@@ -15,3 +15,9 @@ type UpdateUserRequest struct {
 	Email *string `json:"email,omitempty" binding:"omitempty,email"`
 	Name  *string `json:"name,omitempty" binding:"omitempty"`
 }
+
+type UserResponse struct {
+    Email       string `json:"email"`
+    DisplayName string `json:"name"`
+    Status      string `json:"status"`
+}

@@ -4,6 +4,7 @@ import (
 	"api/internal/app/ports"
 	"context"
 	"errors"
+	"strings"
 )
 
 type LoginAuth struct {
@@ -20,7 +21,8 @@ type LoginInput struct {
 }
 
 func (c *LoginAuth) Execute(ctx context.Context, li LoginInput) (string, error) {
-	user, err := c.userRepo.FindByEmail(li.Email, ctx)
+	email := strings.ToLower(strings.TrimSpace(li.Email))
+	user, err := c.userRepo.FindByEmail(email, ctx)
 	if err != nil   {
 		return "", err
 	}

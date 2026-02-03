@@ -19,18 +19,18 @@ type Claims struct {
 }
 
 func (t *JwtTokenizer) CreateToken(userID string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"id": userID,
-			"exp": t.Clock.Now().Add(time.Hour * 24).Unix(),
-		})
+	now := t.Clock.Now()
 
-	tokenString, err := token.SignedString([]byte(t.SecretKey))
-	if err != nil {
-		return "", err
+	claims := Claims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)),
+			IssuedAt: jwt.NewNumericDate(now),
+		},
 	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	return tokenString, nil
+	return token.SignedString([]byte(t.SecretKey))
 }
 
 func (t *JwtTokenizer) VerifyToken(tokenStr string) (string, error) {

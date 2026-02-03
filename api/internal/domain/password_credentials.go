@@ -2,7 +2,9 @@ package domain
 
 import (
 	"time"
+
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type PasswordCredential struct {
@@ -12,4 +14,5 @@ type PasswordCredential struct {
 	PasswordUpdatedAt time.Time `gorm:"not null;default:now()"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }

@@ -16,6 +16,6 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
-	AuthIdentities []AuthIdentity `gorm:"contraint:OnDelete:CASCADE"`
-	PasswordCred *PasswordCredential `gorm:"contraint:OnDelete:CASCADE"`
+	AuthIdentities []AuthIdentity `gorm:"constraint:OnDelete:CASCADE"`
+	PasswordCred *PasswordCredential `gorm:"constraint:OnDelete:CASCADE"`
 }
