@@ -4,9 +4,12 @@ import (
 	"api/internal/api/dtos"
 	"api/internal/api/middlewares"
 	"api/internal/app/subdomain"
+	"api/internal/infra/postgres"
+	"errors"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 
@@ -40,6 +43,10 @@ func (c *Controller) Create(ginc *gin.Context) {
 	}
 
 	err = c.service.Create.Execute(context, subdomainInput)
+	if errors.Is(err, postgres.ErrFullDomainAlreadyInUse) {
+    	middlewares.Respond(ginc, 409, "domain already in use", nil)
+    	return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "failed to create subdomain", nil)
@@ -83,6 +90,10 @@ func (c *Controller) Update(ginc *gin.Context) {
 	}
 
 	err = c.service.Update.Execute(context, subdomainInput)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "failed to update subdomain", nil)
@@ -111,6 +122,10 @@ func (c *Controller) Delete(ginc *gin.Context) {
 	}
 
 	err = c.service.Delete.Execute(context, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "failed to delete subdomain", nil)
@@ -139,6 +154,10 @@ func (c *Controller) Get(ginc *gin.Context) {
 	}
 
 	subdomain, err := c.service.Get.Execute(context, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "failed to get subdomain", nil)

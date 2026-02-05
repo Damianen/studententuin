@@ -3,6 +3,7 @@ package user
 import (
 	"api/internal/app/ports"
 	"context"
+	"errors"
 	"strings"
 )
 
@@ -19,20 +20,30 @@ type UserUpdateInput struct {
 
 func (u *UpdateUser) Execute(ctx context.Context, ui UserUpdateInput) error {
 	now := u.clock.Now()
-	user, err := u.userRepo.FindByID(ui.ID, ctx)
-	if err != nil {
-		return err
+	updates := map[string]any{
+		"updated_at": now,
 	}
 
-	if ui.Email != nil {
-		user.Email = strings.ToLower(strings.TrimSpace(*ui.Email))
+	err := ports.SetIfNotNil(updates, "email", ui.Email, func(s string) (any, error) {
+	    s = strings.ToLower(strings.TrimSpace(s))
+	    if s == "" {
+	        return nil, errors.New("email cannot be empty")
+	    }
+	    return s, nil
+	})
+	if err != nil { return err }
+
+	err = ports.SetIfNotNil(updates, "display_name", ui.Name, func(s string) (any, error) {
+	    if s == "" {
+	        return nil, errors.New("name cannot be empty")
+	    }
+	    return s, nil
+	})
+	if err != nil { return err }
+
+	if len(updates) == 1 {
+		return errors.New("no fields to update")
 	}
 
-	if ui.Name != nil {
-		user.DisplayName = *ui.Name
-	}
-
-	user.UpdatedAt = now
-
-	return u.userRepo.Update(user, ctx)
+	return u.userRepo.Update(ui.ID, updates, ctx)
 }

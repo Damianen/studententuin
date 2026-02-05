@@ -31,11 +31,8 @@ type Database struct {
 	Type    DatabaseType `gorm:"type:text;not null"`
 	Version string       `gorm:"type:text;not null"`
 	Status  DatabaseStatus `gorm:"type:text;not null"`
-	ConnectionString *string `gorm:"type:text"`
 	Host             *string `gorm:"type:text"`
 	Port             *int    `gorm:"type:int"`
-	Username         *string `gorm:"type:text"`
-	Password         *string `gorm:"type:text"`
 	DockerImage         *string `gorm:"type:text"`
 	DockerContainerID   *string `gorm:"type:text"`
 	DockerContainerName *string `gorm:"type:text"`

@@ -3,6 +3,7 @@ package postgres
 import (
 	"api/internal/domain"
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -36,16 +37,17 @@ func (repo *GormUserRepo) FindByEmail(id string, context context.Context) (*doma
 
 func (repo *GormUserRepo) Create(user *domain.User, context context.Context) error {
 	err := repo.DB.WithContext(context).Create(user).Error
-
-	if err != nil {
-		return err
+	if isUniqueViolation(err) {
+		return ErrEmailAlreadyInUse
 	}
-
-	return nil
+	return err
 }
 
-func (repo *GormUserRepo) Update(user *domain.User, context context.Context) error {
-	return repo.DB.WithContext(context).Save(user).Error
+func (repo *GormUserRepo) Update(id string, updates map[string]any, context context.Context) error {
+	if len(updates) == 0 {
+		return errors.New("nothing to update")
+	}
+	return repo.DB.WithContext(context).Model(&domain.User{}).Where("id = ?", id).Updates(updates).Error
 }
 
 func (repo *GormUserRepo) Delete(user *domain.User, context context.Context) error {

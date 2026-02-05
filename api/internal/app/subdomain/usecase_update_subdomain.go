@@ -3,6 +3,8 @@ package subdomain
 import (
 	"api/internal/app/ports"
 	"context"
+	"errors"
+	"strings"
 )
 
 type UpdateSubdomain struct {
@@ -18,20 +20,30 @@ type SubdomainUpdateInput struct {
 
 func (u *UpdateSubdomain) Execute(ctx context.Context, si SubdomainUpdateInput) error {
 	now := u.clock.Now()
-	subdomain, err := u.subdomainRepo.FindByID(si.ID, ctx)
-	if err != nil {
-		return err
+	updates := map[string]any{
+		"updated_at": now,
 	}
 
-	if si.FullDomain != nil {
-		subdomain.FullDomain = *si.FullDomain
+	err := ports.SetIfNotNil(updates, "email", si.FullDomain, func(s string) (any, error) {
+	    s = strings.ToLower(strings.TrimSpace(s))
+	    if s == "" {
+	        return nil, errors.New("domain cannot be empty")
+	    }
+	    return s, nil
+	})
+	if err != nil { return err }
+
+	err = ports.SetIfNotNil(updates, "display_name", si.Name, func(s string) (any, error) {
+	    if s == "" {
+	        return nil, errors.New("name cannot be empty")
+	    }
+	    return s, nil
+	})
+	if err != nil { return err }
+
+	if len(updates) == 1 {
+		return errors.New("no fields to update")
 	}
 
-	if si.Name != nil {
-		subdomain.Name = *si.Name
-	}
-
-	subdomain.UpdatedAt = now
-
-	return u.subdomainRepo.Update(subdomain, ctx)
+	return u.subdomainRepo.Update(si.ID, updates, ctx)
 }
