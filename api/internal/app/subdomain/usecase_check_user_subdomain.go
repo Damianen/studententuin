@@ -16,9 +16,5 @@ func (c *CheckUser) Execute(ctx context.Context, userID string, subdomainID stri
 		return false, err
 	}
 
-	if subdomain.UserID.String() == userID {
-		return false, nil
-	}
-
-	return true, nil
+	return subdomain.UserID.String() == userID, nil
 }

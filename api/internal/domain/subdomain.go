@@ -7,7 +7,7 @@ import (
 )
 
 type Subdomain struct {
-	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primairyKey"`
+	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Name string `gorm:"type:text"`
 	FullDomain string `gorm:"type:text;uniqueIndex"`
 	UserID uuid.UUID `gorm:"type:uuid;not null;index"`

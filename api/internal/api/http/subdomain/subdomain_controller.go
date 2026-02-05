@@ -34,7 +34,7 @@ func (c *Controller) Create(ginc *gin.Context) {
 		return
 	}
 
-	userID := ginc.GetString("UserID")
+	userID := ginc.GetString("userID")
 
 	subdomainInput := subdomain.SubdomainInput{
 		Name: req.Name,
@@ -70,15 +70,15 @@ func (c *Controller) Update(ginc *gin.Context) {
 	id := ginc.Param("id")
 	userID := ginc.GetString("UserID")
 
-	correct, err := c.service.CheckUser.Execute(context, userID, id)
+	allowed, err := c.service.CheckUser.Execute(context, userID, id)
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
 		return
 	}
 
-	if !correct {
-		middlewares.Respond(ginc, 401, "Unauthorized", nil)
+	if !allowed {
+		middlewares.Respond(ginc, 403, "Unauthorized", nil)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (c *Controller) Update(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, 204, "success", nil)
+	ginc.Status(204)
 }
 
 func (c *Controller) Delete(ginc *gin.Context) {
@@ -109,15 +109,15 @@ func (c *Controller) Delete(ginc *gin.Context) {
 	id := ginc.Param("id")
 	userID := ginc.GetString("UserID")
 
-	correct, err := c.service.CheckUser.Execute(context, userID, id)
+	allowed, err := c.service.CheckUser.Execute(context, userID, id)
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
 		return
 	}
 
-	if !correct {
-		middlewares.Respond(ginc, 401, "Unauthorized", nil)
+	if !allowed {
+		middlewares.Respond(ginc, 403, "Unauthorized", nil)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (c *Controller) Delete(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, 204, "success", nil)
+	ginc.Status(204)
 }
 
 func (c *Controller) Get(ginc *gin.Context) {
@@ -141,15 +141,15 @@ func (c *Controller) Get(ginc *gin.Context) {
 	id := ginc.Param("id")
 	userID := ginc.GetString("UserID")
 
-	correct, err := c.service.CheckUser.Execute(context, userID, id)
+	allowed, err := c.service.CheckUser.Execute(context, userID, id)
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
 		return
 	}
 
-	if !correct {
-		middlewares.Respond(ginc, 401, "Unauthorized", nil)
+	if !allowed {
+		middlewares.Respond(ginc, 403, "Unauthorized", nil)
 		return
 	}
 

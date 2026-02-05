@@ -24,7 +24,7 @@ func (u *UpdateSubdomain) Execute(ctx context.Context, si SubdomainUpdateInput) 
 		"updated_at": now,
 	}
 
-	err := ports.SetIfNotNil(updates, "email", si.FullDomain, func(s string) (any, error) {
+	err := ports.SetIfNotNil(updates, "full_domain", si.FullDomain, func(s string) (any, error) {
 	    s = strings.ToLower(strings.TrimSpace(s))
 	    if s == "" {
 	        return nil, errors.New("domain cannot be empty")
@@ -33,7 +33,7 @@ func (u *UpdateSubdomain) Execute(ctx context.Context, si SubdomainUpdateInput) 
 	})
 	if err != nil { return err }
 
-	err = ports.SetIfNotNil(updates, "display_name", si.Name, func(s string) (any, error) {
+	err = ports.SetIfNotNil(updates, "name", si.Name, func(s string) (any, error) {
 	    if s == "" {
 	        return nil, errors.New("name cannot be empty")
 	    }

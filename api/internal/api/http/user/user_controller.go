@@ -82,7 +82,7 @@ func (c *Controller) Update(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, 204, "success", nil)
+	ginc.Status(204)
 }
 
 
@@ -98,7 +98,7 @@ func (c *Controller) Delete(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, 204, "success", nil)
+	ginc.Status(204)
 }
 
 func (c *Controller) Get(ginc *gin.Context) {

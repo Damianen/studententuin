@@ -13,6 +13,6 @@ type UpdateSubdomainRequest struct {
 type SubdomainResponse struct {
 	ID string  `json:"id"`
 	Name string `json:"name"`
-	FullDomain string `json:"fullDomain "`
+	FullDomain string `json:"fullDomain"`
 	IsActive bool `json:"isActive"`
 }
