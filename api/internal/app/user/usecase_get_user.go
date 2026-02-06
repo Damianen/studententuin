@@ -11,10 +11,5 @@ type GetUser struct {
 }
 
 func (g *GetUser) Execute(ctx context.Context, userID string) (*domain.User, error) {
-	user, err := g.userRepo.FindByID(userID, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	return g.userRepo.FindByID(userID, ctx)
 }

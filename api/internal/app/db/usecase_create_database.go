@@ -16,6 +16,7 @@ type CreateDatabase struct {
 type DatabaseInput struct {
 	SubdomainID string
 	Name string
+	Version string
 	Type domain.DatabaseType
 	Status domain.DatabaseStatus
 	DockerImage *string
@@ -33,6 +34,8 @@ func (c *CreateDatabase) Execute(ctx context.Context, di DatabaseInput) error {
 	database := &domain.Database{
 		ID: uuid.New(),
 		SubdomainID: id,
+		Name: di.Name,
+		Version: di.Version,
 		Type: di.Type,
 		Status: di.Status,
 		DockerImage: di.DockerImage,
