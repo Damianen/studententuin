@@ -22,7 +22,7 @@ type DatabaseUpdateInput struct {
 	DockerImage *string
 	DockerContainerID *string
 	DockerContainerName *string
-	Volumes []string
+	Volumes *[]string
 	MemoryLimit *string
 	CpuLimit *string
 }
@@ -94,6 +94,10 @@ func (u *UpdateDatabase) Execute(ctx context.Context, di DatabaseUpdateInput) er
 		if s == "" {
 			return nil, errors.New("cpu limit cannot be empty")
 		}
+		return s, nil
+	})
+	if err != nil { return err }
+	err = ports.SetIfNotNil(updates, "volumes", di.Volumes, func(s []string) (any, error) {
 		return s, nil
 	})
 	if err != nil { return err }

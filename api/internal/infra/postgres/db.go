@@ -42,6 +42,7 @@ func ConnectDB() (*gorm.DB, error) {
 	err = db.AutoMigrate(&domain.AuthIdentity{})
 	err = db.AutoMigrate(&domain.Subdomain{})
 	err = db.AutoMigrate(&domain.Database{})
+	err = db.AutoMigrate(&domain.Application{})
 
 	if err != nil {
 		return nil, err

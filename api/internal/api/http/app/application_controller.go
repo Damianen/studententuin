@@ -1,9 +1,9 @@
-package db
+package app
 
 import (
 	"api/internal/api/dtos"
 	"api/internal/api/middlewares"
-	"api/internal/app/db"
+	"api/internal/app/app"
 	"api/internal/app/subdomain"
 	"api/internal/domain"
 	"errors"
@@ -14,32 +14,32 @@ import (
 )
 
 type Controller struct {
-	dbService *db.Service
+	appService *app.Service
 	subdomainService *subdomain.Service
 }
 
-func NewController(d db.Dependencies, sd subdomain.Dependencies) *Controller {
+func NewController(d app.Dependencies, sd subdomain.Dependencies) *Controller {
 	return &Controller{
-		dbService: db.NewService(d),
+		appService: app.NewService(d),
 		subdomainService: subdomain.NewService(sd),
 	}
 }
 
-func validType(t domain.DatabaseType) bool {
-    switch t {
-    case domain.DatabaseTypePostgres, domain.DatabaseTypeMySQL, domain.DatabaseTypeMongoDB:
-        return true
-    default:
-        return false
-    }
+func validType(t domain.ApplicationType) bool {
+	switch t {
+	case domain.ApplicationTypeNodejs:
+		return true
+	default:
+		return false
+	}
 }
 
 func (c *Controller) Create(ginc *gin.Context) {
 	context := ginc.Request.Context()
 
-	var req dtos.CreateDatabaseRequest
+	var req dtos.CreateApplicationRequest
 	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil || validType(domain.DatabaseType(req.Type)) {
+	if err != nil || validType(domain.ApplicationType(req.Type)) {
 		middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
 		return
 	}
@@ -59,15 +59,17 @@ func (c *Controller) Create(ginc *gin.Context) {
 		return
 	}
 
-	dbInput := db.DatabaseInput{
+	appInput := app.ApplicationInput{
 		SubdomainID: subdomainId,
 		Name: req.Name,
-		Type: domain.DatabaseType(req.Type),
-		Status: domain.DatabaseStatusProvisioning,
-		Version: req.Version,
+		Type: domain.ApplicationType(req.Type),
+		RepoUrl: &req.RepoUrl,
+		StartCommand: &req.StartCommand,
+		BuildCommand: &req.BuildCommand,
+		Status: domain.ApplicationStatusPending,
 	}
 
-	err = c.dbService.Create.Execute(context, dbInput)
+	err = c.appService.Create.Execute(context, appInput)
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "failed to create subdomain", nil)
@@ -77,27 +79,19 @@ func (c *Controller) Create(ginc *gin.Context) {
 	middlewares.Respond(ginc, 201, "success", nil)
 }
 
-func (c *Controller) Update(ginc *gin.Context) {
+func (c *Controller) Updates(ginc *gin.Context) {
 	context := ginc.Request.Context()
 
-	var req dtos.UpdateDatabaseRequest
+	var req dtos.UpdateApplicationRequest
 	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 400, "invalid JSON or missing value", nil)
+	if err != nil || validType(domain.ApplicationType(req.Type)) {
+		middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
 		return
-	}
-
-	if req.Type != nil {
-		if validType(domain.DatabaseType(*req.Type)) {
-			middlewares.Respond(ginc, 400, "invalid JSON or missing value", nil)
-			return
-		}
 	}
 
 	userID := ginc.GetString("userID")
 	subdomainId := ginc.Param("id")
-	dbId := ginc.Param("dbId")
+	appId := ginc.Param("appId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
 	if err != nil {
@@ -107,25 +101,27 @@ func (c *Controller) Update(ginc *gin.Context) {
 	}
 
 	if !allowed {
-		middlewares.Respond(ginc, 403, "Unauthorized", nil)
+		middlewares.Respond(ginc, 403, "unauthorized", nil)
 		return
 	}
 
-	databaseInput := db.DatabaseUpdateInput{
-		ID: dbId,
-		Name: req.Name,
-		Type: (*domain.DatabaseType)(req.Type),
-		Version: req.Version,
+	appInput := app.ApplicationUpdateInput{
+		ID: appId,
+		Name: &req.Name,
+		Branch: &req.Branch,
+		RepoUrl: &req.RepoUrl,
+		Type: (*domain.ApplicationType)(&req.Type),
+		BuildCommand: &req.BuildCommand,
+		StartCommand: &req.StartCommand,
 	}
 
-	err = c.dbService.Update.Execute(context, databaseInput)
+	err = c.appService.Update.Execute(context, appInput)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "database not found", nil)
-		return
+		middlewares.Respond(ginc, 404, "application not found", nil)
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to update the database", nil)
+		middlewares.Respond(ginc, 500, "failed to update application", nil)
 		return
 	}
 
@@ -137,7 +133,7 @@ func (c *Controller) Delete(ginc *gin.Context) {
 
 	userID := ginc.GetString("userID")
 	subdomainId := ginc.Param("id")
-	id := ginc.Param("dbId")
+	appId := ginc.Param("appId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
 	if err != nil {
@@ -147,18 +143,18 @@ func (c *Controller) Delete(ginc *gin.Context) {
 	}
 
 	if !allowed {
-		middlewares.Respond(ginc, 403, "Unauthorized", nil)
+		middlewares.Respond(ginc, 403, "unauthorized", nil)
 		return
 	}
 
-	err = c.dbService.Delete.Execute(context, id)
+
+	err = c.appService.Delete.Execute(context, appId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "database not found", nil)
-		return
+		middlewares.Respond(ginc, 404, "application not found", nil)
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to delete the database", nil)
+		middlewares.Respond(ginc, 500, "failed to update application", nil)
 		return
 	}
 
@@ -170,7 +166,7 @@ func (c *Controller) Get(ginc *gin.Context) {
 
 	userID := ginc.GetString("userID")
 	subdomainId := ginc.Param("id")
-	id := ginc.Param("dbId")
+	appId := ginc.Param("appId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
 	if err != nil {
@@ -180,28 +176,29 @@ func (c *Controller) Get(ginc *gin.Context) {
 	}
 
 	if !allowed {
-		middlewares.Respond(ginc, 403, "Unauthorized", nil)
+		middlewares.Respond(ginc, 403, "unauthorized", nil)
 		return
 	}
 
-	database, err := c.dbService.Get.Execute(context, id)
+
+	application, err := c.appService.Get.Execute(context, appId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "database not found", nil)
-		return
+		middlewares.Respond(ginc, 404, "application not found", nil)
 	}
-
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to get database", nil)
+		middlewares.Respond(ginc, 500, "failed to update application", nil)
+		return
 	}
 
-	databaseResponse := dtos.DatabaseListResponse{
-		ID: database.ID.String(),
-		Name: database.Name,
-		Type: string(database.Type),
-		Version: database.Version,
-		Status: string(database.Status),
+	applicationResponse := dtos.ApplicationListResponse{
+		ID: application.ID.String(),
+		Name: *application.Name,
+		Type: string(application.Type),
+		Status: string(application.Status),
+		RepoUrl: *application.RepositoryURL,
+		Branch: *application.Branch,
 	}
 
-	middlewares.Respond(ginc, 200, "success", databaseResponse)
+	middlewares.Respond(ginc, 200, "success", applicationResponse)
 }

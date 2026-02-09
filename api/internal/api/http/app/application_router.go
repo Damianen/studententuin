@@ -1,0 +1,21 @@
+package app
+
+import (
+	"api/internal/api/middlewares"
+	"api/internal/app/app"
+	"api/internal/app/subdomain"
+
+	"github.com/gin-gonic/gin"
+)
+
+func SetupRouter(d app.Dependencies, sd subdomain.Dependencies, middleware middlewares.AuthMiddleware, group *gin.RouterGroup) {
+	c := NewController(d, sd)
+
+	appGroup := group.Group(":id/application")
+	{
+		appGroup.POST("", middleware.Auth, c.Create)
+		appGroup.DELETE("/:appId", middleware.Auth, c.Delete)
+		appGroup.PATCH("/:appId", middleware.Auth, c.Updates)
+		appGroup.GET("/:appId", middleware.Auth, c.Get)
+	}
+}
