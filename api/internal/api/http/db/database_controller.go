@@ -8,6 +8,7 @@ import (
 	"api/internal/domain"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -48,6 +49,10 @@ func (c *Controller) Create(ginc *gin.Context) {
 	subdomainId := ginc.Param("id")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
+	if errors.Is(err, gorm.ErrRecordNotFound) || (err != nil && strings.Contains(err.Error(), "invalid input syntax")) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
@@ -100,6 +105,10 @@ func (c *Controller) Update(ginc *gin.Context) {
 	dbId := ginc.Param("dbId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
+	if errors.Is(err, gorm.ErrRecordNotFound) || (err != nil && strings.Contains(err.Error(), "invalid input syntax")) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
@@ -140,6 +149,10 @@ func (c *Controller) Delete(ginc *gin.Context) {
 	id := ginc.Param("dbId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
+	if errors.Is(err, gorm.ErrRecordNotFound) || (err != nil && strings.Contains(err.Error(), "invalid input syntax")) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
@@ -173,6 +186,10 @@ func (c *Controller) Get(ginc *gin.Context) {
 	id := ginc.Param("dbId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
+	if errors.Is(err, gorm.ErrRecordNotFound) || (err != nil && strings.Contains(err.Error(), "invalid input syntax")) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
