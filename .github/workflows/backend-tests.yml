@@ -1,0 +1,41 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "api/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: api/go.mod
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run SCA (govulncheck)
+        run: govulncheck ./...
+
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Run SAST (gosec)
+        run: gosec ./...
