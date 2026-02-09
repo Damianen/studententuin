@@ -10,12 +10,12 @@ type CreateApplicationRequest struct {
 }
 
 type UpdateApplicationRequest struct {
-	Name string `json:"name,omitempty" binding:"omitempty"`
-	Type string `json:"type,omitempty" binding:"omitempty"`
-	RepoUrl string `json:"repo_url,omitempty" binding:"omitempty"`
-	Branch string `json:"branch,omitempty" binding:"omitempty"`
-	BuildCommand string `json:"build_command,omitempty" binding:"omitempty"`
-	StartCommand string `json:"start_command,omitempty" binding:"omitempty"`
+	Name *string `json:"name,omitempty" binding:"omitempty"`
+	Type *string `json:"type,omitempty" binding:"omitempty"`
+	RepoUrl *string `json:"repo_url,omitempty" binding:"omitempty"`
+	Branch *string `json:"branch,omitempty" binding:"omitempty"`
+	BuildCommand *string `json:"build_command,omitempty" binding:"omitempty"`
+	StartCommand *string `json:"start_command,omitempty" binding:"omitempty"`
 }
 
 type ApplicationListResponse struct {

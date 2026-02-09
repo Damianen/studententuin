@@ -39,7 +39,7 @@ func (c *Controller) Create(ginc *gin.Context) {
 
 	var req dtos.CreateApplicationRequest
 	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil || validType(domain.ApplicationType(req.Type)) {
+	if err != nil || !validType(domain.ApplicationType(req.Type)) {
 		middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
 		return
 	}
@@ -64,6 +64,7 @@ func (c *Controller) Create(ginc *gin.Context) {
 		Name: req.Name,
 		Type: domain.ApplicationType(req.Type),
 		RepoUrl: &req.RepoUrl,
+		Branch: &req.Branch,
 		StartCommand: &req.StartCommand,
 		BuildCommand: &req.BuildCommand,
 		Status: domain.ApplicationStatusPending,
@@ -84,9 +85,16 @@ func (c *Controller) Updates(ginc *gin.Context) {
 
 	var req dtos.UpdateApplicationRequest
 	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil || validType(domain.ApplicationType(req.Type)) {
+	if err != nil {
 		middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
 		return
+	}
+
+	if req.Type != nil {
+		if validType(domain.ApplicationType(*req.Type)) {
+			middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
+			return
+		}
 	}
 
 	userID := ginc.GetString("userID")
@@ -107,17 +115,18 @@ func (c *Controller) Updates(ginc *gin.Context) {
 
 	appInput := app.ApplicationUpdateInput{
 		ID: appId,
-		Name: &req.Name,
-		Branch: &req.Branch,
-		RepoUrl: &req.RepoUrl,
-		Type: (*domain.ApplicationType)(&req.Type),
-		BuildCommand: &req.BuildCommand,
-		StartCommand: &req.StartCommand,
+		Name: req.Name,
+		Branch: req.Branch,
+		RepoUrl: req.RepoUrl,
+		Type: (*domain.ApplicationType)(req.Type),
+		BuildCommand: req.BuildCommand,
+		StartCommand: req.StartCommand,
 	}
 
 	err = c.appService.Update.Execute(context, appInput)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		middlewares.Respond(ginc, 404, "application not found", nil)
+		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
@@ -151,10 +160,11 @@ func (c *Controller) Delete(ginc *gin.Context) {
 	err = c.appService.Delete.Execute(context, appId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		middlewares.Respond(ginc, 404, "application not found", nil)
+		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to update application", nil)
+		middlewares.Respond(ginc, 500, "failed to delete application", nil)
 		return
 	}
 
@@ -184,10 +194,11 @@ func (c *Controller) Get(ginc *gin.Context) {
 	application, err := c.appService.Get.Execute(context, appId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		middlewares.Respond(ginc, 404, "application not found", nil)
+		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to update application", nil)
+		middlewares.Respond(ginc, 500, "failed to get application", nil)
 		return
 	}
 
