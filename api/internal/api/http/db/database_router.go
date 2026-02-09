@@ -8,14 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(d db.Dependencies, sd subdomain.Dependencies,  middleware middlewares.AuthMiddleware, r *gin.Engine) {
+func SetupRouter(d db.Dependencies, sd subdomain.Dependencies,  middleware middlewares.AuthMiddleware, group *gin.RouterGroup) {
 	c := NewController(d, sd)
 
-	database := r.Group("/subdomain/:subId/database/")
-	{
-		database.POST("", middleware.Auth, c.Create)
-		database.DELETE("/:dbId", middleware.Auth, c.Delete)
-		database.PATCH("/:dbId", middleware.Auth, c.Update)
-		database.GET(":dbId", middleware.Auth, c.Get)
-	}
+	group.POST("/:subId/database", middleware.Auth, c.Create)
+	group.DELETE("/:subId/database/:dbId", middleware.Auth, c.Delete)
+	group.PATCH("/:subId/database/:dbId", middleware.Auth, c.Update)
+	group.GET("/:subId/database/:dbId", middleware.Auth, c.Get)
 }

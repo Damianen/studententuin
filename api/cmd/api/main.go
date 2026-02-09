@@ -4,12 +4,14 @@ import (
 	"api/internal/api/http/auth"
 	"api/internal/api/http/subdomain"
 	"api/internal/api/http/user"
+	database "api/internal/api/http/db"
 	"api/internal/api/middlewares"
 
 	appAuth "api/internal/app/auth"
 	appUser "api/internal/app/user"
 	authUtils "api/internal/infra/auth"
 	appSubdomain "api/internal/app/subdomain"
+	appDb "api/internal/app/db"
 
 	"api/internal/infra/postgres"
 	"api/internal/infra/utils"
@@ -37,6 +39,7 @@ func main() {
 	userRepo := postgres.GormUserRepo{ DB: db }
 	passwordRepo := postgres.GormPasswordRepo{ DB: db }
 	subdomainRepo := postgres.GormSubdomainRepo{ DB: db }
+	dbRepo := postgres.GormDatabaseRepo{ DB: db }
 	clock := utils.SystemClock{}
 	hasher := authUtils.NewBcryptHasher(10)
 	jwtToken := os.Getenv("JWT_TOKEN")
@@ -64,10 +67,15 @@ func main() {
 		UserRepo: &userRepo,
 		SubdomainRepo: &subdomainRepo,
 	}
+	dbDeps := appDb.Dependencies{
+		DatabaseRepo: &dbRepo,
+		Clock: &clock,
+	}
 
 	user.SetupRouter(userDeps, middleware, router)
 	auth.SetupRouter(authDeps, router)
-	subdomain.SetupRouter(subdomainDeps, middleware, router)
+	subGroup := subdomain.SetupRouter(subdomainDeps, middleware, router)
+	database.SetupRouter(dbDeps, subdomainDeps, middleware, subGroup)
 
 	router.Run(":8080")
 }
