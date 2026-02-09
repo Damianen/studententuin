@@ -68,9 +68,13 @@ func (c *Controller) Update(ginc *gin.Context) {
 	}
 
 	id := ginc.Param("id")
-	userID := ginc.GetString("UserID")
+	userID := ginc.GetString("userID")
 
 	allowed, err := c.service.CheckUser.Execute(context, userID, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
@@ -107,9 +111,13 @@ func (c *Controller) Delete(ginc *gin.Context) {
 	context := ginc.Request.Context()
 
 	id := ginc.Param("id")
-	userID := ginc.GetString("UserID")
+	userID := ginc.GetString("userID")
 
 	allowed, err := c.service.CheckUser.Execute(context, userID, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)
@@ -139,9 +147,13 @@ func (c *Controller) Get(ginc *gin.Context) {
 	context := ginc.Request.Context()
 
 	id := ginc.Param("id")
-	userID := ginc.GetString("UserID")
+	userID := ginc.GetString("userID")
 
 	allowed, err := c.service.CheckUser.Execute(context, userID, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		return
+	}
 	if err != nil {
 		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 500, "Internal server error", nil)

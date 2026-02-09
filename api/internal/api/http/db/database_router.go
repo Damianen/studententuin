@@ -11,8 +11,11 @@ import (
 func SetupRouter(d db.Dependencies, sd subdomain.Dependencies,  middleware middlewares.AuthMiddleware, group *gin.RouterGroup) {
 	c := NewController(d, sd)
 
-	group.POST("/:subId/database", middleware.Auth, c.Create)
-	group.DELETE("/:subId/database/:dbId", middleware.Auth, c.Delete)
-	group.PATCH("/:subId/database/:dbId", middleware.Auth, c.Update)
-	group.GET("/:subId/database/:dbId", middleware.Auth, c.Get)
+	dbGroup := group.Group(":id/database")
+	{
+		dbGroup.POST("", middleware.Auth, c.Create)
+		dbGroup.DELETE("/:dbId", middleware.Auth, c.Delete)
+		dbGroup.PATCH("/:dbId", middleware.Auth, c.Update)
+		dbGroup.GET("/:dbId", middleware.Auth, c.Get)
+	}
 }

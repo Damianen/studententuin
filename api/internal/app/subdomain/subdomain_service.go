@@ -5,7 +5,7 @@ import "api/internal/app/ports"
 type Dependencies struct {
 	SubdomainRepo ports.SubdomainRepo
 	UserRepo ports.UserRepo
-	clock ports.Clock
+	Clock ports.Clock
 }
 
 type Service struct {
@@ -23,7 +23,7 @@ func NewService(d Dependencies) *Service {
 		},
 		Update: &UpdateSubdomain{
 			subdomainRepo: d.SubdomainRepo,
-			clock: d.clock,
+			clock: d.Clock,
 		},
 		Delete: &DeleteSubdomain{
 			subdomainRepo: d.SubdomainRepo,

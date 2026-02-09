@@ -66,6 +66,7 @@ func main() {
 	subdomainDeps := appSubdomain.Dependencies{
 		UserRepo: &userRepo,
 		SubdomainRepo: &subdomainRepo,
+		Clock: &clock,
 	}
 	dbDeps := appDb.Dependencies{
 		DatabaseRepo: &dbRepo,

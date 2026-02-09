@@ -40,13 +40,12 @@ func (c *Controller) Create(ginc *gin.Context) {
 	var req dtos.CreateDatabaseRequest
 	err := ginc.ShouldBindBodyWithJSON(&req)
 	if err != nil || validType(domain.DatabaseType(req.Type)) {
-		fmt.Println(err.Error())
 		middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
 		return
 	}
 
 	userID := ginc.GetString("userID")
-	subdomainId := ginc.Param("subId")
+	subdomainId := ginc.Param("id")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
 	if err != nil {
@@ -96,8 +95,8 @@ func (c *Controller) Update(ginc *gin.Context) {
 		}
 	}
 
-	userID := ginc.GetString("UserID")
-	subdomainId := ginc.Param("subId")
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
 	dbId := ginc.Param("dbId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
@@ -136,8 +135,8 @@ func (c *Controller) Update(ginc *gin.Context) {
 func (c *Controller) Delete(ginc *gin.Context) {
 	context := ginc.Request.Context()
 
-	userID := ginc.GetString("UserID")
-	subdomainId := ginc.Param("subId")
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
 	id := ginc.Param("dbId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
@@ -168,8 +167,8 @@ func (c *Controller) Delete(ginc *gin.Context) {
 func (c *Controller) Get(ginc *gin.Context) {
 	context := ginc.Request.Context()
 
-	userID := ginc.GetString("UserID")
-	subdomainId := ginc.Param("subId")
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
 	id := ginc.Param("dbId")
 
 	allowed, err := c.subdomainService.CheckUser.Execute(context, userID, subdomainId)
@@ -201,7 +200,6 @@ func (c *Controller) Get(ginc *gin.Context) {
 		Type: string(database.Type),
 		Version: database.Version,
 		Status: string(database.Status),
-		ConnectionString: *database.ConnectionString,
 	}
 
 	middlewares.Respond(ginc, 200, "success", databaseResponse)
