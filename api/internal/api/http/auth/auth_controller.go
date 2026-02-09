@@ -2,6 +2,7 @@ package auth
 
 import (
 	"api/internal/api/dtos"
+	"api/internal/api/middlewares"
 	"api/internal/app/auth"
 	"api/internal/app/ports"
 	"fmt"
@@ -27,7 +28,8 @@ func (c *Controller) Login(ginc *gin.Context) {
 	err := ginc.ShouldBindBodyWithJSON(&req)
 	if err != nil {
 		fmt.Println(err.Error())
-		ginc.JSON(400, gin.H{"error": "invalid JSON or missing values"})
+		middlewares.Respond(ginc, http.StatusBadRequest, "invalid JSON or missing values", nil)
+		return
 	}
 
 	loginInput := auth.LoginInput{
@@ -38,7 +40,7 @@ func (c *Controller) Login(ginc *gin.Context) {
 	token, err := c.service.Login.Execute(context, loginInput)
 	if err != nil {
 		fmt.Println(err.Error())
-		ginc.JSON(401, gin.H{"error": "email or password not correct!"})
+		middlewares.Respond(ginc, http.StatusUnauthorized, "email or password not correct!", nil)
 		return
 	}
 
@@ -52,7 +54,7 @@ func (c *Controller) Login(ginc *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	ginc.JSON(200, gin.H{"success": "login was successful"})
+	middlewares.Respond(ginc, http.StatusOK, "login was successful", nil)
 }
 
 func (c *Controller) Logout(ginc *gin.Context) {
@@ -65,5 +67,5 @@ func (c *Controller) Logout(ginc *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	ginc.JSON(200, gin.H{"success": "logout was successful"})
+	middlewares.Respond(ginc, http.StatusOK, "logout was successful", nil)
 }
