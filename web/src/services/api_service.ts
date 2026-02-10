@@ -20,7 +20,6 @@ class ApiService {
 
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
-			credentials: 'include',
 		};
 
 		if (options?.headers) {
@@ -30,6 +29,7 @@ class ApiService {
 		const response = await fetch(url, {
 			...options,
 			headers,
+			credentials: 'include',
 		});
 
 		const data = await response.json();
