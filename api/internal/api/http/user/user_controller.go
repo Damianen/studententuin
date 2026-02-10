@@ -7,6 +7,7 @@ import (
 	"api/internal/infra/postgres"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -23,105 +24,90 @@ func NewController(d user.Dependencies) *Controller {
 }
 
 func (c *Controller) Create(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	var req dtos.CreateUserRequest
-	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 400, "invalid JSON or missing values", nil)
+	if !middlewares.BindJSON(ginc, &req) {
 		return
 	}
 
 	userInput := user.UserInput{
-		Email: req.Email,
-		Name: req.Name,
+		Email:    req.Email,
+		Name:     req.Name,
 		Password: req.Password,
 	}
 
-	err = c.service.Create.Execute(context, userInput)
+	err := c.service.Create.Execute(ginc.Request.Context(), userInput)
 	if errors.Is(err, postgres.ErrEmailAlreadyInUse) {
-    	middlewares.Respond(ginc, 409, "email already in use", nil)
-    	return
+		middlewares.Respond(ginc, http.StatusConflict, "email already in use", nil)
+		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to create user", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to create user", nil)
 		return
 	}
 
-	middlewares.Respond(ginc, 201, "success", nil)
+	middlewares.Respond(ginc, http.StatusCreated, "success", nil)
 }
 
 func (c *Controller) Update(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	var req dtos.UpdateUserRequest
-	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 400, "invalid JSON or missing values", nil)
+	if !middlewares.BindJSON(ginc, &req) {
 		return
 	}
 
 	userID := ginc.GetString("userID")
 	userInput := user.UserUpdateInput{
-		ID: userID,
+		ID:    userID,
 		Email: req.Email,
-		Name: req.Name,
+		Name:  req.Name,
 	}
 
-	err = c.service.Update.Execute(context, userInput)
+	err := c.service.Update.Execute(ginc.Request.Context(), userInput)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "user not found", nil)
+		middlewares.Respond(ginc, http.StatusNotFound, "user not found", nil)
 		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to update user", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to update user", nil)
 		return
 	}
 
-	ginc.Status(204)
+	middlewares.Respond(ginc, http.StatusNoContent, "success", nil)
 }
 
-
 func (c *Controller) Delete(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	userID := ginc.GetString("userID")
 
-	err := c.service.Delete.Execute(context, userID)
+	err := c.service.Delete.Execute(ginc.Request.Context(), userID)
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to delete user", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to delete user", nil)
 		return
 	}
 
-	ginc.Status(204)
+	middlewares.Respond(ginc, http.StatusNoContent, "success", nil)
 }
 
 func (c *Controller) Get(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	userID := ginc.GetString("userID")
 
-	user, err := c.service.Get.Execute(context, userID)
+	user, err := c.service.Get.Execute(ginc.Request.Context(), userID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "user not found", nil)
+		middlewares.Respond(ginc, http.StatusNotFound, "user not found", nil)
 		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to get user", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to get user", nil)
 		return
 	}
 
 	userResponse := dtos.UserResponse{
 		Email:       user.Email,
-    	DisplayName: user.DisplayName,
-    	Status:      user.Status,
+		DisplayName: user.DisplayName,
+		Status:      user.Status,
 	}
 
-	middlewares.Respond(ginc, 200, "success", userResponse)
+	middlewares.Respond(ginc, http.StatusOK, "success", userResponse)
 }

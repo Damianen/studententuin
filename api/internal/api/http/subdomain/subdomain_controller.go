@@ -7,12 +7,11 @@ import (
 	"api/internal/infra/postgres"
 	"errors"
 	"fmt"
-	"strings"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
-
 
 type Controller struct {
 	service *subdomain.Service
@@ -25,164 +24,112 @@ func NewController(d subdomain.Dependencies) *Controller {
 }
 
 func (c *Controller) Create(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	var req dtos.CreateSubdomainRequest
-	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
+	if !middlewares.BindJSON(ginc, &req) {
 		return
 	}
 
 	userID := ginc.GetString("userID")
-
 	subdomainInput := subdomain.SubdomainInput{
-		Name: req.Name,
+		Name:       req.Name,
 		FullDomain: req.FullDomain,
-		UserID: userID,
+		UserID:     userID,
 	}
 
-	err = c.service.Create.Execute(context, subdomainInput)
+	err := c.service.Create.Execute(ginc.Request.Context(), subdomainInput)
 	if errors.Is(err, postgres.ErrFullDomainAlreadyInUse) {
-    	middlewares.Respond(ginc, 409, "domain already in use", nil)
-    	return
+		middlewares.Respond(ginc, http.StatusConflict, "domain already in use", nil)
+		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to create subdomain", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to create subdomain", nil)
 		return
 	}
 
-	middlewares.Respond(ginc, 201, "success", nil)
+	middlewares.Respond(ginc, http.StatusCreated, "success", nil)
 }
 
 func (c *Controller) Update(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	var req dtos.UpdateSubdomainRequest
-	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 400, "Invalid JSON or missing value", nil)
+	if !middlewares.BindJSON(ginc, &req) {
 		return
 	}
 
 	id := ginc.Param("id")
 	userID := ginc.GetString("userID")
 
-	allowed, err := c.service.CheckUser.Execute(context, userID, id)
-	if errors.Is(err, gorm.ErrRecordNotFound) || (err != nil && strings.Contains(err.Error(), "invalid input syntax")) {
-		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+	if !middlewares.CheckOwnership(ginc, c.service.CheckUser.Execute, userID, id, "subdomain") {
 		return
 	}
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "Internal server error", nil)
-		return
-	}
-
-	if !allowed {
-		middlewares.Respond(ginc, 403, "Unauthorized", nil)
-		return
-	}
-
 
 	subdomainInput := subdomain.SubdomainUpdateInput{
-		ID: id,
-		Name: req.Name,
+		ID:         id,
+		Name:       req.Name,
 		FullDomain: req.FullDomain,
 	}
 
-	err = c.service.Update.Execute(context, subdomainInput)
+	err := c.service.Update.Execute(ginc.Request.Context(), subdomainInput)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		middlewares.Respond(ginc, http.StatusNotFound, "subdomain not found", nil)
 		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to update subdomain", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to update subdomain", nil)
 		return
 	}
 
-	ginc.Status(204)
+	middlewares.Respond(ginc, http.StatusNoContent, "success", nil)
 }
 
 func (c *Controller) Delete(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	id := ginc.Param("id")
 	userID := ginc.GetString("userID")
 
-	allowed, err := c.service.CheckUser.Execute(context, userID, id)
-	if errors.Is(err, gorm.ErrRecordNotFound) || (err != nil && strings.Contains(err.Error(), "invalid input syntax")) {
-		middlewares.Respond(ginc, 404, "subdomain not found", nil)
-		return
-	}
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "Internal server error", nil)
+	if !middlewares.CheckOwnership(ginc, c.service.CheckUser.Execute, userID, id, "subdomain") {
 		return
 	}
 
-	if !allowed {
-		middlewares.Respond(ginc, 403, "Unauthorized", nil)
-		return
-	}
-
-	err = c.service.Delete.Execute(context, id)
+	err := c.service.Delete.Execute(ginc.Request.Context(), id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		middlewares.Respond(ginc, http.StatusNotFound, "subdomain not found", nil)
 		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to delete subdomain", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to delete subdomain", nil)
 		return
 	}
 
-	ginc.Status(204)
+	middlewares.Respond(ginc, http.StatusNoContent, "success", nil)
 }
 
 func (c *Controller) Get(ginc *gin.Context) {
-	context := ginc.Request.Context()
-
 	id := ginc.Param("id")
 	userID := ginc.GetString("userID")
 
-	allowed, err := c.service.CheckUser.Execute(context, userID, id)
-	if errors.Is(err, gorm.ErrRecordNotFound) || (err != nil && strings.Contains(err.Error(), "invalid input syntax")) {
-		middlewares.Respond(ginc, 404, "subdomain not found", nil)
-		return
-	}
-	if err != nil {
-		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "Internal server error", nil)
+	if !middlewares.CheckOwnership(ginc, c.service.CheckUser.Execute, userID, id, "subdomain") {
 		return
 	}
 
-	if !allowed {
-		middlewares.Respond(ginc, 403, "Unauthorized", nil)
-		return
-	}
-
-	subdomain, err := c.service.Get.Execute(context, id)
+	subdomain, err := c.service.Get.Execute(ginc.Request.Context(), id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		middlewares.Respond(ginc, 404, "subdomain not found", nil)
+		middlewares.Respond(ginc, http.StatusNotFound, "subdomain not found", nil)
 		return
 	}
 	if err != nil {
 		fmt.Println(err.Error())
-		middlewares.Respond(ginc, 500, "failed to get subdomain", nil)
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to get subdomain", nil)
 		return
 	}
 
 	subdomainResponse := dtos.SubdomainResponse{
-		ID: subdomain.ID.String(),
-		Name: subdomain.Name,
+		ID:         subdomain.ID.String(),
+		Name:       subdomain.Name,
 		FullDomain: subdomain.FullDomain,
-		IsActive: subdomain.IsActive,
+		IsActive:   subdomain.IsActive,
 	}
 
-	middlewares.Respond(ginc, 200, "success", subdomainResponse)
+	middlewares.Respond(ginc, http.StatusOK, "success", subdomainResponse)
 }
