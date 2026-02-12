@@ -9,3 +9,9 @@ export interface RegisterUserDto {
 	password: string;
 	name: string;
 }
+
+export interface UpdateUserDto {
+	email?: string;
+	name?: string;
+	status?: string;
+}

@@ -1,0 +1,26 @@
+export interface ApplicationDto {
+	id: string;
+	name: string;
+	type: string;
+	status: string;
+	repo_url: string;
+	branch: string;
+}
+
+export interface CreateApplicationDto {
+	name: string;
+	type: string;
+	repo_url: string;
+	branch: string;
+	build_command: string;
+	start_command: string;
+}
+
+export interface UpdateApplicationDto {
+	name?: string;
+	type?: string;
+	repo_url?: string;
+	branch?: string;
+	build_command?: string;
+	start_command?: string;
+}

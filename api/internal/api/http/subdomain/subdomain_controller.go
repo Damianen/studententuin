@@ -80,7 +80,7 @@ func (c *Controller) Update(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, http.StatusNoContent, "success", nil)
+	middlewares.Respond(ginc, http.StatusOK, "success", nil)
 }
 
 func (c *Controller) Delete(ginc *gin.Context) {
@@ -102,7 +102,7 @@ func (c *Controller) Delete(ginc *gin.Context) {
 		return
 	}
 
-	middlewares.Respond(ginc, http.StatusNoContent, "success", nil)
+	middlewares.Respond(ginc, http.StatusOK, "success", nil)
 }
 
 func (c *Controller) Get(ginc *gin.Context) {
@@ -132,4 +132,50 @@ func (c *Controller) Get(ginc *gin.Context) {
 	}
 
 	middlewares.Respond(ginc, http.StatusOK, "success", subdomainResponse)
+}
+
+func (c *Controller) GetAll(ginc *gin.Context) {
+	userID := ginc.GetString("userID")
+
+	subdomains, err := c.service.GetAll.Execute(ginc.Request.Context(), userID)
+	if err != nil {
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to get subdomains", nil)
+		return
+	}
+
+	var response []dtos.SubdomainListItemResponse
+	for _, s := range subdomains {
+		item := dtos.SubdomainListItemResponse{
+			ID:         s.ID.String(),
+			Name:       s.Name,
+			FullDomain: s.FullDomain,
+			IsActive:   s.IsActive,
+		}
+
+		if s.Database != nil {
+			item.Database = &dtos.DatabaseListResponse{
+				ID:      s.Database.ID.String(),
+				Name:    s.Database.Name,
+				Type:    string(s.Database.Type),
+				Version: s.Database.Version,
+				Status:  string(s.Database.Status),
+			}
+		}
+
+		if s.Application != nil {
+			item.Application = &dtos.ApplicationListResponse{
+				ID:      s.Application.ID.String(),
+				Name:    *s.Application.Name,
+				Type:    string(s.Application.Type),
+				Status:  string(s.Application.Status),
+				RepoUrl: *s.Application.RepositoryURL,
+				Branch:  *s.Application.Branch,
+			}
+		}
+
+		response = append(response, item)
+	}
+
+	middlewares.Respond(ginc, http.StatusOK, "success", response)
 }

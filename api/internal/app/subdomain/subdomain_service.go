@@ -4,15 +4,16 @@ import "api/internal/app/ports"
 
 type Dependencies struct {
 	SubdomainRepo ports.SubdomainRepo
-	UserRepo ports.UserRepo
-	Clock ports.Clock
+	UserRepo      ports.UserRepo
+	Clock         ports.Clock
 }
 
 type Service struct {
-	Create *CreateSubdomain
-	Update *UpdateSubdomain
-	Delete *DeleteSubdomain
-	Get *GetSubdomain
+	Create    *CreateSubdomain
+	Update    *UpdateSubdomain
+	Delete    *DeleteSubdomain
+	Get       *GetSubdomain
+	GetAll    *GetAllSubdomains
 	CheckUser *CheckUser
 }
 
@@ -23,7 +24,7 @@ func NewService(d Dependencies) *Service {
 		},
 		Update: &UpdateSubdomain{
 			subdomainRepo: d.SubdomainRepo,
-			clock: d.Clock,
+			clock:         d.Clock,
 		},
 		Delete: &DeleteSubdomain{
 			subdomainRepo: d.SubdomainRepo,
@@ -31,9 +32,12 @@ func NewService(d Dependencies) *Service {
 		Get: &GetSubdomain{
 			subdomainRepo: d.SubdomainRepo,
 		},
+		GetAll: &GetAllSubdomains{
+			subdomainRepo: d.SubdomainRepo,
+		},
 		CheckUser: &CheckUser{
 			subdomainRepo: d.SubdomainRepo,
-			userRepo: d.UserRepo,
+			userRepo:      d.UserRepo,
 		},
 	}
 }

@@ -34,6 +34,21 @@ func (repo *GormSubdomainRepo) FindByFullDomain(fullDomain string, context conte
 	return &subdomain, nil
 }
 
+func (repo *GormSubdomainRepo) FindAllByUserID(userID string, context context.Context) ([]domain.Subdomain, error) {
+	var subdomains []domain.Subdomain
+	err := repo.DB.WithContext(context).
+		Preload("Database").
+		Preload("Application").
+		Where("user_id = ?", userID).
+		Find(&subdomains).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return subdomains, nil
+}
+
 func (repo *GormSubdomainRepo) Create(subdomain *domain.Subdomain, context context.Context) error {
 	err := repo.DB.WithContext(context).Create(subdomain).Error
 

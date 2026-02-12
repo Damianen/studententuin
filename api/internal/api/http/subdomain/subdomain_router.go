@@ -12,6 +12,7 @@ func SetupRouter(d subdomain.Dependencies, middleware middlewares.AuthMiddleware
 
 	subdomain := r.Group("/subdomain")
 	{
+		subdomain.GET("", middleware.Auth, c.GetAll)
 		subdomain.GET("/:id", middleware.Auth, c.Get)
 		subdomain.DELETE("/:id", middleware.Auth, c.Delete)
 		subdomain.PATCH("/:id", middleware.Auth, c.Update)

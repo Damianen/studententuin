@@ -69,6 +69,21 @@ func (mr *MockSubdomainRepoMockRecorder) Delete(subdomain, arg1 any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSubdomainRepo)(nil).Delete), subdomain, arg1)
 }
 
+// FindAllByUserID mocks base method.
+func (m *MockSubdomainRepo) FindAllByUserID(userID string, arg1 context.Context) ([]domain.Subdomain, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllByUserID", userID, arg1)
+	ret0, _ := ret[0].([]domain.Subdomain)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllByUserID indicates an expected call of FindAllByUserID.
+func (mr *MockSubdomainRepoMockRecorder) FindAllByUserID(userID, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserID", reflect.TypeOf((*MockSubdomainRepo)(nil).FindAllByUserID), userID, arg1)
+}
+
 // FindByFullDomain mocks base method.
 func (m *MockSubdomainRepo) FindByFullDomain(arg0 string, arg1 context.Context) (*domain.Subdomain, error) {
 	m.ctrl.T.Helper()
