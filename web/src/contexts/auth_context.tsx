@@ -1,5 +1,8 @@
+"use client";
+
 import {
 	createContext,
+	useCallback,
 	useContext,
 	useEffect,
 	useState,
@@ -27,16 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<UserDto | null>(null);
 	const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		getUser();
-	}, []);
-
-	const getUser = async () => {
+	const getUser = useCallback(async () => {
 		UserController.get()
 			.then(setUser)
 			.catch(() => setUser(null))
 			.finally(() => setLoading(false));
-	};
+	}, []);
+
+	useEffect(() => {
+		getUser();
+	}, [getUser]);
 
 	const login = async (credentials: LoginUserDto) => {
 		await AuthController.login(credentials);
@@ -84,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
 	const context = useContext(AuthContext);
 	if (context === undefined) {
-		throw new Error('useAuth can only be used within the authprovider');
+		throw new Error('useAuth can only be used within AuthProvider');
 	}
 	return context;
 }

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -35,11 +36,25 @@ func validType(t domain.ApplicationType) bool {
 	}
 }
 
+func normalizeApplicationType(raw string) (domain.ApplicationType, bool) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "nodejs", "node.js", "node":
+		return domain.ApplicationTypeNodejs, true
+	default:
+		return "", false
+	}
+}
+
 func (c *Controller) Create(ginc *gin.Context) {
 	var req dtos.CreateApplicationRequest
 	err := ginc.ShouldBindBodyWithJSON(&req)
-	if err != nil || !validType(domain.ApplicationType(req.Type)) {
+	appType, ok := normalizeApplicationType(req.Type)
+	if err != nil {
 		middlewares.Respond(ginc, http.StatusBadRequest, "Invalid JSON or missing value", nil)
+		return
+	}
+	if !ok || !validType(appType) {
+		middlewares.Respond(ginc, http.StatusBadRequest, "Unsupported application type", nil)
 		return
 	}
 
@@ -53,7 +68,7 @@ func (c *Controller) Create(ginc *gin.Context) {
 	appInput := app.ApplicationInput{
 		SubdomainID:  subdomainId,
 		Name:         req.Name,
-		Type:         domain.ApplicationType(req.Type),
+		Type:         appType,
 		RepoUrl:      &req.RepoUrl,
 		Branch:       &req.Branch,
 		StartCommand: &req.StartCommand,
@@ -78,10 +93,13 @@ func (c *Controller) Updates(ginc *gin.Context) {
 	}
 
 	if req.Type != nil {
-		if !validType(domain.ApplicationType(*req.Type)) {
-			middlewares.Respond(ginc, http.StatusBadRequest, "Invalid JSON or missing value", nil)
+		appType, ok := normalizeApplicationType(*req.Type)
+		if !ok || !validType(appType) {
+			middlewares.Respond(ginc, http.StatusBadRequest, "Unsupported application type", nil)
 			return
 		}
+		normalizedType := string(appType)
+		req.Type = &normalizedType
 	}
 
 	userID := ginc.GetString("userID")
