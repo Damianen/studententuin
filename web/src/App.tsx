@@ -7,7 +7,9 @@ function App() {
 	return (
 		<BrowserRouter>
 				<AuthProvider>
-					<div></div> //TODO add tailark and shadcn components
+					<Routes>
+						<Route path="/" element={<div></div>} />
+					</Routes>
 				</AuthProvider>
 		</BrowserRouter>
 	);
