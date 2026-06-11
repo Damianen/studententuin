@@ -10,7 +10,8 @@ class SubdomainController {
 		if (response.code != 200) {
 			throw new Error(response.message);
 		}
-		return response.data;
+		// The API omits `data` entirely when the list is empty.
+		return response.data ?? [];
 	}
 
 	public static async create(values: CreateSubdomainDto) {

@@ -160,6 +160,9 @@ func (c *Controller) Get(ginc *gin.Context) {
 		Version: database.Version,
 		Status:  string(database.Status),
 	}
+	if database.ConnectionString != nil {
+		databaseResponse.ConnectionString = *database.ConnectionString
+	}
 
 	middlewares.Respond(ginc, http.StatusOK, "success", databaseResponse)
 }

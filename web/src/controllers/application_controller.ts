@@ -7,7 +7,7 @@ import ApplicationService from '../services/application_service';
 class ApplicationController {
 	public static async get(subdomainId: string, appId: string) {
 		const response = await ApplicationService.get(subdomainId, appId);
-		if (response.code != 200) {
+		if (response.code != 200 || !response.data) {
 			throw new Error(response.message);
 		}
 		return response.data;

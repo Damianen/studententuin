@@ -1,34 +1,33 @@
-## Environment
+# Studententuin — web
 
-Create a `.env` file with the required secrets:
+The frontend for Studententuin: a Vite + React single-page app, styled with
+Tailwind CSS v4 and shadcn/ui primitives in a warm, garden-inspired theme.
 
-```bash
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
-NEXTAUTH_SECRET="generate-a-strong-random-string"
-GITHUB_ID="your-oauth-client-id"
-GITHUB_SECRET="your-oauth-client-secret"
-```
-
-## Database & Prisma
+## Development
 
 ```bash
-pnpm dlx prisma generate
-pnpm dlx prisma migrate dev --name init
+npm install
+npm run dev
 ```
 
-The Prisma schema lives in `prisma/schema.prisma`. Generated clients use the connection string from `DATABASE_URL`.
-
-## Auth Flow
-
-- OAuth is powered by GitHub via NextAuth v5, backed by a Prisma adapter.
-- Auth modules follow a layered structure under `src/modules/auth` separating domain, application, and infrastructure concerns.
-- The `/login` page triggers `signIn('github')` and the API route at `/api/auth/[...nextauth]` handles callbacks.
-
-## Running Locally
+The dev server runs on http://localhost:5173 and proxies `/api/*` to the Go
+backend on `http://localhost:8080` (see `vite.config.ts`), so cookies work
+same-origin and no CORS configuration is needed. Start the API first:
 
 ```bash
-pnpm install
-pnpm dev
+cd ../api && go run ./cmd/api
 ```
 
-Then visit [http://localhost:3000](http://localhost:3000).
+## Scripts
+
+| Command           | What it does                            |
+| ----------------- | --------------------------------------- |
+| `npm run dev`     | Dev server with HMR and `/api` proxy    |
+| `npm run build`   | Type-check + production build to `dist` |
+| `npm run preview` | Serve the production build locally      |
+| `npm run lint`    | ESLint over `src`                       |
+
+## Production
+
+`Dockerfile` builds the app and serves `dist/` with nginx (`nginx.conf`),
+which handles the SPA fallback and proxies `/api/` to the `api` service.

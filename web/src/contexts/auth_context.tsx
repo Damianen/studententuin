@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	createContext,
 	useCallback,
@@ -8,10 +6,12 @@ import {
 	useState,
 } from 'react';
 import type { ReactNode } from 'react';
+import { toast } from 'sonner';
 import type { RegisterUserDto, UpdateUserDto, UserDto } from '../dtos/user_dtos';
 import UserController from '../controllers/user_controller';
 import type { LoginUserDto } from '../dtos/auth_dtos';
 import AuthController from '../controllers/auth_controller';
+import { setOnUnauthorized } from '../services/api_service';
 
 interface AuthContextType {
 	user: UserDto | null;
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [loading, setLoading] = useState(true);
 
 	const getUser = useCallback(async () => {
-		UserController.get()
+		await UserController.get()
 			.then(setUser)
 			.catch(() => setUser(null))
 			.finally(() => setLoading(false));
@@ -40,6 +40,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		getUser();
 	}, [getUser]);
+
+	useEffect(() => {
+		setOnUnauthorized(() => {
+			setUser((previous) => {
+				if (previous) {
+					toast.error('Your session expired. Please sign in again.');
+				}
+				return null;
+			});
+		});
+		return () => setOnUnauthorized(null);
+	}, []);
 
 	const login = async (credentials: LoginUserDto) => {
 		await AuthController.login(credentials);
@@ -54,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	const register = async (values: RegisterUserDto) => {
 		await UserController.register(values);
+		await login({ email: values.email, password: values.password });
 	};
 
 	const updateUser = async (values: UpdateUserDto) => {

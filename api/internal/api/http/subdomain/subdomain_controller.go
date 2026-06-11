@@ -161,6 +161,9 @@ func (c *Controller) GetAll(ginc *gin.Context) {
 				Version: s.Database.Version,
 				Status:  string(s.Database.Status),
 			}
+			if s.Database.ConnectionString != nil {
+				item.Database.ConnectionString = *s.Database.ConnectionString
+			}
 		}
 
 		if s.Application != nil {

@@ -43,23 +43,17 @@ func (c *CreateUser) Execute(ctx context.Context, ui UserInput) error {
 		Status: "active",
 	}
 
+	// The user row must exist before the credential row can reference it.
+	err = c.userRepo.Create(user, ctx)
+	if err != nil {
+		return err
+	}
+
 	passwordCred := &domain.PasswordCredential{
 		UserId: user.ID,
 		PasswordHash: passwordHash,
 		PasswordUpdatedAt: now,
 	}
 
-	user.PasswordCred = passwordCred
-
-	err = c.passwordRepo.Create(passwordCred, ctx)
-	if err != nil {
-		return err
-	}
-
-	err = c.userRepo.Create(user, ctx)
-	if err != nil {
-		return err
-	}
-
-	return err
+	return c.passwordRepo.Create(passwordCred, ctx)
 }

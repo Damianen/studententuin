@@ -71,6 +71,7 @@ func TestCreateUser_Execute(t *testing.T) {
 			setup: func(ur *mocks.MockUserRepo, pr *mocks.MockPasswordRepo, h *mocks.MockPasswordHasher, c *mocks.MockClock) {
 				c.EXPECT().Now().Return(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC))
 				h.EXPECT().Hash("secret").Return("hashed", nil)
+				ur.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				pr.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errors.New("pw repo error"))
 			},
 			wantErr: "pw repo error",
@@ -81,7 +82,6 @@ func TestCreateUser_Execute(t *testing.T) {
 			setup: func(ur *mocks.MockUserRepo, pr *mocks.MockPasswordRepo, h *mocks.MockPasswordHasher, c *mocks.MockClock) {
 				c.EXPECT().Now().Return(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC))
 				h.EXPECT().Hash("secret").Return("hashed", nil)
-				pr.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				ur.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errors.New("email already exists"))
 			},
 			wantErr: "email already exists",

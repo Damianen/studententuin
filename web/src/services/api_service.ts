@@ -1,14 +1,14 @@
 import type { ApiResponse } from '../dtos/api_dtos';
 
-function getApiBaseUrl(): string {
-	if (
-		window.location.hostname !== 'localhost' &&
-		window.location.hostname !== '127.0.0.1'
-	) {
-		return 'https://studententuin.com/api';
-	}
+// Same-origin in dev (Vite proxy) and prod (reverse proxy at /api).
+const API_BASE_URL = '/api';
 
-	return 'http://localhost:8080';
+type UnauthorizedHandler = () => void;
+
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+export function setOnUnauthorized(handler: UnauthorizedHandler | null) {
+	onUnauthorized = handler;
 }
 
 class ApiService {
@@ -16,7 +16,7 @@ class ApiService {
 		endpoint: string,
 		options?: RequestInit
 	): Promise<ApiResponse<T>> {
-		const url = `${getApiBaseUrl()}${endpoint}`;
+		const url = `${API_BASE_URL}${endpoint}`;
 
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
@@ -32,9 +32,20 @@ class ApiService {
 			credentials: 'include',
 		});
 
-		const data = await response.json();
+		if (response.status === 401 && endpoint !== '/auth/login') {
+			onUnauthorized?.();
+		}
 
-		return data;
+		const text = await response.text();
+		try {
+			return JSON.parse(text);
+		} catch {
+			return {
+				code: response.status,
+				message: response.statusText || 'unexpected server response',
+				data: undefined as T,
+			};
+		}
 	}
 
 	public static async get<T>(endpoint: string): Promise<ApiResponse<T>> {

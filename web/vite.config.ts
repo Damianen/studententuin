@@ -1,0 +1,28 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'node:path';
+
+export default defineConfig({
+	plugins: [react(), tailwindcss()],
+	resolve: {
+		alias: {
+			'@': path.resolve(__dirname, 'src'),
+		},
+	},
+	server: {
+		proxy: {
+			'/api': {
+				target: process.env.API_PROXY_TARGET ?? 'http://localhost:8090',
+				rewrite: (p) => p.replace(/^\/api/, ''),
+				// Strip the Origin header so the API's CORS middleware
+				// treats proxied requests as same-origin.
+				configure: (proxy) => {
+					proxy.on('proxyReq', (proxyReq) => {
+						proxyReq.removeHeader('origin');
+					});
+				},
+			},
+		},
+	},
+});

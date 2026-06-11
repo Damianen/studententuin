@@ -1,26 +1,36 @@
 import SubdomainController from '../controllers/subdomain_controller';
+import type { SubdomainListItemDto } from '../dtos/subdomain_dtos';
 
-const SUBDOMAIN_SUFFIX = 'studententuin.com';
+export const SUBDOMAIN_SUFFIX = 'studententuin.com';
 
-function toFullDomain(subdomainName: string): string {
+export function toFullDomain(subdomainName: string): string {
 	return `${subdomainName}.${SUBDOMAIN_SUFFIX}`;
 }
 
-export async function ensureSubdomain(subdomainName: string): Promise<string> {
+function findByName(
+	subdomains: SubdomainListItemDto[],
+	cleanName: string,
+): SubdomainListItemDto | undefined {
+	return subdomains.find(
+		(subdomain) =>
+			subdomain.name.toLowerCase() === cleanName ||
+			subdomain.fullDomain.toLowerCase() === toFullDomain(cleanName),
+	);
+}
+
+export async function ensureSubdomain(
+	subdomainName: string,
+): Promise<SubdomainListItemDto> {
 	const cleanName = subdomainName.trim().toLowerCase();
 	if (!cleanName) {
 		throw new Error('Subdomain is required');
 	}
 
 	const current = await SubdomainController.getAll();
-	const found = current.find(
-		(subdomain) =>
-			subdomain.name.toLowerCase() === cleanName ||
-			subdomain.fullDomain.toLowerCase() === toFullDomain(cleanName),
-	);
+	const found = findByName(current, cleanName);
 
 	if (found) {
-		return found.id;
+		return found;
 	}
 
 	await SubdomainController.create({
@@ -29,15 +39,11 @@ export async function ensureSubdomain(subdomainName: string): Promise<string> {
 	});
 
 	const updated = await SubdomainController.getAll();
-	const created = updated.find(
-		(subdomain) =>
-			subdomain.name.toLowerCase() === cleanName ||
-			subdomain.fullDomain.toLowerCase() === toFullDomain(cleanName),
-	);
+	const created = findByName(updated, cleanName);
 
 	if (!created) {
 		throw new Error('Failed to resolve created subdomain');
 	}
 
-	return created.id;
+	return created;
 }

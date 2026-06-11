@@ -1,25 +1,36 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-    ],
-  },
-];
-
-export default eslintConfig;
+export default tseslint.config(
+	{ ignores: ['dist'] },
+	{
+		files: ['**/*.{ts,tsx}'],
+		extends: [
+			js.configs.recommended,
+			...tseslint.configs.recommended,
+			reactHooks.configs.flat['recommended-latest'],
+			reactRefresh.configs.vite,
+		],
+		languageOptions: {
+			ecmaVersion: 2020,
+			globals: globals.browser,
+		},
+		rules: {
+			'react-refresh/only-export-components': [
+				'error',
+				{ allowConstantExport: true },
+			],
+		},
+	},
+	{
+		// Context files export a provider plus its hook by design;
+		// shadcn ui files export cva variant helpers alongside components.
+		files: ['src/contexts/**', 'src/components/ui/**'],
+		rules: {
+			'react-refresh/only-export-components': 'off',
+		},
+	}
+);

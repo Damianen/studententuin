@@ -7,7 +7,7 @@ import DatabaseService from '../services/database_service';
 class DatabaseController {
 	public static async get(subdomainId: string, dbId: string) {
 		const response = await DatabaseService.get(subdomainId, dbId);
-		if (response.code != 200) {
+		if (response.code != 200 || !response.data) {
 			throw new Error(response.message);
 		}
 		return response.data;

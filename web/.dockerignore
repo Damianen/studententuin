@@ -2,12 +2,10 @@ Dockerfile
 .dockerignore
 node_modules
 npm-debug.log
-.next
 .git
 .gitignore
 README.md
-.env*.local
-.env
+.env*
 .vscode
 .idea
 *.swp
@@ -15,6 +13,4 @@ README.md
 *~
 .DS_Store
 dist
-build
 coverage
-.turbo
