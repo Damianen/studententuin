@@ -13,10 +13,8 @@ import (
 )
 
 func ConnectDB() (*gorm.DB, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
-	}
+	// Load .env if present (local dev); in containers config comes from real env vars.
+	_ = godotenv.Load()
 
 	host := os.Getenv("DB_HOST")
     port := os.Getenv("DB_PORT")

@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-studententuin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-studententuin}
+      POSTGRES_DB: ${DB_NAME:-studententuin}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # No host port on purpose (5432/5433 are taken locally).
+    # To expose for debugging, add e.g.:  ports: ["5434:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-studententuin}
+      DB_PASSWORD: ${DB_PASSWORD:-studententuin}
+      DB_NAME: ${DB_NAME:-studententuin}
+      DB_SSLMODE: disable
+      # Dev-only fallback; set a real JWT_TOKEN in the environment for anything shared.
+      JWT_TOKEN: ${JWT_TOKEN:-dev-insecure-change-me}
+      GIN_MODE: release
+    depends_on:
+      db:
+        condition: service_healthy
+    # No host port on purpose (8080/8090 are taken locally); the web service
+    # proxies /api to this container. To expose for debugging, add e.g.:
+    #   ports: ["8081:8080"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  web:
+    build: ./web
+    ports:
+      # Override when 3000 is taken locally, e.g.:  WEB_PORT=3001 docker compose up
+      # (any port works — nginx strips the Origin header before proxying to the API)
+      - "${WEB_PORT:-3000}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      # 127.0.0.1, not localhost: nginx only listens on IPv4 and busybox
+      # wget resolves localhost to ::1 first.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

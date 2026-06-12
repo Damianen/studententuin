@@ -1,0 +1,55 @@
+name: DAST (ZAP Baseline)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "web/**"
+      - "docker-compose.yml"
+      - ".github/workflows/dast.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "web/**"
+      - "docker-compose.yml"
+      - ".github/workflows/dast.yml"
+  workflow_dispatch:
+
+jobs:
+  zap-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Start stack
+        run: docker compose up -d --build --wait
+        timeout-minutes: 10
+
+      - name: Smoke check through nginx
+        run: curl -fsS http://localhost:3000/api/health
+
+      # Report-only for now: the API doesn't send security headers yet, so a
+      # blocking scan would be permanently red. Flip fail_action to true (and
+      # add a .zap/rules.tsv for accepted findings) once headers land.
+      # No ajax spider (-j): the SPA's animated landing page keeps its browser
+      # crawl busy indefinitely, and app routes are behind auth anyway. Passive
+      # baseline coverage of the served pages + /api is enough for now.
+      - name: ZAP baseline scan (report-only)
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
+        with:
+          target: http://localhost:3000
+          fail_action: false
+          allow_issue_writing: false
+          artifact_name: zap-baseline-report
+
+      - name: Dump compose logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
