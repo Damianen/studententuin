@@ -14,6 +14,7 @@ const Account = lazy(() => import('@/pages/account'));
 const NotFound = lazy(() => import('@/pages/not-found'));
 const Projects = lazy(() => import('@/pages/projects/projects'));
 const ProjectDetail = lazy(() => import('@/pages/projects/project-detail'));
+const ResourceDetail = lazy(() => import('@/pages/projects/resource-detail'));
 const NewApplication = lazy(() => import('@/pages/projects/new-application'));
 const NewDatabase = lazy(() => import('@/pages/projects/new-database'));
 
@@ -69,6 +70,14 @@ export default function App() {
 						<Route path="projects/new/app" element={<NewApplication />} />
 						<Route path="projects/new/database" element={<NewDatabase />} />
 						<Route path="projects/:id" element={<ProjectDetail />} />
+						<Route
+							path="projects/:id/app/:tab?"
+							element={<ResourceDetail kind="application" />}
+						/>
+						<Route
+							path="projects/:id/db/:tab?"
+							element={<ResourceDetail kind="database" />}
+						/>
 						<Route path="account" element={<Account />} />
 					</Route>
 					<Route path="*" element={<NotFound />} />

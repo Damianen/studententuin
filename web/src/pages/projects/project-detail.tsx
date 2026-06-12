@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import {
 	AppWindow,
 	ArrowLeft,
+	ArrowUpRight,
 	Check,
 	Database,
 	ExternalLink,
@@ -223,6 +224,12 @@ function ApplicationSection({
 				</CardDescription>
 				<CardAction className="flex items-center gap-1">
 					<StatusBadge status={application.status} />
+					<Button variant="outline" size="sm" asChild className="ml-1">
+						<Link to={`/projects/${subdomain.id}/app`}>
+							Open
+							<ArrowUpRight className="size-3.5" />
+						</Link>
+					</Button>
 					<Button
 						variant="ghost"
 						size="icon"
@@ -422,6 +429,12 @@ function DatabaseSection({
 				</CardDescription>
 				<CardAction className="flex items-center gap-1">
 					<StatusBadge status={database.status} />
+					<Button variant="outline" size="sm" asChild className="ml-1">
+						<Link to={`/projects/${subdomain.id}/db`}>
+							Open
+							<ArrowUpRight className="size-3.5" />
+						</Link>
+					</Button>
 					<Button
 						variant="ghost"
 						size="icon"
