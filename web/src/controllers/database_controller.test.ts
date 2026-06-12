@@ -1,0 +1,83 @@
+import DatabaseController from './database_controller';
+import DatabaseService from '@/services/database_service';
+
+vi.mock('@/services/database_service', () => ({
+	default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}));
+
+const db = {
+	id: 'db-1',
+	name: 'mydb',
+	type: 'postgres',
+	version: '17',
+	status: 'running',
+	connection_string: 'postgres://user:pass@host/db',
+};
+
+const createDto = {
+	name: 'mydb',
+	type: 'postgres',
+	version: '17',
+	db_name: 'app',
+	db_password: 'secret123',
+};
+
+describe('DatabaseController', () => {
+	it('get returns the database on 200', async () => {
+		vi.mocked(DatabaseService.get).mockResolvedValue({
+			code: 200,
+			message: 'success',
+			data: db,
+		});
+
+		await expect(DatabaseController.get('sub-1', 'db-1')).resolves.toEqual(db);
+		expect(DatabaseService.get).toHaveBeenCalledWith('sub-1', 'db-1');
+	});
+
+	it('get throws on 404', async () => {
+		vi.mocked(DatabaseService.get).mockResolvedValue({
+			code: 404,
+			message: 'database not found',
+		});
+
+		await expect(DatabaseController.get('sub-1', 'db-1')).rejects.toThrow(
+			'database not found'
+		);
+	});
+
+	it('create resolves on 201 and throws otherwise', async () => {
+		vi.mocked(DatabaseService.post).mockResolvedValue({
+			code: 201,
+			message: 'success',
+		});
+		await expect(
+			DatabaseController.create('sub-1', createDto)
+		).resolves.toBeUndefined();
+
+		vi.mocked(DatabaseService.post).mockResolvedValue({
+			code: 400,
+			message: 'Invalid JSON or missing value',
+		});
+		await expect(DatabaseController.create('sub-1', createDto)).rejects.toThrow(
+			'Invalid JSON or missing value'
+		);
+	});
+
+	it('patch and delete throw on non-200', async () => {
+		vi.mocked(DatabaseService.patch).mockResolvedValue({
+			code: 404,
+			message: 'database not found',
+		});
+		await expect(
+			DatabaseController.patch('sub-1', 'db-1', { name: 'renamed' })
+		).rejects.toThrow('database not found');
+
+		vi.mocked(DatabaseService.delete).mockResolvedValue({
+			code: 403,
+			message: 'unauthorized',
+		});
+		await expect(DatabaseController.delete('sub-1', 'db-1')).rejects.toThrow(
+			'unauthorized'
+		);
+	});
+});
