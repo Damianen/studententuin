@@ -1,2 +1,5 @@
 # compiled binary (go build output)
 /servermanager
+
+# local env (SM_TOKEN lives here)
+.env
