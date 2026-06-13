@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	appsvc "servermanager/internal/app/apps"
 	"servermanager/internal/domain"
@@ -214,6 +215,167 @@ func TestStatusEndpoint(t *testing.T) {
 		}
 		if resp.Exists || resp.Running {
 			t.Errorf("response = %+v, want exists false", resp)
+		}
+	})
+}
+
+func TestLogsEndpoint(t *testing.T) {
+	name := domain.AppContainerName(testAppID)
+	base := "/v1/apps/" + testAppID + "/logs"
+	ts := time.Date(2026, 6, 13, 10, 0, 1, 0, time.UTC)
+
+	t.Run("maps streams to levels", func(t *testing.T) {
+		router, rt := setupRouter(t)
+		rt.EXPECT().Logs(gomock.Any(), name, domain.LogOptions{Tail: 200}).Return([]domain.LogLine{
+			{Timestamp: ts, Stream: "stdout", Message: "tick"},
+			{Timestamp: ts.Add(time.Second), Stream: "stderr", Message: "tock"},
+		}, nil)
+
+		w := request(router, http.MethodGet, base, "")
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200; body %s", w.Code, w.Body)
+		}
+		var resp LogsResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("invalid JSON response: %v", err)
+		}
+		if len(resp.Logs) != 2 {
+			t.Fatalf("len = %d, want 2", len(resp.Logs))
+		}
+		if resp.Logs[0].Level != "info" || resp.Logs[0].Message != "tick" {
+			t.Errorf("logs[0] = %+v, want info/tick", resp.Logs[0])
+		}
+		if resp.Logs[1].Level != "error" || resp.Logs[1].Message != "tock" {
+			t.Errorf("logs[1] = %+v, want error/tock", resp.Logs[1])
+		}
+		if resp.Logs[0].Timestamp != "2026-06-13T10:00:01Z" {
+			t.Errorf("timestamp = %q, want RFC3339Nano UTC", resp.Logs[0].Timestamp)
+		}
+		if resp.Logs[0].ID == "" || resp.Logs[0].ID == resp.Logs[1].ID {
+			t.Errorf("ids not unique: %q vs %q", resp.Logs[0].ID, resp.Logs[1].ID)
+		}
+	})
+
+	t.Run("no lines is an empty array, not null", func(t *testing.T) {
+		router, rt := setupRouter(t)
+		rt.EXPECT().Logs(gomock.Any(), name, gomock.Any()).Return(nil, nil)
+
+		w := request(router, http.MethodGet, base, "")
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200", w.Code)
+		}
+		if !strings.Contains(w.Body.String(), `"logs":[]`) {
+			t.Errorf("body = %s, want empty logs array", w.Body)
+		}
+	})
+
+	t.Run("tail and since forwarded", func(t *testing.T) {
+		router, rt := setupRouter(t)
+		since := time.Date(2026, 6, 13, 9, 0, 0, 0, time.UTC)
+		rt.EXPECT().Logs(gomock.Any(), name, domain.LogOptions{Tail: 10, Since: since}).Return(nil, nil)
+
+		w := request(router, http.MethodGet, base+"?tail=10&since=2026-06-13T09:00:00Z", "")
+		if w.Code != http.StatusOK {
+			t.Errorf("status = %d, want 200; body %s", w.Code, w.Body)
+		}
+	})
+
+	t.Run("oversized tail clamps to the cap", func(t *testing.T) {
+		router, rt := setupRouter(t)
+		rt.EXPECT().Logs(gomock.Any(), name, domain.LogOptions{Tail: 1000}).Return(nil, nil)
+
+		if w := request(router, http.MethodGet, base+"?tail=5000", ""); w.Code != http.StatusOK {
+			t.Errorf("status = %d, want 200", w.Code)
+		}
+	})
+
+	t.Run("invalid tail", func(t *testing.T) {
+		router, _ := setupRouter(t)
+		for _, tail := range []string{"abc", "0", "-5"} {
+			if w := request(router, http.MethodGet, base+"?tail="+tail, ""); w.Code != http.StatusBadRequest {
+				t.Errorf("tail=%s: status = %d, want 400", tail, w.Code)
+			}
+		}
+	})
+
+	t.Run("invalid since", func(t *testing.T) {
+		router, _ := setupRouter(t)
+		if w := request(router, http.MethodGet, base+"?since=yesterday", ""); w.Code != http.StatusBadRequest {
+			t.Errorf("status = %d, want 400", w.Code)
+		}
+	})
+
+	t.Run("missing container is 404", func(t *testing.T) {
+		router, rt := setupRouter(t)
+		rt.EXPECT().Logs(gomock.Any(), name, gomock.Any()).Return(nil, domain.ErrNotFound)
+
+		if w := request(router, http.MethodGet, base, ""); w.Code != http.StatusNotFound {
+			t.Errorf("status = %d, want 404", w.Code)
+		}
+	})
+
+	t.Run("non-uuid id", func(t *testing.T) {
+		router, _ := setupRouter(t)
+		if w := request(router, http.MethodGet, "/v1/apps/not-a-uuid/logs", ""); w.Code != http.StatusBadRequest {
+			t.Errorf("status = %d, want 400", w.Code)
+		}
+	})
+}
+
+func TestStreamLogsEndpoint(t *testing.T) {
+	name := domain.AppContainerName(testAppID)
+	base := "/v1/apps/" + testAppID + "/logs/stream"
+	ts := time.Date(2026, 6, 13, 10, 0, 1, 0, time.UTC)
+
+	t.Run("streams ndjson until the channel closes", func(t *testing.T) {
+		router, rt := setupRouter(t)
+		ch := make(chan domain.LogLine, 2)
+		ch <- domain.LogLine{Timestamp: ts, Stream: "stdout", Message: "tick"}
+		ch <- domain.LogLine{Timestamp: ts.Add(time.Second), Stream: "stderr", Message: "tock"}
+		close(ch)
+		rt.EXPECT().FollowLogs(gomock.Any(), name, domain.LogOptions{Tail: 200}).Return((<-chan domain.LogLine)(ch), nil)
+
+		w := request(router, http.MethodGet, base, "")
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200; body %s", w.Code, w.Body)
+		}
+		if ct := w.Header().Get("Content-Type"); ct != "application/x-ndjson" {
+			t.Errorf("Content-Type = %q", ct)
+		}
+
+		raw := strings.TrimSpace(w.Body.String())
+		lines := strings.Split(raw, "\n")
+		if len(lines) != 2 {
+			t.Fatalf("got %d ndjson lines, want 2: %q", len(lines), raw)
+		}
+		var first, second LogEntryResponse
+		if err := json.Unmarshal([]byte(lines[0]), &first); err != nil {
+			t.Fatalf("line 0 not JSON: %v", err)
+		}
+		if err := json.Unmarshal([]byte(lines[1]), &second); err != nil {
+			t.Fatalf("line 1 not JSON: %v", err)
+		}
+		if first.Level != "info" || first.Message != "tick" {
+			t.Errorf("first = %+v", first)
+		}
+		if second.Level != "error" || second.Message != "tock" {
+			t.Errorf("second = %+v", second)
+		}
+	})
+
+	t.Run("missing container is 404", func(t *testing.T) {
+		router, rt := setupRouter(t)
+		rt.EXPECT().FollowLogs(gomock.Any(), name, gomock.Any()).Return(nil, domain.ErrNotFound)
+
+		if w := request(router, http.MethodGet, base, ""); w.Code != http.StatusNotFound {
+			t.Errorf("status = %d, want 404", w.Code)
+		}
+	})
+
+	t.Run("invalid tail", func(t *testing.T) {
+		router, _ := setupRouter(t)
+		if w := request(router, http.MethodGet, base+"?tail=abc", ""); w.Code != http.StatusBadRequest {
+			t.Errorf("status = %d, want 400", w.Code)
 		}
 	})
 }

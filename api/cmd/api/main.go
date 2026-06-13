@@ -17,6 +17,7 @@ import (
 	appApp "api/internal/app/app"
 
 	"api/internal/infra/postgres"
+	"api/internal/infra/servermanager"
 	"api/internal/infra/utils"
 	"net/http"
 	"os"
@@ -84,8 +85,18 @@ func main() {
 		DatabaseRepo: &dbRepo,
 		Clock: &clock,
 	}
+	// The servermanager is root-equivalent on the hosting server; refuse to
+	// start half-configured rather than failing per request.
+	smURL := os.Getenv("SERVERMANAGER_URL")
+	smToken := os.Getenv("SERVERMANAGER_TOKEN")
+	if smURL == "" || smToken == "" {
+		panic("SERVERMANAGER_URL and SERVERMANAGER_TOKEN are required")
+	}
+	smClient := servermanager.NewClient(smURL, smToken)
+
 	appDeps := appApp.Dependencies{
 		ApplicationRepo: &appRepo,
+		ServerManager: smClient,
 		Clock: &clock,
 	}
 

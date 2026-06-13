@@ -279,3 +279,72 @@ func TestGetAppStatus_Execute(t *testing.T) {
 		}
 	})
 }
+
+func TestGetAppLogs_Execute(t *testing.T) {
+	wantName := domain.AppContainerName(testAppID)
+	opts := domain.LogOptions{Tail: 50}
+
+	t.Run("lines pass through", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		rt := mocks.NewMockContainerRuntime(ctrl)
+		want := []domain.LogLine{{Stream: "stdout", Message: "hello"}}
+		rt.EXPECT().Logs(gomock.Any(), wantName, opts).Return(want, nil)
+
+		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
+		got, err := svc.Logs.Execute(context.Background(), testAppID, opts)
+		if err != nil {
+			t.Fatalf("Execute returned error: %v", err)
+		}
+		if len(got) != 1 || got[0] != want[0] {
+			t.Errorf("Execute = %+v, want %+v", got, want)
+		}
+	})
+
+	t.Run("not found propagates", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		rt := mocks.NewMockContainerRuntime(ctrl)
+		rt.EXPECT().Logs(gomock.Any(), wantName, opts).Return(nil, domain.ErrNotFound)
+
+		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
+		if _, err := svc.Logs.Execute(context.Background(), testAppID, opts); !errors.Is(err, domain.ErrNotFound) {
+			t.Errorf("err = %v, want ErrNotFound", err)
+		}
+	})
+}
+
+func TestFollowAppLogs_Execute(t *testing.T) {
+	wantName := domain.AppContainerName(testAppID)
+	opts := domain.LogOptions{Tail: 50}
+
+	t.Run("stream passes through", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		rt := mocks.NewMockContainerRuntime(ctrl)
+		ch := make(chan domain.LogLine, 1)
+		ch <- domain.LogLine{Stream: "stdout", Message: "live"}
+		close(ch)
+		rt.EXPECT().FollowLogs(gomock.Any(), wantName, opts).Return((<-chan domain.LogLine)(ch), nil)
+
+		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
+		got, err := svc.Follow.Execute(context.Background(), testAppID, opts)
+		if err != nil {
+			t.Fatalf("Execute returned error: %v", err)
+		}
+		if line, open := <-got; !open || line.Message != "live" {
+			t.Errorf("first line = %+v open = %v", line, open)
+		}
+		if _, open := <-got; open {
+			t.Error("channel still open, want closed")
+		}
+	})
+
+	t.Run("not found propagates", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		rt := mocks.NewMockContainerRuntime(ctrl)
+		rt.EXPECT().FollowLogs(gomock.Any(), wantName, opts).Return(nil, domain.ErrNotFound)
+
+		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
+		if _, err := svc.Follow.Execute(context.Background(), testAppID, opts); !errors.Is(err, domain.ErrNotFound) {
+			t.Errorf("err = %v, want ErrNotFound", err)
+		}
+	})
+}

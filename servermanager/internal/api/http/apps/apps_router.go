@@ -18,5 +18,7 @@ func SetupRouter(d apps.Dependencies, group *gin.RouterGroup) {
 		appGroup.POST("/stop", c.Stop)
 		appGroup.DELETE("", c.Remove)
 		appGroup.GET("", c.Status)
+		appGroup.GET("/logs", c.Logs)
+		appGroup.GET("/logs/stream", c.StreamLogs)
 	}
 }

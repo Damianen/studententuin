@@ -2,7 +2,13 @@ import ApplicationController from './application_controller';
 import ApplicationService from '@/services/application_service';
 
 vi.mock('@/services/application_service', () => ({
-	default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+	default: {
+		get: vi.fn(),
+		getLogs: vi.fn(),
+		post: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	},
 }));
 
 const app = {
@@ -64,6 +70,55 @@ describe('ApplicationController', () => {
 		await expect(
 			ApplicationController.create('sub-1', createDto)
 		).rejects.toThrow('Unsupported application type');
+	});
+
+	it('getLogs maps entries to display shape', async () => {
+		vi.mocked(ApplicationService.getLogs).mockResolvedValue({
+			code: 200,
+			message: 'success',
+			data: [
+				{
+					id: '1-0',
+					timestamp: '2026-06-13T10:00:01Z',
+					level: 'error',
+					message: 'tock',
+				},
+				{ id: '2-1', timestamp: '', level: 'weird', message: 'tick' },
+			],
+		});
+
+		const logs = await ApplicationController.getLogs('sub-1', 'app-1');
+		expect(ApplicationService.getLogs).toHaveBeenCalledWith('sub-1', 'app-1');
+		expect(logs).toHaveLength(2);
+		expect(logs[0].level).toBe('error');
+		expect(logs[0].message).toBe('tock');
+		// RFC3339 timestamps are shortened to a local HH:MM:SS for the terminal.
+		expect(logs[0].timestamp).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+		// Unknown levels narrow to info; missing timestamps get a placeholder.
+		expect(logs[1].level).toBe('info');
+		expect(logs[1].timestamp).toBe('--:--:--');
+	});
+
+	it('getLogs returns empty when the api omits data', async () => {
+		vi.mocked(ApplicationService.getLogs).mockResolvedValue({
+			code: 200,
+			message: 'success',
+		});
+
+		await expect(
+			ApplicationController.getLogs('sub-1', 'app-1')
+		).resolves.toEqual([]);
+	});
+
+	it('getLogs throws on non-200', async () => {
+		vi.mocked(ApplicationService.getLogs).mockResolvedValue({
+			code: 502,
+			message: 'log service unavailable',
+		});
+
+		await expect(
+			ApplicationController.getLogs('sub-1', 'app-1')
+		).rejects.toThrow('log service unavailable');
 	});
 
 	it('patch and delete throw on non-200', async () => {

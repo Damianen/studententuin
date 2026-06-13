@@ -24,6 +24,8 @@ type Service struct {
 	Stop   *StopApp
 	Remove *RemoveApp
 	Status *GetAppStatus
+	Logs   *GetAppLogs
+	Follow *FollowAppLogs
 }
 
 func NewService(d Dependencies) *Service {
@@ -42,6 +44,12 @@ func NewService(d Dependencies) *Service {
 			runtime: d.Runtime,
 		},
 		Status: &GetAppStatus{
+			runtime: d.Runtime,
+		},
+		Logs: &GetAppLogs{
+			runtime: d.Runtime,
+		},
+		Follow: &FollowAppLogs{
 			runtime: d.Runtime,
 		},
 	}

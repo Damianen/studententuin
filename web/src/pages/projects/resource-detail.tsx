@@ -693,8 +693,10 @@ export default function ResourceDetail({ kind }: { kind: ResourceKind }) {
 			)}
 			{activeTab === 'logs' && (
 				<LogsTerminal
+					key={resource.id}
 					kind={kind}
-					seedId={resource.id}
+					subdomainId={subdomain.id}
+					resourceId={resource.id}
 					resourceName={resource.name}
 				/>
 			)}

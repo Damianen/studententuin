@@ -1,6 +1,7 @@
 package app
 
 import (
+	"api/internal/app/ports"
 	"api/internal/domain"
 	"api/internal/mocks"
 	"context"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 )
 
 func TestCreateApplication_Execute(t *testing.T) {
@@ -203,6 +205,149 @@ func TestUpdateApplication_Execute(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetApplicationLogs_Execute(t *testing.T) {
+	appID := uuid.New()
+	subdomainID := uuid.New()
+	opts := ports.LogOptions{Tail: 200}
+	ownedApp := &domain.Application{ID: appID, SubdomainID: subdomainID}
+
+	tests := []struct {
+		name     string
+		setup    func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient)
+		wantErr  error
+		wantLogs int
+	}{
+		{
+			name: "success",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
+				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+				sm.EXPECT().Logs(gomock.Any(), appID.String(), opts).Return([]ports.LogEntry{
+					{ID: "1", Level: "info", Message: "tick"},
+				}, nil)
+			},
+			wantLogs: 1,
+		},
+		{
+			// The manager is never called for an app in someone else's
+			// subdomain — no sm.EXPECT() proves it.
+			name: "app in different subdomain",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
+				foreign := &domain.Application{ID: appID, SubdomainID: uuid.New()}
+				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(foreign, nil)
+			},
+			wantErr: ErrNotInSubdomain,
+		},
+		{
+			name: "app not found",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
+				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
+			},
+			wantErr: gorm.ErrRecordNotFound,
+		},
+		{
+			name: "never deployed means empty logs, not an error",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
+				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+				sm.EXPECT().Logs(gomock.Any(), appID.String(), opts).Return(nil, ports.ErrAppNotDeployed)
+			},
+			wantLogs: 0,
+		},
+		{
+			name: "manager failure propagates",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
+				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+				sm.EXPECT().Logs(gomock.Any(), appID.String(), opts).Return(nil, errors.New("connection refused"))
+			},
+			wantErr: errors.New("connection refused"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			ar := mocks.NewMockApplicationRepo(ctrl)
+			sm := mocks.NewMockServerManagerClient(ctrl)
+
+			tt.setup(ar, sm)
+
+			svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+			logs, err := svc.Logs.Execute(context.Background(), subdomainID.String(), appID.String(), opts)
+
+			if tt.wantErr != nil {
+				if err == nil {
+					t.Fatalf("expected error %q, got nil", tt.wantErr)
+				}
+				if !errors.Is(err, tt.wantErr) && err.Error() != tt.wantErr.Error() {
+					t.Fatalf("expected error %q, got %q", tt.wantErr, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if logs == nil {
+				t.Fatal("logs is nil, want a (possibly empty) slice")
+			}
+			if len(logs) != tt.wantLogs {
+				t.Fatalf("len(logs) = %d, want %d", len(logs), tt.wantLogs)
+			}
+		})
+	}
+}
+
+func TestStreamApplicationLogs_Execute(t *testing.T) {
+	appID := uuid.New()
+	subdomainID := uuid.New()
+	opts := ports.LogOptions{Tail: 200}
+	ownedApp := &domain.Application{ID: appID, SubdomainID: subdomainID}
+
+	t.Run("stream passes through", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		ch := make(chan ports.LogEntry, 1)
+		ch <- ports.LogEntry{ID: "1", Level: "info", Message: "live"}
+		close(ch)
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+		sm.EXPECT().StreamLogs(gomock.Any(), appID.String(), opts).Return((<-chan ports.LogEntry)(ch), nil)
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		got, err := svc.StreamLogs.Execute(context.Background(), subdomainID.String(), appID.String(), opts)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if entry := <-got; entry.Message != "live" {
+			t.Errorf("entry = %+v", entry)
+		}
+	})
+
+	t.Run("foreign subdomain never reaches the manager", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		foreign := &domain.Application{ID: appID, SubdomainID: uuid.New()}
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(foreign, nil)
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		if _, err := svc.StreamLogs.Execute(context.Background(), subdomainID.String(), appID.String(), opts); !errors.Is(err, ErrNotInSubdomain) {
+			t.Errorf("err = %v, want ErrNotInSubdomain", err)
+		}
+	})
+
+	t.Run("not deployed propagates", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+		sm.EXPECT().StreamLogs(gomock.Any(), appID.String(), opts).Return(nil, ports.ErrAppNotDeployed)
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		if _, err := svc.StreamLogs.Execute(context.Background(), subdomainID.String(), appID.String(), opts); !errors.Is(err, ports.ErrAppNotDeployed) {
+			t.Errorf("err = %v, want ErrAppNotDeployed", err)
+		}
+	})
 }
 
 func TestDeleteApplication_Execute(t *testing.T) {

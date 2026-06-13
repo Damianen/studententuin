@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Search, X } from 'lucide-react';
-import { makeLogs } from '@/lib/mock_telemetry';
 import type { LogLevel, ResourceKind } from '@/lib/mock_telemetry';
 import { cn } from '@/lib/utils';
+import { useLogStream } from '@/hooks/use_log_stream';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,14 +25,20 @@ const LEVEL_TEXT: Record<LogLevel, string> = {
 
 export function LogsTerminal({
 	kind,
-	seedId,
+	subdomainId,
+	resourceId,
 	resourceName,
 }: {
 	kind: ResourceKind;
-	seedId: string;
+	subdomainId: string;
+	resourceId: string;
 	resourceName: string;
 }) {
-	const logs = useMemo(() => makeLogs(seedId, kind), [seedId, kind]);
+	const { logs, loading, error, live } = useLogStream(
+		kind,
+		subdomainId,
+		resourceId,
+	);
 	const [search, setSearch] = useState('');
 	const [levels, setLevels] = useState<Set<LogLevel>>(new Set(LEVELS));
 	const terminalRef = useRef<HTMLDivElement>(null);
@@ -82,7 +88,13 @@ export function LogsTerminal({
 					What {resourceName} has been murmuring lately.
 				</CardDescription>
 				<CardAction className="flex items-center gap-2">
-					<DemoBadge />
+					{kind === 'database' && <DemoBadge />}
+					{live && (
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
+							<span className="size-1.5 animate-pulse rounded-full bg-primary" />
+							live
+						</span>
+					)}
 					<Button variant="outline" size="sm" onClick={downloadLogs}>
 						<Download className="size-3.5" />
 						Download
@@ -153,7 +165,17 @@ export function LogsTerminal({
 						</span>
 					</div>
 				))}
-				{filtered.length === 0 && (
+				{loading && (
+					<p className="py-8 text-center text-muted-foreground">
+						Listening for log lines…
+					</p>
+				)}
+				{!loading && error && (
+					<p className="py-8 text-center text-status-failed">
+						Could not fetch logs: {error}
+					</p>
+				)}
+				{!loading && !error && filtered.length === 0 && (
 					<p className="py-8 text-center text-muted-foreground">
 						No log lines match — the garden is quiet.
 					</p>

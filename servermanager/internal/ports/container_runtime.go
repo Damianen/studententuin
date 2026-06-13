@@ -15,4 +15,8 @@ type ContainerRuntime interface {
 	Remove(ctx context.Context, nameOrID string) error
 	Inspect(ctx context.Context, nameOrID string) (*domain.ContainerState, error)
 	Logs(ctx context.Context, nameOrID string, opts domain.LogOptions) ([]domain.LogLine, error)
+	// FollowLogs streams lines as the container produces them, until ctx is
+	// canceled or the container's log stream ends. The channel is closed when
+	// the stream ends; setup failures are returned synchronously.
+	FollowLogs(ctx context.Context, nameOrID string, opts domain.LogOptions) (<-chan domain.LogLine, error)
 }

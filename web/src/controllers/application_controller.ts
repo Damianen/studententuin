@@ -1,8 +1,26 @@
 import type {
 	CreateApplicationDto,
+	LogEntryDto,
 	UpdateApplicationDto,
 } from '../dtos/application_dtos';
+import type { LogEntry, LogLevel } from '../lib/mock_telemetry';
 import ApplicationService from '../services/application_service';
+
+const LOG_LEVELS: LogLevel[] = ['info', 'warn', 'error', 'debug'];
+
+// Shared by the one-shot fetch and the live websocket tail.
+export function mapLogEntry(entry: LogEntryDto): LogEntry {
+	return {
+		id: entry.id,
+		timestamp: entry.timestamp
+			? new Date(entry.timestamp).toLocaleTimeString([], { hour12: false })
+			: '--:--:--',
+		level: (LOG_LEVELS as string[]).includes(entry.level)
+			? (entry.level as LogLevel)
+			: 'info',
+		message: entry.message,
+	};
+}
 
 class ApplicationController {
 	public static async get(subdomainId: string, appId: string) {
@@ -11,6 +29,18 @@ class ApplicationController {
 			throw new Error(response.message);
 		}
 		return response.data;
+	}
+
+	public static async getLogs(
+		subdomainId: string,
+		appId: string,
+	): Promise<LogEntry[]> {
+		const response = await ApplicationService.getLogs(subdomainId, appId);
+		if (response.code != 200) {
+			throw new Error(response.message);
+		}
+		// The api omits `data` entirely when there are no log lines.
+		return (response.data ?? []).map(mapLogEntry);
 	}
 
 	public static async create(

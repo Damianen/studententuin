@@ -26,3 +26,10 @@ type ApplicationListResponse struct {
 	RepoUrl string `json:"repo_url"`
 	Branch string `json:"branch"`
 }
+
+type LogEntryResponse struct {
+	ID string `json:"id"`
+	Timestamp string `json:"timestamp"` // RFC3339Nano, UTC
+	Level string `json:"level"`
+	Message string `json:"message"`
+}

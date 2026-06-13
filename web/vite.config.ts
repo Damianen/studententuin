@@ -14,6 +14,7 @@ export default defineConfig({
 		proxy: {
 			'/api': {
 				target: process.env.API_PROXY_TARGET ?? 'http://localhost:8090',
+				ws: true, // live log tail
 				rewrite: (p) => p.replace(/^\/api/, ''),
 				// Strip the Origin header so the API's CORS middleware
 				// treats proxied requests as same-origin.
