@@ -19,5 +19,9 @@ func SetupRouter(d app.Dependencies, sd subdomain.Dependencies, middleware middl
 		appGroup.GET("/:appId", middleware.Auth, c.Get)
 		appGroup.GET("/:appId/logs", middleware.Auth, c.GetLogs)
 		appGroup.GET("/:appId/logs/stream", middleware.Auth, c.StreamLogs)
+		appGroup.POST("/:appId/deploy", middleware.Auth, c.Deploy)
+		appGroup.GET("/:appId/deployment/:deploymentId", middleware.Auth, c.GetDeployment)
+		appGroup.POST("/:appId/start", middleware.Auth, c.Start)
+		appGroup.POST("/:appId/stop", middleware.Auth, c.Stop)
 	}
 }

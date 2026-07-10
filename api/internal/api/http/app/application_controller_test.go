@@ -546,6 +546,7 @@ func TestDeleteApplication(t *testing.T) {
 		application := &domain.Application{ID: appID}
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
 		m.applicationRepo.EXPECT().FindByID(appID.String(), gomock.Any()).Return(application, nil)
+		m.serverManager.EXPECT().Remove(gomock.Any(), appID.String()).Return(nil)
 		m.applicationRepo.EXPECT().Delete(application, gomock.Any()).Return(nil)
 
 		w := doJSON(r, http.MethodDelete, path, "", authCookie(t, ownerID.String()))

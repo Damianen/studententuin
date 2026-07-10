@@ -2,6 +2,7 @@ package auth
 
 import (
 	"api/internal/infra/utils"
+	"strings"
 	"testing"
 	"time"
 
@@ -67,8 +68,15 @@ func TestJwtTokenizer_VerifyToken_TamperedToken(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Tamper with the token by modifying the last character
-	tampered := tokenStr[:len(tokenStr)-1] + "X"
+	// Tamper with the first character of the signature. (Not the last one:
+	// base64url ignores its trailing bits, so a last-char change can decode
+	// to the same signature and made this test flaky.)
+	sigStart := strings.LastIndexByte(tokenStr, '.') + 1
+	flipped := byte('A')
+	if tokenStr[sigStart] == 'A' {
+		flipped = 'B'
+	}
+	tampered := tokenStr[:sigStart] + string(flipped) + tokenStr[sigStart+1:]
 
 	_, err = tok.VerifyToken(tampered)
 	if err == nil {

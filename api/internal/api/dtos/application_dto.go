@@ -33,3 +33,20 @@ type LogEntryResponse struct {
 	Level string `json:"level"`
 	Message string `json:"message"`
 }
+
+type DeployApplicationResponse struct {
+	DeploymentID string `json:"deployment_id"`
+}
+
+// DeploymentStatusResponse is the poll shape for deploy progress: status
+// moves queued → cloning → building → starting → running | failed, with the
+// error and a build-log tail attached on failure.
+type DeploymentStatusResponse struct {
+	ID        string `json:"id"`
+	Status    string `json:"status"`
+	Error     string `json:"error,omitempty"`
+	CommitSHA string `json:"commit_sha,omitempty"`
+	BuildLog  string `json:"build_log,omitempty"`
+	CreatedAt string `json:"created_at"` // RFC3339, UTC
+	UpdatedAt string `json:"updated_at"` // RFC3339, UTC
+}
