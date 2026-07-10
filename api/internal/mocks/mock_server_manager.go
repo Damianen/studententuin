@@ -41,6 +41,36 @@ func (m *MockServerManagerClient) EXPECT() *MockServerManagerClientMockRecorder 
 	return m.recorder
 }
 
+// Deploy mocks base method.
+func (m *MockServerManagerClient) Deploy(ctx context.Context, appID string, spec ports.DeploySpec) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Deploy", ctx, appID, spec)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Deploy indicates an expected call of Deploy.
+func (mr *MockServerManagerClientMockRecorder) Deploy(ctx, appID, spec any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deploy", reflect.TypeOf((*MockServerManagerClient)(nil).Deploy), ctx, appID, spec)
+}
+
+// DeploymentStatus mocks base method.
+func (m *MockServerManagerClient) DeploymentStatus(ctx context.Context, deploymentID string) (*ports.DeploymentStatus, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeploymentStatus", ctx, deploymentID)
+	ret0, _ := ret[0].(*ports.DeploymentStatus)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeploymentStatus indicates an expected call of DeploymentStatus.
+func (mr *MockServerManagerClientMockRecorder) DeploymentStatus(ctx, deploymentID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeploymentStatus", reflect.TypeOf((*MockServerManagerClient)(nil).DeploymentStatus), ctx, deploymentID)
+}
+
 // Logs mocks base method.
 func (m *MockServerManagerClient) Logs(ctx context.Context, appID string, opts ports.LogOptions) ([]ports.LogEntry, error) {
 	m.ctrl.T.Helper()
@@ -54,6 +84,48 @@ func (m *MockServerManagerClient) Logs(ctx context.Context, appID string, opts p
 func (mr *MockServerManagerClientMockRecorder) Logs(ctx, appID, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logs", reflect.TypeOf((*MockServerManagerClient)(nil).Logs), ctx, appID, opts)
+}
+
+// Remove mocks base method.
+func (m *MockServerManagerClient) Remove(ctx context.Context, appID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Remove", ctx, appID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Remove indicates an expected call of Remove.
+func (mr *MockServerManagerClientMockRecorder) Remove(ctx, appID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockServerManagerClient)(nil).Remove), ctx, appID)
+}
+
+// Start mocks base method.
+func (m *MockServerManagerClient) Start(ctx context.Context, appID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Start", ctx, appID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Start indicates an expected call of Start.
+func (mr *MockServerManagerClientMockRecorder) Start(ctx, appID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockServerManagerClient)(nil).Start), ctx, appID)
+}
+
+// Stop mocks base method.
+func (m *MockServerManagerClient) Stop(ctx context.Context, appID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Stop", ctx, appID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Stop indicates an expected call of Stop.
+func (mr *MockServerManagerClientMockRecorder) Stop(ctx, appID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockServerManagerClient)(nil).Stop), ctx, appID)
 }
 
 // StreamLogs mocks base method.
