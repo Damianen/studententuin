@@ -4,6 +4,7 @@ import "api/internal/app/ports"
 
 type Dependencies struct {
 	ApplicationRepo ports.ApplicationRepo
+	ServerManager ports.ServerManagerClient
 	Clock ports.Clock
 }
 
@@ -12,6 +13,8 @@ type Service struct {
 	Update *UpdateApplication
 	Delete *DeleteApplication
 	Get *GetApplication
+	Logs *GetApplicationLogs
+	StreamLogs *StreamApplicationLogs
 }
 
 func NewService(d Dependencies) *Service {
@@ -28,6 +31,14 @@ func NewService(d Dependencies) *Service {
 		},
 		Get: &GetApplication{
 			applicationRepo: d.ApplicationRepo,
+		},
+		Logs: &GetApplicationLogs{
+			applicationRepo: d.ApplicationRepo,
+			serverManager: d.ServerManager,
+		},
+		StreamLogs: &StreamApplicationLogs{
+			applicationRepo: d.ApplicationRepo,
+			serverManager: d.ServerManager,
 		},
 	}
 }

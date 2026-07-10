@@ -56,6 +56,21 @@ func (mr *MockContainerRuntimeMockRecorder) Create(ctx, spec any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockContainerRuntime)(nil).Create), ctx, spec)
 }
 
+// FollowLogs mocks base method.
+func (m *MockContainerRuntime) FollowLogs(ctx context.Context, nameOrID string, opts domain.LogOptions) (<-chan domain.LogLine, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FollowLogs", ctx, nameOrID, opts)
+	ret0, _ := ret[0].(<-chan domain.LogLine)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FollowLogs indicates an expected call of FollowLogs.
+func (mr *MockContainerRuntimeMockRecorder) FollowLogs(ctx, nameOrID, opts any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FollowLogs", reflect.TypeOf((*MockContainerRuntime)(nil).FollowLogs), ctx, nameOrID, opts)
+}
+
 // Inspect mocks base method.
 func (m *MockContainerRuntime) Inspect(ctx context.Context, nameOrID string) (*domain.ContainerState, error) {
 	m.ctrl.T.Helper()

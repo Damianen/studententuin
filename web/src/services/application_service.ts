@@ -1,6 +1,7 @@
 import type {
 	ApplicationDto,
 	CreateApplicationDto,
+	LogEntryDto,
 	UpdateApplicationDto,
 } from '../dtos/application_dtos';
 import ApiService from './api_service';
@@ -9,6 +10,12 @@ class ApplicationService {
 	public static async get(subdomainId: string, appId: string) {
 		return await ApiService.get<ApplicationDto>(
 			`/subdomain/${subdomainId}/application/${appId}`,
+		);
+	}
+
+	public static async getLogs(subdomainId: string, appId: string) {
+		return await ApiService.get<LogEntryDto[]>(
+			`/subdomain/${subdomainId}/application/${appId}/logs`,
 		);
 	}
 

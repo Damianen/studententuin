@@ -120,11 +120,6 @@ func (r *Runtime) Inspect(ctx context.Context, nameOrID string) (*domain.Contain
 	return state, nil
 }
 
-// Logs lands in phase 2.
-func (r *Runtime) Logs(ctx context.Context, nameOrID string, opts domain.LogOptions) ([]domain.LogLine, error) {
-	return nil, fmt.Errorf("logs: %w", errors.ErrUnsupported)
-}
-
 // parseDockerTime parses the inspect API's string timestamps. Docker uses
 // "0001-01-01T00:00:00Z" for never-started; that and garbage both map to the
 // zero time.

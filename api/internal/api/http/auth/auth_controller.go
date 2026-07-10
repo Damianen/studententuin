@@ -45,7 +45,9 @@ func (c *Controller) Login(ginc *gin.Context) {
 		Path:     "/",
 		Expires:  c.clock.Now().Add(24 * time.Hour),
 		MaxAge:   86400,
-		Secure:   false,
+		// Browsers exempt localhost from the Secure-over-HTTPS rule, so this
+		// stays compatible with local dev and the compose-based e2e stack.
+		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
@@ -58,7 +60,7 @@ func (c *Controller) Logout(ginc *gin.Context) {
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
-		Secure:   false,
+		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})

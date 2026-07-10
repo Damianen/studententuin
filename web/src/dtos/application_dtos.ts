@@ -24,3 +24,10 @@ export interface UpdateApplicationDto {
 	build_command?: string;
 	start_command?: string;
 }
+
+export interface LogEntryDto {
+	id: string;
+	timestamp: string; // RFC3339
+	level: string;
+	message: string;
+}

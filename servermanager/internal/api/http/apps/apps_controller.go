@@ -1,9 +1,12 @@
 package apps
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
+	"time"
 
 	"servermanager/internal/app/apps"
 	"servermanager/internal/domain"
@@ -112,6 +115,94 @@ func (c *Controller) Status(ginc *gin.Context) {
 		resp.StartedAt = &state.StartedAt
 	}
 	ginc.JSON(http.StatusOK, resp)
+}
+
+func (c *Controller) Logs(ginc *gin.Context) {
+	appID, ok := appID(ginc)
+	if !ok {
+		return
+	}
+	opts, ok := parseLogQuery(ginc)
+	if !ok {
+		return
+	}
+
+	lines, err := c.service.Logs.Execute(ginc.Request.Context(), appID, opts)
+	if err != nil {
+		respondServiceErr(ginc, "logs", appID, err)
+		return
+	}
+	ginc.JSON(http.StatusOK, toLogsResponse(lines))
+}
+
+// StreamLogs serves a live NDJSON log tail (one LogEntryResponse per line,
+// flushed as produced): recent history per ?tail=, then new lines as the
+// container writes them. The api bridges this stream onto a browser
+// WebSocket. Ends when the client disconnects or the container's log
+// stream closes.
+func (c *Controller) StreamLogs(ginc *gin.Context) {
+	appID, ok := appID(ginc)
+	if !ok {
+		return
+	}
+	opts, ok := parseLogQuery(ginc)
+	if !ok {
+		return
+	}
+
+	lines, err := c.service.Follow.Execute(ginc.Request.Context(), appID, opts)
+	if err != nil {
+		respondServiceErr(ginc, "follow logs", appID, err)
+		return
+	}
+
+	ginc.Header("Content-Type", "application/x-ndjson")
+	ginc.Header("Cache-Control", "no-cache")
+	ginc.Status(http.StatusOK)
+	ginc.Writer.Flush()
+
+	encoder := json.NewEncoder(ginc.Writer)
+	index := 0
+	for line := range lines {
+		// Encode appends the newline NDJSON needs.
+		if err := encoder.Encode(toLogEntryResponse(line, index)); err != nil {
+			return // client went away; ctx cancellation drains the channel
+		}
+		ginc.Writer.Flush()
+		index++
+	}
+}
+
+const (
+	defaultLogTail = 200
+	maxLogTail     = 1000
+)
+
+// parseLogQuery validates ?tail= and ?since=. tail is always concrete so the
+// adapter never does an unbounded read; values above the cap are clamped, not
+// rejected — the caller still gets the freshest lines.
+func parseLogQuery(ginc *gin.Context) (domain.LogOptions, bool) {
+	opts := domain.LogOptions{Tail: defaultLogTail}
+
+	if raw := ginc.Query("tail"); raw != "" {
+		tail, err := strconv.Atoi(raw)
+		if err != nil || tail < 1 {
+			respondErr(ginc, http.StatusBadRequest, "tail must be a positive integer")
+			return domain.LogOptions{}, false
+		}
+		opts.Tail = min(tail, maxLogTail)
+	}
+
+	if raw := ginc.Query("since"); raw != "" {
+		since, err := time.Parse(time.RFC3339, raw)
+		if err != nil {
+			respondErr(ginc, http.StatusBadRequest, "since must be an RFC3339 timestamp")
+			return domain.LogOptions{}, false
+		}
+		opts.Since = since
+	}
+
+	return opts, true
 }
 
 // appID validates the :id path param. Container and network names are

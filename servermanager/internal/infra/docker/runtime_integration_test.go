@@ -223,6 +223,120 @@ func TestIntegrationCreateConflict(t *testing.T) {
 	}
 }
 
+func TestIntegrationLogs(t *testing.T) {
+	r := integrationRuntime(t)
+	ctx := context.Background()
+	appID := uuid.NewString()
+	spec := integrationSpec(appID)
+	spec.Cmd = []string{"sh", "-c", "echo out-line; echo err-line >&2; sleep 3600"}
+	cleanupApp(t, r, appID)
+
+	cid, err := r.Create(ctx, spec)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if err := r.Start(ctx, cid); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	// The daemon flushes log lines asynchronously — poll briefly.
+	var lines []domain.LogLine
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		lines, err = r.Logs(ctx, domain.AppContainerName(appID), domain.LogOptions{Tail: 10})
+		if err != nil {
+			t.Fatalf("Logs: %v", err)
+		}
+		if len(lines) >= 2 || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+	if len(lines) != 2 {
+		t.Fatalf("got %d lines, want 2: %+v", len(lines), lines)
+	}
+
+	byMessage := map[string]domain.LogLine{}
+	for _, line := range lines {
+		byMessage[line.Message] = line
+		if line.Timestamp.IsZero() {
+			t.Errorf("line %q has zero timestamp", line.Message)
+		}
+	}
+	if byMessage["out-line"].Stream != "stdout" {
+		t.Errorf("out-line stream = %q, want stdout", byMessage["out-line"].Stream)
+	}
+	if byMessage["err-line"].Stream != "stderr" {
+		t.Errorf("err-line stream = %q, want stderr", byMessage["err-line"].Stream)
+	}
+
+	if tailed, err := r.Logs(ctx, cid, domain.LogOptions{Tail: 1}); err != nil || len(tailed) != 1 {
+		t.Errorf("Tail 1: lines = %d err = %v, want exactly 1 line", len(tailed), err)
+	}
+	if future, err := r.Logs(ctx, cid, domain.LogOptions{Tail: 10, Since: time.Now().Add(time.Hour)}); err != nil || len(future) != 0 {
+		t.Errorf("future Since: lines = %d err = %v, want 0 lines", len(future), err)
+	}
+
+	if _, err := r.Logs(ctx, domain.AppContainerName(uuid.NewString()), domain.LogOptions{Tail: 10}); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("Logs on unknown container = %v, want ErrNotFound", err)
+	}
+}
+
+func TestIntegrationFollowLogs(t *testing.T) {
+	r := integrationRuntime(t)
+	appID := uuid.NewString()
+	spec := integrationSpec(appID)
+	spec.Cmd = []string{"sh", "-c", "while true; do echo beat; sleep 0.2; done"}
+	cleanupApp(t, r, appID)
+
+	cid, err := r.Create(context.Background(), spec)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if err := r.Start(context.Background(), cid); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	lines, err := r.FollowLogs(ctx, domain.AppContainerName(appID), domain.LogOptions{})
+	if err != nil {
+		t.Fatalf("FollowLogs: %v", err)
+	}
+
+	// Live lines keep arriving while following.
+	var got int
+	timeout := time.After(10 * time.Second)
+	for got < 3 {
+		select {
+		case line, open := <-lines:
+			if !open {
+				t.Fatalf("stream closed after %d lines, want 3", got)
+			}
+			if line.Message != "beat" || line.Stream != "stdout" || line.Timestamp.IsZero() {
+				t.Fatalf("line = %+v", line)
+			}
+			got++
+		case <-timeout:
+			t.Fatalf("timed out after %d lines, want 3", got)
+		}
+	}
+
+	// Canceling the context ends the stream.
+	cancel()
+	deadline := time.After(5 * time.Second)
+	for {
+		select {
+		case _, open := <-lines:
+			if !open {
+				return
+			}
+		case <-deadline:
+			t.Fatal("stream not closed after context cancel")
+		}
+	}
+}
+
 func TestIntegrationStopTimeout(t *testing.T) {
 	// Guards the graceful-stop window: busybox sleep ignores SIGTERM, so a
 	// stop should take roughly stopTimeoutSeconds, not hang forever.

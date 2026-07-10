@@ -15,6 +15,25 @@ services:
       timeout: 3s
       retries: 10
 
+  servermanager:
+    build: ./servermanager
+    environment:
+      # Dev-only fallback; set a real SM_TOKEN in the environment for anything shared.
+      SM_TOKEN: ${SM_TOKEN:-dev-insecure-sm-token}
+      # The default 127.0.0.1 bind is unreachable from the api container.
+      SM_BIND_ADDR: 0.0.0.0
+    volumes:
+      # The manager legitimately holds the socket (it manages user
+      # containers); user containers themselves never get it. Containers it
+      # creates are siblings on the host daemon, outside this compose network.
+      - /var/run/docker.sock:/var/run/docker.sock
+    # No host port on purpose: only the api may talk to the manager.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build: ./api
     environment:
@@ -26,9 +45,13 @@ services:
       DB_SSLMODE: disable
       # Dev-only fallback; set a real JWT_TOKEN in the environment for anything shared.
       JWT_TOKEN: ${JWT_TOKEN:-dev-insecure-change-me}
+      SERVERMANAGER_URL: http://servermanager:8080
+      SERVERMANAGER_TOKEN: ${SM_TOKEN:-dev-insecure-sm-token}
       GIN_MODE: release
     depends_on:
       db:
+        condition: service_healthy
+      servermanager:
         condition: service_healthy
     # No host port on purpose (8080/8090 are taken locally); the web service
     # proxies /api to this container. To expose for debugging, add e.g.:
