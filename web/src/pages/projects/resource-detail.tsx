@@ -10,7 +10,9 @@ import {
 	Eye,
 	EyeOff,
 	GitBranch,
+	Play,
 	Plus,
+	Square,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import SubdomainController from '@/controllers/subdomain_controller';
@@ -64,6 +66,62 @@ const TAB_DEFS: Record<ResourceKind, Array<{ slug: string; label: string }>> = {
 
 function errorMessage(err: unknown): string {
 	return err instanceof Error ? err.message : 'Something went wrong';
+}
+
+// Stop/Start for the app's container. Hidden while a deploy is pending —
+// there is nothing sensible to drive until it settles.
+function LifecycleControls({
+	subdomainId,
+	appId,
+	status,
+	onChanged,
+}: {
+	subdomainId: string;
+	appId: string;
+	status: string;
+	onChanged: () => void;
+}) {
+	const [pending, setPending] = useState(false);
+	const running = status.toLowerCase() === 'running';
+	const startable = ['stopped', 'failed'].includes(status.toLowerCase());
+	if (!running && !startable) {
+		return null;
+	}
+
+	const act = async () => {
+		setPending(true);
+		try {
+			if (running) {
+				await ApplicationController.stop(subdomainId, appId);
+				toast.success('Application stopped');
+			} else {
+				await ApplicationController.start(subdomainId, appId);
+				toast.success('Application started');
+			}
+			onChanged();
+		} catch (err) {
+			toast.error(errorMessage(err));
+		} finally {
+			setPending(false);
+		}
+	};
+
+	return (
+		<Button
+			variant="outline"
+			size="sm"
+			className="ml-auto"
+			disabled={pending}
+			onClick={act}
+		>
+			{running ? (
+				<Square className="size-3.5" />
+			) : (
+				<Play className="size-3.5" />
+			)}
+			{running ? 'Stop' : 'Start'}
+		</Button>
+	);
 }
 
 function InfoTerm({ children }: { children: React.ReactNode }) {
@@ -642,6 +700,14 @@ export default function ResourceDetail({ kind }: { kind: ResourceKind }) {
 						{resource.name}
 					</h1>
 					<StatusBadge status={resource.status} />
+					{kind === 'application' && (
+						<LifecycleControls
+							subdomainId={subdomain.id}
+							appId={resource.id}
+							status={resource.status}
+							onChanged={reload}
+						/>
+					)}
 				</div>
 				<div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
 					<span className="font-mono text-xs">{subdomain.fullDomain}</span>
@@ -708,6 +774,10 @@ export default function ResourceDetail({ kind }: { kind: ResourceKind }) {
 					seedId={resource.id}
 					branch={(resource as ApplicationDto).branch}
 					resourceName={resource.name}
+					subdomainId={subdomain.id}
+					appId={resource.id}
+					repoUrl={(resource as ApplicationDto).repo_url}
+					onChanged={reload}
 				/>
 			)}
 			{activeTab === 'settings' && (

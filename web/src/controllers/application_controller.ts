@@ -1,5 +1,6 @@
 import type {
 	CreateApplicationDto,
+	DeploymentStatusDto,
 	LogEntryDto,
 	UpdateApplicationDto,
 } from '../dtos/application_dtos';
@@ -72,6 +73,49 @@ class ApplicationController {
 
 	public static async delete(subdomainId: string, appId: string) {
 		const response = await ApplicationService.delete(subdomainId, appId);
+		if (response.code != 200) {
+			throw new Error(response.message);
+		}
+	}
+
+	// Queues a deploy of the stored repository; resolves to the deployment id
+	// to poll with getDeployment.
+	public static async deploy(
+		subdomainId: string,
+		appId: string,
+	): Promise<string> {
+		const response = await ApplicationService.deploy(subdomainId, appId);
+		if (response.code != 202 || !response.data) {
+			throw new Error(response.message);
+		}
+		return response.data.deployment_id;
+	}
+
+	public static async getDeployment(
+		subdomainId: string,
+		appId: string,
+		deploymentId: string,
+	): Promise<DeploymentStatusDto> {
+		const response = await ApplicationService.getDeployment(
+			subdomainId,
+			appId,
+			deploymentId,
+		);
+		if (response.code != 200 || !response.data) {
+			throw new Error(response.message);
+		}
+		return response.data;
+	}
+
+	public static async start(subdomainId: string, appId: string) {
+		const response = await ApplicationService.start(subdomainId, appId);
+		if (response.code != 200) {
+			throw new Error(response.message);
+		}
+	}
+
+	public static async stop(subdomainId: string, appId: string) {
+		const response = await ApplicationService.stop(subdomainId, appId);
 		if (response.code != 200) {
 			throw new Error(response.message);
 		}
