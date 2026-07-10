@@ -132,6 +132,22 @@ func TestRunApp_Execute_SpecBuilding(t *testing.T) {
 	}
 }
 
+func TestRunApp_Validate(t *testing.T) {
+	// Validate must never touch the runtime — gomock fails on any call.
+	ctrl := gomock.NewController(t)
+	svc := NewService(Dependencies{Runtime: mocks.NewMockContainerRuntime(ctrl), Limits: testLimits()})
+
+	if err := svc.Run.Validate(validRunInput()); err != nil {
+		t.Errorf("Validate(valid) = %v, want nil", err)
+	}
+
+	bad := validRunInput()
+	bad.Port = 99999
+	if err := svc.Run.Validate(bad); !errors.Is(err, domain.ErrInvalid) {
+		t.Errorf("Validate(bad port) = %v, want ErrInvalid", err)
+	}
+}
+
 func TestRunApp_Execute_Rejections(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -177,13 +193,13 @@ func TestRunApp_Execute_RuntimeFailures(t *testing.T) {
 		}
 	})
 
-	t.Run("failed start removes the container", func(t *testing.T) {
+	t.Run("failed start removes the container but keeps the network", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		rt := mocks.NewMockContainerRuntime(ctrl)
 		startErr := errors.New("boom")
 		rt.EXPECT().Create(gomock.Any(), gomock.Any()).Return("cid-1", nil)
 		rt.EXPECT().Start(gomock.Any(), "cid-1").Return(startErr)
-		rt.EXPECT().Remove(gomock.Any(), "cid-1").Return(nil)
+		rt.EXPECT().RemoveContainer(gomock.Any(), "cid-1").Return(nil)
 
 		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
 		if _, err := svc.Run.Execute(context.Background(), validRunInput()); !errors.Is(err, startErr) {

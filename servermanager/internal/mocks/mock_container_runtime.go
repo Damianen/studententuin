@@ -115,6 +115,20 @@ func (mr *MockContainerRuntimeMockRecorder) Remove(ctx, nameOrID any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockContainerRuntime)(nil).Remove), ctx, nameOrID)
 }
 
+// RemoveContainer mocks base method.
+func (m *MockContainerRuntime) RemoveContainer(ctx context.Context, nameOrID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveContainer", ctx, nameOrID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveContainer indicates an expected call of RemoveContainer.
+func (mr *MockContainerRuntimeMockRecorder) RemoveContainer(ctx, nameOrID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveContainer", reflect.TypeOf((*MockContainerRuntime)(nil).RemoveContainer), ctx, nameOrID)
+}
+
 // Start mocks base method.
 func (m *MockContainerRuntime) Start(ctx context.Context, nameOrID string) error {
 	m.ctrl.T.Helper()

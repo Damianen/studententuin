@@ -53,12 +53,22 @@ func (u *RunApp) Execute(ctx context.Context, in RunInput) (string, error) {
 	}
 
 	if err := u.runtime.Start(ctx, containerID); err != nil {
-		if rmErr := u.runtime.Remove(ctx, containerID); rmErr != nil {
+		// Keep the per-app network: a failed start must not tear down what
+		// other attachments (or the next deploy attempt) still need.
+		if rmErr := u.runtime.RemoveContainer(ctx, containerID); rmErr != nil {
 			slog.Error("removing container after failed start", "container_id", containerID, "error", rmErr)
 		}
 		return "", err
 	}
 	return containerID, nil
+}
+
+// Validate runs the full input validation (image ref, port, env keys,
+// volumes, runtime allowlist, limit caps) without touching Docker, so the
+// deploy endpoint can reject bad requests before accepting the async job.
+func (u *RunApp) Validate(in RunInput) error {
+	_, err := u.buildSpec(in)
+	return err
 }
 
 func (u *RunApp) buildSpec(in RunInput) (*domain.ContainerSpec, error) {

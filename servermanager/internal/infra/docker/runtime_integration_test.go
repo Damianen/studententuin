@@ -189,6 +189,35 @@ func TestIntegrationLifecycle(t *testing.T) {
 	}
 }
 
+func TestIntegrationRemoveContainerKeepsNetwork(t *testing.T) {
+	r := integrationRuntime(t)
+	ctx := context.Background()
+	appID := uuid.NewString()
+	spec := integrationSpec(appID)
+	cleanupApp(t, r, appID)
+
+	cid, err := r.Create(ctx, spec)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+
+	if err := r.RemoveContainer(ctx, cid); err != nil {
+		t.Fatalf("RemoveContainer: %v", err)
+	}
+	if _, err := r.Inspect(ctx, domain.AppContainerName(appID)); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("Inspect after RemoveContainer = %v, want ErrNotFound", err)
+	}
+	// The per-app network must survive: deploy cutover replaces the container
+	// in place and re-attaches to the same network.
+	if _, err := r.cli.NetworkInspect(ctx, domain.AppNetworkName(appID), client.NetworkInspectOptions{}); err != nil {
+		t.Errorf("app network gone after RemoveContainer: %v", err)
+	}
+
+	if _, err := r.Create(ctx, spec); err != nil {
+		t.Fatalf("re-Create after RemoveContainer: %v", err)
+	}
+}
+
 func TestIntegrationInspectUnknown(t *testing.T) {
 	r := integrationRuntime(t)
 	if _, err := r.Inspect(context.Background(), domain.AppContainerName(uuid.NewString())); !errors.Is(err, domain.ErrNotFound) {
