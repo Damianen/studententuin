@@ -111,7 +111,9 @@ servermanager/
 
 Key rules carried over from `IMPROVEMENTS.md`:
 
-- **Docker Go SDK** (`github.com/docker/docker/client`) everywhere. Never
+- **Docker Go SDK** (`github.com/moby/moby/client` + `github.com/moby/moby/api` —
+  Engine v29 moved SDK releases there; the old `github.com/docker/docker` module is
+  frozen at v28.5.x and no longer gets CVE fixes) everywhere. Never
   `exec.Command("docker", ...)` — repo URLs, env values and app names are user input;
   string-built shell commands are command injection.
 - Ports (interfaces) + adapters, so services are unit-testable with a mocked
@@ -129,10 +131,12 @@ names from it (`stt-app-<uuid>`, `stt-db-<uuid>`) — names are never user input
 |---|---|
 | `POST /v1/apps/:id/deploy` | async: clone → build → (re)create container → start. Returns `202 {deployment_id}` |
 | `GET  /v1/deployments/:id` | job status: `queued → cloning → building → starting → running \| failed` + error detail + build log tail |
+| `POST /v1/apps/:id/run` | sync create+start from a prebuilt image (phase 1; phase 3's deploy ends in this same service path). 409 if the container exists — DELETE first |
 | `POST /v1/apps/:id/start` / `:id/stop` | lifecycle on the existing container |
-| `DELETE /v1/apps/:id` | remove container + image + volumes + network |
+| `DELETE /v1/apps/:id` | remove container + network + anonymous volumes. Image removal deferred to phase 3 (manager doesn't own hand-pushed images); named-volume removal deferred to phase 3/5 |
 | `GET  /v1/apps/:id` | actual Docker state (exists, running, started-at, restart count) |
 | `GET  /v1/apps/:id/logs?tail=200&since=<rfc3339>` | structured log lines from the Docker logs API |
+| `GET  /v1/apps/:id/logs/stream?tail=200` | live NDJSON log tail (`follow=true`); the api bridges it onto a browser WebSocket |
 | `GET  /v1/apps/:id/metrics?range=24h` | series matching the frontend contract (phase 6) |
 | `GET  /health` | unauthenticated liveness for compose/CI |
 
@@ -144,7 +148,7 @@ Deploy request body (everything the api already stores on `domain.Application`):
   "branch": "main",
   "type": "Nodejs",
   "build_command": null,
-  "start_command": null,
+  "start_command": null,  // on /run this is an argv ARRAY — the manager never shell-splits strings
   "env": {"NODE_ENV": "production"},
   "port": 3000,
   "memory_limit": "256m",
@@ -288,34 +292,39 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
 ## 6. Phased delivery (the build order)
 
 ### Phase 0 — Skeleton & contract ✦ start here
-- [ ] Restructure `servermanager/` into the §3.1 layout (`cmd/`, `internal/...`)
-- [ ] Config loading (`SM_PORT`, `SM_TOKEN`, `SM_BIND_ADDR`, `SM_DEFAULT_RUNTIME`,
+- [x] Restructure `servermanager/` into the §3.1 layout (`cmd/`, `internal/...`)
+- [x] Config loading (`SM_PORT`, `SM_TOKEN`, `SM_BIND_ADDR`, `SM_DEFAULT_RUNTIME`,
       limits caps); fail fast if `SM_TOKEN` missing
-- [ ] Gin (or stdlib) router + bearer-token middleware (constant-time compare),
+- [x] Gin (or stdlib) router + bearer-token middleware (constant-time compare),
       `/health`, slog logging
-- [ ] Define `ports.ContainerRuntime` + domain types (`ContainerSpec`,
+- [x] Define `ports.ContainerRuntime` + domain types (`ContainerSpec`,
       `DeploymentJob`, limit parsing `"256m"`/`"0.5"` → bytes/NanoCPUs, with tests)
-- [ ] CI: make sure `servermanager-tests.yml` runs the new tests + gosec/govulncheck
+- [x] CI: make sure `servermanager-tests.yml` runs the new tests + gosec/govulncheck
       like the api workflow
 
 ### Phase 1 — Container lifecycle on a prebuilt image
-- [ ] Docker SDK adapter: create/start/stop/remove/inspect with the full §3.3
+- [x] Docker SDK adapter: create/start/stop/remove/inspect with the full §3.3
       hardening (limits, no-new-privileges, cap-drop, per-app network, log rotation,
       configurable runtime)
-- [ ] Routes: start/stop/remove/status against a hand-pushed test image
-- [ ] Unit tests with mocked runtime; integration test behind a build tag that talks
+- [x] Routes: start/stop/remove/status against a hand-pushed test image (plus
+      `POST /v1/apps/:id/run` to create+start from a prebuilt image — the path
+      phase 3's deploy job will reuse)
+- [x] Unit tests with mocked runtime; integration test behind a build tag that talks
       to real Docker (runs in CI on the ubuntu runner)
-- [ ] **Acceptance**: `curl` against the manager can run, stop, and inspect a
+- [x] **Acceptance**: `curl` against the manager can run, stop, and inspect a
       hardened hello-world container with memory/CPU limits visible in `docker inspect`
 
 ### Phase 2 — Logs end-to-end (first mock replaced 🎉)
-- [ ] Manager: `GET /v1/apps/:id/logs` from the Docker logs API (tail, since,
+- [x] Manager: `GET /v1/apps/:id/logs` from the Docker logs API (tail, since,
       timestamps; stdout→info, stderr→error)
-- [ ] api: `ServerManagerClient` port + HTTP adapter + mock; logs usecase with
-      ownership check; `GET .../logs` route
-- [ ] web: `getLogs` service + wire `logs-terminal.tsx`, remove its `DemoBadge`
-- [ ] **Acceptance**: the dashboard logs tab shows real output of a real container
-- [ ] Stretch: SSE/chunked `follow=true` for live tail
+- [x] api: `ServerManagerClient` port + HTTP adapter + mock; logs usecase with
+      ownership check (incl. app-belongs-to-subdomain); `GET .../logs` route
+- [x] web: `getLogs` service + wire `logs-terminal.tsx` (5s poll), `DemoBadge`
+      stays only on database logs (mock until phase 5)
+- [x] **Acceptance**: the dashboard logs tab shows real output of a real container
+- [x] Stretch: live tail — WebSocket end-to-end (manager `follow=true` NDJSON
+      stream → api WS bridge via `coder/websocket` → web, poll fallback when
+      the stream is unavailable; needed gin ≥ 1.12 in the api)
 
 ### Phase 3 — Deploy from git
 - [ ] `SourceFetcher` (go-git, URL validation, depth-1, size+time caps)
@@ -370,9 +379,11 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
       rule in CI as backstop)
 - [ ] Bearer token: ≥32 random bytes, constant-time compare, private interface bind,
       never logged
-- [ ] Every container: limits + pids cap + no-new-privileges + cap-drop ALL +
+- [x] Every container: limits + pids cap + no-new-privileges + cap-drop ALL +
       isolated network + no socket + log rotation (§3.3) — covered by a unit test
       that asserts the generated `HostConfig`
+      (`internal/infra/docker/spec_mapper_test.go`, plus the daemon-side twin in
+      the integration test)
 - [ ] Repo URL validation (scheme/host allowlist) + clone size/time caps
 - [ ] Image/version allowlists for databases; runtime allowlist
 - [ ] Builds run containerized, throwaway, resource-limited
