@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { makeDeployments, seededInt } from '@/lib/mock_telemetry';
 import type { DeploymentStatus } from '@/lib/mock_telemetry';
 import { cn } from '@/lib/utils';
+import { useDeployment } from '@/hooks/use_deployment';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
@@ -15,6 +16,13 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { DemoBadge } from '@/components/resource/demo-badge';
+
+const STAGE_LABELS: Record<string, string> = {
+	queued: 'Queued',
+	cloning: 'Cloning repository',
+	building: 'Building image',
+	starting: 'Starting container',
+};
 
 const STATUS_META: Record<
 	DeploymentStatus,
@@ -44,11 +52,32 @@ export function DeploymentsList({
 	seedId,
 	branch,
 	resourceName,
+	subdomainId,
+	appId,
+	repoUrl,
+	onChanged,
 }: {
 	seedId: string;
 	branch: string;
 	resourceName: string;
+	subdomainId: string;
+	appId: string;
+	repoUrl: string;
+	onChanged?: () => void;
 }) {
+	const { deploying, stage, error, buildLog, deploy } = useDeployment(
+		subdomainId,
+		appId,
+		(ok) => {
+			if (ok) {
+				toast.success(`${resourceName} is live`);
+			} else {
+				toast.error('Deployment failed');
+			}
+			onChanged?.();
+		},
+	);
+
 	const deployments = useMemo(
 		() => makeDeployments(seedId, branch),
 		[seedId, branch],
@@ -94,18 +123,64 @@ export function DeploymentsList({
 						<DemoBadge />
 						<Button
 							size="sm"
-							onClick={() =>
-								toast.info(
-									`Deploys from the dashboard are coming soon — push to ${branch} to redeploy.`,
-								)
-							}
+							disabled={deploying || !repoUrl}
+							title={!repoUrl ? 'Set a repository URL first' : undefined}
+							onClick={deploy}
 						>
-							<Rocket className="size-3.5" />
-							Deploy now
+							{deploying ? (
+								<RefreshCw className="size-3.5 animate-spin" />
+							) : (
+								<Rocket className="size-3.5" />
+							)}
+							{deploying ? 'Deploying…' : 'Deploy now'}
 						</Button>
 					</CardAction>
 				</CardHeader>
 				<div className="divide-y border-t">
+					{deploying && (
+						<div className="flex items-start gap-4 bg-status-pending/5 px-6 py-5">
+							<span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-status-pending/10 text-status-pending">
+								<RefreshCw className="size-4 animate-spin" />
+							</span>
+							<div className="min-w-0 flex-1 space-y-1.5">
+								<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+									<span className="font-medium text-status-pending">
+										Deploying
+									</span>
+									<span>·</span>
+									<span>{STAGE_LABELS[stage ?? ''] ?? stage}</span>
+								</div>
+								<p className="truncate text-sm font-medium">
+									Building {resourceName} from {branch}
+								</p>
+							</div>
+						</div>
+					)}
+					{!deploying && error && (
+						<div className="space-y-3 bg-status-failed/5 px-6 py-5">
+							<div className="flex items-start gap-4">
+								<span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-status-failed/10 text-status-failed">
+									<X className="size-4" />
+								</span>
+								<div className="min-w-0 flex-1 space-y-1.5">
+									<p className="text-xs font-medium text-status-failed">
+										Last deployment failed
+									</p>
+									<p className="text-sm">{error}</p>
+								</div>
+							</div>
+							{buildLog && (
+								<details className="text-xs">
+									<summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+										Build log
+									</summary>
+									<pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded bg-muted/60 p-3 font-mono text-[11px] leading-relaxed">
+										{buildLog}
+									</pre>
+								</details>
+							)}
+						</div>
+					)}
 					{deployments.map((deployment) => {
 						const meta = STATUS_META[deployment.status];
 						const StatusIcon = meta.icon;

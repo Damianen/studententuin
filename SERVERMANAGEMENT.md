@@ -327,15 +327,28 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
       the stream is unavailable; needed gin ≥ 1.12 in the api)
 
 ### Phase 3 — Deploy from git
-- [ ] `SourceFetcher` (go-git, URL validation, depth-1, size+time caps)
-- [ ] `ImageBuilder` (nixpacks or CNB — decide in §10; build inside a container)
-- [ ] Async deploy job + `GET /v1/deployments/:id`; cutover with health check;
-      failed build keeps old container, surfaces build log
-- [ ] api: deploy usecase, status poller, persist `DockerImage`/`DockerContainerID`/
-      `DockerContainerName`/`LastDeployedAt`/`Status`
-- [ ] web: enable the "Deploy now" button → deploy + status feedback
-- [ ] **Acceptance (= Epic 4 core)**: paste a GitHub URL of a Node app in the UI,
-      deploy, watch status go pending→running, see its real logs; stop it from the UI
+- [x] `SourceFetcher` (go-git, URL validation, depth-1, size+time caps)
+- [x] `ImageBuilder` (nixpacks — decided in §10; the binary only *generates*
+      `.nixpacks/Dockerfile`, the daemon builds it via `ImageBuild`, so build
+      steps run in daemon-managed containers, never on the host)
+- [x] Async deploy job + `GET /v1/deployments/:id`; cutover replaces the
+      container in place (network survives) with an inspect-after-grace health
+      check; failed clone/build keeps the old container running, failed deploys
+      surface the error + build-log tail; images GC'd to the last successful
+- [x] api: deploy usecase, status poller, persist `DockerImage`/`DockerContainerID`/
+      `DockerContainerName`/`LastDeployedAt`/`Status`; start/stop routes; delete
+      now removes the container on the hosting server first (§4)
+- [x] web: "Deploy now" → live stage feedback (cloning/building/starting),
+      failure panel with build log, Stop/Start controls in the resource header
+- [x] **Acceptance (= Epic 4 core)**: paste a GitHub URL of a Node app in the UI,
+      deploy, watch status go pending→running, see its real logs; stop it from
+      the UI. Covered end-to-end by `web/e2e/deploy.spec.ts` (needs
+      `E2E_DEPLOY_REPO`, see `e2e-fixtures/node-hello/README.md`) plus the
+      manager-side `TestIntegrationDeployPipeline`.
+- MVP limits (documented): manager restart loses in-memory jobs (api poller
+  fails after repeated 404s); no rollback-to-previous-image on failed start;
+  no build cache (`--no-cache` keeps the generated Dockerfile legacy-builder
+  compatible); deploys are single-flight per app.
 
 ### Phase 4 — Env vars & app settings round-trip
 - [ ] Deploy sends `EnvironmentVariables`; editing env vars in the UI persists via
@@ -375,8 +388,10 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
 
 ## 7. Security checklist (gate before anything public)
 
-- [ ] No `exec.Command` with user-influenced strings anywhere in the manager (gosec
-      rule in CI as backstop)
+- [x] No `exec.Command` with user-influenced strings anywhere in the manager (gosec
+      rule in CI as backstop). The one exec — the nixpacks generator — uses a
+      fixed argv (binary from config, fixed flags, manager-generated temp
+      paths); user values travel via a config file, never argv.
 - [ ] Bearer token: ≥32 random bytes, constant-time compare, private interface bind,
       never logged
 - [x] Every container: limits + pids cap + no-new-privileges + cap-drop ALL +
@@ -384,9 +399,12 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
       that asserts the generated `HostConfig`
       (`internal/infra/docker/spec_mapper_test.go`, plus the daemon-side twin in
       the integration test)
-- [ ] Repo URL validation (scheme/host allowlist) + clone size/time caps
+- [x] Repo URL validation (scheme/host allowlist, https-only, no credentials/
+      ports/queries) + clone size cap + per-stage timeouts
 - [ ] Image/version allowlists for databases; runtime allowlist
-- [ ] Builds run containerized, throwaway, resource-limited
+- [x] Builds run containerized (docker daemon legacy builder; each RUN step is
+      a container) on throwaway clones; build context tars never follow
+      symlinks and exclude `.git`
 - [ ] Env var values treated as secrets in logs (redact)
 - [ ] Disk quotas / volume size caps; image GC
 - [ ] Plays into Epic 5's "done": ZAP clean, SAST clean — manager endpoints are
@@ -416,6 +434,11 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
 | `SM_TOKEN` | both | shared bearer secret; fail fast if missing |
 | `SM_DEFAULT_RUNTIME` | servermanager | `runc` (research §1); `kata` allowlisted |
 | `SM_MAX_MEMORY` / `SM_MAX_CPU` / `SM_DEFAULT_*` | servermanager | server-side caps for user limits |
+| `SM_GIT_HOSTS` | servermanager | clone host allowlist; default `github.com,gitlab.com` |
+| `SM_CLONE_TIMEOUT` / `SM_CLONE_MAX_SIZE` | servermanager | defaults `120s` / `200m` |
+| `SM_BUILD_TIMEOUT` | servermanager | default `10m` |
+| `SM_HEALTH_GRACE` | servermanager | post-start health wait; default `3s`, capped at 60s |
+| `SM_NIXPACKS_BIN` | servermanager | default `nixpacks` (in the Docker image; pinned version) |
 | `SERVERMANAGER_URL` | api | e.g. `http://10.0.0.2:8080` |
 | `SERVERMANAGER_TOKEN` | api | same secret |
 
@@ -428,10 +451,11 @@ the host's Docker, outside the compose network — fine for dev.
 
 ## 10. Open decisions (input wanted)
 
-1. **Nixpacks vs Cloud Native Buildpacks** for builds. Nixpacks: single binary,
-   fast, simple; smaller ecosystem. CNB/`pack`: industry standard (Heroku/Paketo),
-   heavier. Both detect Node and respect custom build/start commands. Lean:
-   **Nixpacks for MVP** — swap is behind the `ImageBuilder` port either way.
+1. **Nixpacks vs Cloud Native Buildpacks** — ✅ decided (phase 3): **Nixpacks**.
+   Pinned release in the manager image + CI; generates the Dockerfile with
+   `--no-cache` (no BuildKit-only directives) and the daemon's legacy builder
+   builds it. Swapping to CNB (or BuildKit-over-the-port when the legacy
+   builder disappears) stays behind the `ImageBuilder` port.
 2. **Deploy status propagation**: api polls the manager (proposed, simplest) vs
    manager callbacks/webhooks to the api. Polling wins for MVP; revisit if we want
    live build logs streaming in the UI.

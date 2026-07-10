@@ -355,29 +355,51 @@ func TestDeleteApplication_Execute(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		setup   func(ar *mocks.MockApplicationRepo)
+		setup   func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient)
 		wantErr string
 	}{
 		{
-			name: "success",
-			setup: func(ar *mocks.MockApplicationRepo) {
+			name: "success removes the container first",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
 				a := &domain.Application{ID: appID}
 				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(a, nil)
+				sm.EXPECT().Remove(gomock.Any(), appID.String()).Return(nil)
 				ar.EXPECT().Delete(a, gomock.Any()).Return(nil)
 			},
 		},
 		{
+			name: "never deployed still deletes",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
+				a := &domain.Application{ID: appID}
+				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(a, nil)
+				sm.EXPECT().Remove(gomock.Any(), appID.String()).Return(ports.ErrAppNotDeployed)
+				ar.EXPECT().Delete(a, gomock.Any()).Return(nil)
+			},
+		},
+		{
+			name: "manager failure aborts the delete",
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
+				a := &domain.Application{ID: appID}
+				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(a, nil)
+				sm.EXPECT().Remove(gomock.Any(), appID.String()).Return(errors.New("manager unreachable"))
+				// No repo.Delete: the record must survive so the container
+				// can be removed on a retry.
+			},
+			wantErr: "manager unreachable",
+		},
+		{
 			name: "find error",
-			setup: func(ar *mocks.MockApplicationRepo) {
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
 				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(nil, errors.New("not found"))
 			},
 			wantErr: "not found",
 		},
 		{
 			name: "delete error",
-			setup: func(ar *mocks.MockApplicationRepo) {
+			setup: func(ar *mocks.MockApplicationRepo, sm *mocks.MockServerManagerClient) {
 				a := &domain.Application{ID: appID}
 				ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(a, nil)
+				sm.EXPECT().Remove(gomock.Any(), appID.String()).Return(nil)
 				ar.EXPECT().Delete(a, gomock.Any()).Return(errors.New("delete failed"))
 			},
 			wantErr: "delete failed",
@@ -388,10 +410,11 @@ func TestDeleteApplication_Execute(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			ar := mocks.NewMockApplicationRepo(ctrl)
+			sm := mocks.NewMockServerManagerClient(ctrl)
 
-			tt.setup(ar)
+			tt.setup(ar, sm)
 
-			svc := NewService(Dependencies{ApplicationRepo: ar})
+			svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
 			err := svc.Delete.Execute(context.Background(), appID.String())
 
 			if tt.wantErr != "" {

@@ -85,8 +85,7 @@ func (r *Runtime) Stop(ctx context.Context, nameOrID string) error {
 }
 
 // Remove force-removes the container (and its anonymous volumes — named
-// volumes are kept), then tears down its per-app networks. Image removal is
-// deferred to phase 3 when the manager owns the images it builds.
+// volumes are kept), then tears down its per-app networks.
 func (r *Runtime) Remove(ctx context.Context, nameOrID string) error {
 	res, err := r.cli.ContainerInspect(ctx, nameOrID, client.ContainerInspectOptions{})
 	if err != nil {
@@ -95,14 +94,22 @@ func (r *Runtime) Remove(ctx context.Context, nameOrID string) error {
 
 	networks := appNetworks(res)
 
-	if _, err := r.cli.ContainerRemove(ctx, nameOrID, client.ContainerRemoveOptions{
-		Force:         true,
-		RemoveVolumes: true,
-	}); err != nil {
-		return mapErr("remove "+nameOrID, err)
+	if err := r.RemoveContainer(ctx, nameOrID); err != nil {
+		return err
 	}
 
 	return r.removeNetworks(ctx, networks)
+}
+
+// RemoveContainer force-removes only the container (and its anonymous
+// volumes), keeping the per-app networks — deploy cutover replaces the
+// container in place.
+func (r *Runtime) RemoveContainer(ctx context.Context, nameOrID string) error {
+	_, err := r.cli.ContainerRemove(ctx, nameOrID, client.ContainerRemoveOptions{
+		Force:         true,
+		RemoveVolumes: true,
+	})
+	return mapErr("remove "+nameOrID, err)
 }
 
 func (r *Runtime) Inspect(ctx context.Context, nameOrID string) (*domain.ContainerState, error) {

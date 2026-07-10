@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 // clearEnv blanks every SM_* var so tests don't inherit the developer's shell.
 func clearEnv(t *testing.T) {
@@ -9,6 +12,8 @@ func clearEnv(t *testing.T) {
 		"SM_PORT", "SM_BIND_ADDR", "SM_TOKEN", "SM_DEFAULT_RUNTIME",
 		"SM_DEFAULT_MEMORY", "SM_MAX_MEMORY", "SM_DEFAULT_CPU", "SM_MAX_CPU",
 		"SM_DEFAULT_PIDS",
+		"SM_GIT_HOSTS", "SM_CLONE_TIMEOUT", "SM_CLONE_MAX_SIZE",
+		"SM_BUILD_TIMEOUT", "SM_HEALTH_GRACE", "SM_NIXPACKS_BIN",
 	} {
 		t.Setenv(key, "")
 	}
@@ -53,6 +58,24 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.DefaultPidsLimit != 256 {
 		t.Errorf("DefaultPidsLimit = %d, want 256", cfg.DefaultPidsLimit)
 	}
+	if len(cfg.GitHosts) != 2 || cfg.GitHosts[0] != "github.com" || cfg.GitHosts[1] != "gitlab.com" {
+		t.Errorf("GitHosts = %v, want [github.com gitlab.com]", cfg.GitHosts)
+	}
+	if cfg.CloneTimeout != 120*time.Second {
+		t.Errorf("CloneTimeout = %v, want 120s", cfg.CloneTimeout)
+	}
+	if cfg.CloneMaxBytes != 200*1024*1024 {
+		t.Errorf("CloneMaxBytes = %d, want 200MiB", cfg.CloneMaxBytes)
+	}
+	if cfg.BuildTimeout != 10*time.Minute {
+		t.Errorf("BuildTimeout = %v, want 10m", cfg.BuildTimeout)
+	}
+	if cfg.HealthGrace != 3*time.Second {
+		t.Errorf("HealthGrace = %v, want 3s", cfg.HealthGrace)
+	}
+	if cfg.NixpacksBin != "nixpacks" {
+		t.Errorf("NixpacksBin = %q, want nixpacks", cfg.NixpacksBin)
+	}
 }
 
 func TestLoadOverrides(t *testing.T) {
@@ -90,6 +113,11 @@ func TestLoadInvalidValues(t *testing.T) {
 		"SM_DEFAULT_CPU":     "0",
 		"SM_MAX_CPU":         "NaN",
 		"SM_DEFAULT_PIDS":    "-5",
+		"SM_GIT_HOSTS":       " , ,",
+		"SM_CLONE_TIMEOUT":   "soon",
+		"SM_CLONE_MAX_SIZE":  "big",
+		"SM_BUILD_TIMEOUT":   "-5m",
+		"SM_HEALTH_GRACE":    "5m", // above the 60s sanity cap
 	}
 	for key, value := range cases {
 		t.Run(key, func(t *testing.T) {

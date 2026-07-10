@@ -257,6 +257,99 @@ func toLogEntryResponse(entry ports.LogEntry) dtos.LogEntryResponse {
 	}
 }
 
+// Deploy queues a build-and-run of the stored repository on the hosting
+// server and returns the deployment ID the frontend polls.
+func (c *Controller) Deploy(ginc *gin.Context) {
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
+	appId := ginc.Param("appId")
+
+	if !middlewares.CheckOwnership(ginc, c.subdomainService.CheckUser.Execute, userID, subdomainId, "subdomain") {
+		return
+	}
+
+	deploymentID, err := c.appService.Deploy.Execute(ginc.Request.Context(), subdomainId, appId)
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound), errors.Is(err, app.ErrNotInSubdomain):
+		middlewares.Respond(ginc, http.StatusNotFound, "application not found", nil)
+	case errors.Is(err, app.ErrNotDeployable), errors.Is(err, ports.ErrSpecRejected):
+		middlewares.Respond(ginc, http.StatusBadRequest, err.Error(), nil)
+	case errors.Is(err, ports.ErrDeployInFlight):
+		middlewares.Respond(ginc, http.StatusConflict, "a deployment is already in progress for this application", nil)
+	case err != nil:
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, http.StatusBadGateway, "deploy service unavailable", nil)
+	default:
+		middlewares.Respond(ginc, http.StatusAccepted, "deployment queued",
+			dtos.DeployApplicationResponse{DeploymentID: deploymentID})
+	}
+}
+
+// GetDeployment proxies the deploy job's live status for the frontend poll.
+func (c *Controller) GetDeployment(ginc *gin.Context) {
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
+	appId := ginc.Param("appId")
+	deploymentId := ginc.Param("deploymentId")
+
+	if !middlewares.CheckOwnership(ginc, c.subdomainService.CheckUser.Execute, userID, subdomainId, "subdomain") {
+		return
+	}
+
+	status, err := c.appService.GetDeployment.Execute(ginc.Request.Context(), subdomainId, appId, deploymentId)
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound), errors.Is(err, app.ErrNotInSubdomain):
+		middlewares.Respond(ginc, http.StatusNotFound, "application not found", nil)
+	case errors.Is(err, ports.ErrDeploymentNotFound):
+		middlewares.Respond(ginc, http.StatusNotFound, "deployment not found", nil)
+	case err != nil:
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, http.StatusBadGateway, "deploy service unavailable", nil)
+	default:
+		middlewares.Respond(ginc, http.StatusOK, "success", dtos.DeploymentStatusResponse{
+			ID:        status.ID,
+			Status:    status.Status,
+			Error:     status.Error,
+			CommitSHA: status.CommitSHA,
+			BuildLog:  status.BuildLog,
+			CreatedAt: status.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt: status.UpdatedAt.UTC().Format(time.RFC3339),
+		})
+	}
+}
+
+// Start and Stop drive the lifecycle of an already-deployed container.
+func (c *Controller) Start(ginc *gin.Context) {
+	c.lifecycle(ginc, c.appService.Start.Execute, "started")
+}
+
+func (c *Controller) Stop(ginc *gin.Context) {
+	c.lifecycle(ginc, c.appService.Stop.Execute, "stopped")
+}
+
+func (c *Controller) lifecycle(ginc *gin.Context, execute func(context.Context, string, string) error, verb string) {
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
+	appId := ginc.Param("appId")
+
+	if !middlewares.CheckOwnership(ginc, c.subdomainService.CheckUser.Execute, userID, subdomainId, "subdomain") {
+		return
+	}
+
+	err := execute(ginc.Request.Context(), subdomainId, appId)
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound), errors.Is(err, app.ErrNotInSubdomain):
+		middlewares.Respond(ginc, http.StatusNotFound, "application not found", nil)
+	case errors.Is(err, ports.ErrAppNotDeployed):
+		middlewares.Respond(ginc, http.StatusBadRequest, "application has not been deployed yet", nil)
+	case err != nil:
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, http.StatusBadGateway, "app service unavailable", nil)
+	default:
+		middlewares.Respond(ginc, http.StatusOK, "application "+verb, nil)
+	}
+}
+
 // StreamLogs bridges the manager's live log stream onto a browser WebSocket.
 // Auth and ownership run on the handshake request (the JWT cookie rides
 // along on same-origin WebSocket connects), so by the time the connection

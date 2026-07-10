@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"servermanager/internal/domain"
 )
+
+// maxHealthGrace keeps a typo'd SM_HEALTH_GRACE from stalling every deploy.
+const maxHealthGrace = 60 * time.Second
 
 type Config struct {
 	Port           string
@@ -19,6 +24,13 @@ type Config struct {
 	DefaultNanoCPUs    int64
 	MaxNanoCPUs        int64
 	DefaultPidsLimit   int64
+
+	GitHosts      []string
+	CloneTimeout  time.Duration
+	CloneMaxBytes int64
+	BuildTimeout  time.Duration
+	HealthGrace   time.Duration
+	NixpacksBin   string
 }
 
 // Load reads the SM_* environment (SERVERMANAGEMENT.md §9) and fails on a
@@ -62,7 +74,44 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("SM_DEFAULT_CPU exceeds SM_MAX_CPU")
 	}
 
+	for _, host := range strings.Split(getenv("SM_GIT_HOSTS", "github.com,gitlab.com"), ",") {
+		if host = strings.ToLower(strings.TrimSpace(host)); host != "" {
+			cfg.GitHosts = append(cfg.GitHosts, host)
+		}
+	}
+	if len(cfg.GitHosts) == 0 {
+		return nil, fmt.Errorf("SM_GIT_HOSTS must list at least one host")
+	}
+
+	if cfg.CloneTimeout, err = positiveDuration("SM_CLONE_TIMEOUT", "120s"); err != nil {
+		return nil, err
+	}
+	// A byte size, but ParseMemoryLimit is exactly the parser it needs.
+	if cfg.CloneMaxBytes, err = domain.ParseMemoryLimit(getenv("SM_CLONE_MAX_SIZE", "200m")); err != nil {
+		return nil, fmt.Errorf("SM_CLONE_MAX_SIZE: %w", err)
+	}
+	if cfg.BuildTimeout, err = positiveDuration("SM_BUILD_TIMEOUT", "10m"); err != nil {
+		return nil, err
+	}
+	if cfg.HealthGrace, err = positiveDuration("SM_HEALTH_GRACE", "3s"); err != nil {
+		return nil, err
+	}
+	if cfg.HealthGrace > maxHealthGrace {
+		return nil, fmt.Errorf("SM_HEALTH_GRACE exceeds the %s maximum", maxHealthGrace)
+	}
+	if cfg.NixpacksBin = getenv("SM_NIXPACKS_BIN", "nixpacks"); cfg.NixpacksBin == "" {
+		return nil, fmt.Errorf("SM_NIXPACKS_BIN must not be empty")
+	}
+
 	return cfg, nil
+}
+
+func positiveDuration(key, fallback string) (time.Duration, error) {
+	d, err := time.ParseDuration(getenv(key, fallback))
+	if err != nil || d <= 0 {
+		return 0, fmt.Errorf("%s must be a positive duration like %q", key, fallback)
+	}
+	return d, nil
 }
 
 func getenv(key, fallback string) string {

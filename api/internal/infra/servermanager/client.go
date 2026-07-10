@@ -2,6 +2,7 @@ package servermanager
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -147,6 +148,115 @@ func (c *Client) StreamLogs(ctx context.Context, appID string, opts ports.LogOpt
 		}
 	}()
 	return entries, nil
+}
+
+// Deploy queues the async job on the manager and returns its deployment ID.
+func (c *Client) Deploy(ctx context.Context, appID string, spec ports.DeploySpec) (string, error) {
+	payload, err := json.Marshal(spec)
+	if err != nil {
+		return "", fmt.Errorf("servermanager deploy payload: %w", err)
+	}
+
+	res, err := c.do(ctx, http.MethodPost, "/v1/apps/"+url.PathEscape(appID)+"/deploy", payload)
+	if err != nil {
+		return "", fmt.Errorf("servermanager deploy: %w", err)
+	}
+	defer closeBody(res)
+
+	switch res.StatusCode {
+	case http.StatusAccepted:
+		var body struct {
+			DeploymentID string `json:"deployment_id"`
+		}
+		if err := json.NewDecoder(res.Body).Decode(&body); err != nil || body.DeploymentID == "" {
+			return "", fmt.Errorf("servermanager deploy response: %w", err)
+		}
+		return body.DeploymentID, nil
+	case http.StatusConflict:
+		return "", fmt.Errorf("servermanager deploy: %w", ports.ErrDeployInFlight)
+	case http.StatusBadRequest:
+		return "", fmt.Errorf("%w: %s", ports.ErrSpecRejected, managerError(res))
+	case http.StatusUnauthorized:
+		return "", fmt.Errorf("servermanager deploy: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
+	default:
+		return "", fmt.Errorf("servermanager deploy: status %d: %s", res.StatusCode, managerError(res))
+	}
+}
+
+// DeploymentStatus polls the manager's job resource.
+func (c *Client) DeploymentStatus(ctx context.Context, deploymentID string) (*ports.DeploymentStatus, error) {
+	res, err := c.do(ctx, http.MethodGet, "/v1/deployments/"+url.PathEscape(deploymentID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("servermanager deployment status: %w", err)
+	}
+	defer closeBody(res)
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		var status ports.DeploymentStatus
+		if err := json.NewDecoder(res.Body).Decode(&status); err != nil {
+			return nil, fmt.Errorf("servermanager deployment status response: %w", err)
+		}
+		return &status, nil
+	case http.StatusNotFound:
+		return nil, fmt.Errorf("servermanager deployment status: %w", ports.ErrDeploymentNotFound)
+	case http.StatusUnauthorized:
+		return nil, fmt.Errorf("servermanager deployment status: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
+	default:
+		return nil, fmt.Errorf("servermanager deployment status: status %d: %s", res.StatusCode, managerError(res))
+	}
+}
+
+func (c *Client) Start(ctx context.Context, appID string) error {
+	return c.lifecycle(ctx, http.MethodPost, appID, "/start", "start")
+}
+
+func (c *Client) Stop(ctx context.Context, appID string) error {
+	return c.lifecycle(ctx, http.MethodPost, appID, "/stop", "stop")
+}
+
+func (c *Client) Remove(ctx context.Context, appID string) error {
+	return c.lifecycle(ctx, http.MethodDelete, appID, "", "remove")
+}
+
+// lifecycle covers the body-less container operations that share one
+// response contract: 200 ok, 404 not deployed.
+func (c *Client) lifecycle(ctx context.Context, method, appID, suffix, op string) error {
+	res, err := c.do(ctx, method, "/v1/apps/"+url.PathEscape(appID)+suffix, nil)
+	if err != nil {
+		return fmt.Errorf("servermanager %s: %w", op, err)
+	}
+	defer closeBody(res)
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		return nil
+	case http.StatusNotFound:
+		return fmt.Errorf("servermanager %s: %w", op, ports.ErrAppNotDeployed)
+	case http.StatusUnauthorized:
+		return fmt.Errorf("servermanager %s: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)", op)
+	default:
+		return fmt.Errorf("servermanager %s: status %d: %s", op, res.StatusCode, managerError(res))
+	}
+}
+
+// do issues an authenticated JSON request on the short-timeout client.
+func (c *Client) do(ctx context.Context, method, path string, payload []byte) (*http.Response, error) {
+	var body *bytes.Reader
+	if payload != nil {
+		body = bytes.NewReader(payload)
+	} else {
+		body = bytes.NewReader(nil)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	return c.http.Do(req)
 }
 
 func closeBody(res *http.Response) {
