@@ -85,7 +85,9 @@ func writeBuildConfig(in domain.BuildInput) (string, map[string]*string, error) 
 	if err != nil {
 		return "", nil, fmt.Errorf("encoding nixpacks config: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(in.Dir, configFileName), data, 0o644); err != nil {
+	// 0600: the config can carry env values and only the manager (and the
+	// build context tar) needs to read it.
+	if err := os.WriteFile(filepath.Join(in.Dir, configFileName), data, 0o600); err != nil {
 		return "", nil, fmt.Errorf("writing nixpacks config: %w", err)
 	}
 

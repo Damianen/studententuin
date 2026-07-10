@@ -88,6 +88,9 @@ func (u *Deploy) Execute(_ context.Context, in DeployInput) (string, error) {
 		return "", err
 	}
 
+	// #nosec G118 -- deliberately detached from the request context: the
+	// deploy is an async job (202) that must outlive the HTTP request; every
+	// stage carries its own config-driven timeout.
 	go u.run(deploymentID, in, runInput, imageRef)
 	return deploymentID, nil
 }

@@ -14,11 +14,18 @@ import (
 // skipped (history is neither needed in the image nor cheap to send),
 // symlinks are emitted as links and never followed — a followed link could
 // smuggle host files into a user image — and ownership is zeroed so the
-// context is deterministic.
+// context is deterministic. File opens go through an os.Root scoped to the
+// clone dir, so no rename/symlink race can reach outside it.
 func writeTar(w io.Writer, dir string) error {
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return fmt.Errorf("opening context root: %w", err)
+	}
+	defer func() { _ = root.Close() }()
+
 	tw := tar.NewWriter(w)
 
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -70,8 +77,7 @@ func writeTar(w io.Writer, dir string) error {
 			return nil
 		}
 
-		// #nosec G304 -- path comes from walking the manager-created temp dir.
-		f, err := os.Open(path)
+		f, err := root.Open(name)
 		if err != nil {
 			return err
 		}

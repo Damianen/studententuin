@@ -63,5 +63,14 @@ jobs:
       - name: Vet (integration tag)
         run: go vet -tags integration ./...
 
-      - name: Integration tests (real Docker)
-        run: go test -tags integration -v ./internal/infra/docker/...
+      - name: Install nixpacks
+        env:
+          # Keep in lockstep with the ARG in servermanager/Dockerfile.
+          NIXPACKS_VERSION: 1.41.0
+        run: |
+          curl -fsSL -o /tmp/nixpacks.tar.gz "https://github.com/railwayapp/nixpacks/releases/download/v${NIXPACKS_VERSION}/nixpacks-v${NIXPACKS_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          sudo tar -xzf /tmp/nixpacks.tar.gz -C /usr/local/bin nixpacks
+          nixpacks --version
+
+      - name: Integration tests (real Docker + nixpacks)
+        run: go test -tags integration -v ./...
