@@ -16,7 +16,11 @@ var branchRe = regexp.MustCompile(`^[A-Za-z0-9._/-]{1,255}$`)
 // server-side allowlist, and nothing beyond a plain repository path — no
 // userinfo, custom port, query, or fragment.
 func ValidateRepoURL(raw string, allowedHosts []string) error {
-	u, err := url.Parse(strings.TrimSpace(raw))
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return fmt.Errorf("repository url is required: %w", ErrInvalid)
+	}
+	u, err := url.Parse(raw)
 	if err != nil {
 		return fmt.Errorf("repository url: %w", ErrInvalid)
 	}

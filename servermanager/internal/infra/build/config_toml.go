@@ -113,4 +113,3 @@ func loadRepoConfig(dir string) (map[string]any, error) {
 	}
 	return cfg, nil
 }
-

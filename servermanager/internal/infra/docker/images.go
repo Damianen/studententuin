@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"io"
 
 	"servermanager/internal/domain"
 	"servermanager/internal/ports"
@@ -10,6 +11,12 @@ import (
 )
 
 var _ ports.ImageStore = (*Runtime)(nil)
+
+// ImageBuild delegates to the Docker client, so the nixpacks build adapter
+// can drive daemon builds without holding the raw client.
+func (r *Runtime) ImageBuild(ctx context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResult, error) {
+	return r.cli.ImageBuild(ctx, buildContext, options)
+}
 
 // ListAppImages returns every repo:tag the manager built for the app, found
 // by the deterministic repository name — never by user input.

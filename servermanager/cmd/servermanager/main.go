@@ -10,10 +10,15 @@ import (
 	"time"
 
 	appsHTTP "servermanager/internal/api/http/apps"
+	deploymentsHTTP "servermanager/internal/api/http/deployments"
 	"servermanager/internal/api/http/middlewares"
 	"servermanager/internal/app/apps"
+	"servermanager/internal/app/deployments"
 	"servermanager/internal/config"
+	"servermanager/internal/infra/build"
+	"servermanager/internal/infra/clock"
 	"servermanager/internal/infra/docker"
+	gitinfra "servermanager/internal/infra/git"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -51,9 +56,15 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"server": "running"})
 	})
 
-	auth := middlewares.AuthMiddleware{Token: cfg.Token}
-	v1 := router.Group("/v1", auth.Auth)
-	appsHTTP.SetupRouter(apps.Dependencies{
+	// Like Docker, a missing nixpacks binary is a startup failure, not a
+	// per-deploy 500.
+	builder, err := build.New(context.Background(), cfg.NixpacksBin, runtime)
+	if err != nil {
+		slog.Error("nixpacks unavailable", "error", err)
+		os.Exit(1)
+	}
+
+	appsDeps := apps.Dependencies{
 		Runtime: runtime,
 		Limits: apps.Limits{
 			DefaultMemoryBytes: cfg.DefaultMemoryBytes,
@@ -62,6 +73,24 @@ func main() {
 			MaxNanoCPUs:        cfg.MaxNanoCPUs,
 			DefaultPidsLimit:   cfg.DefaultPidsLimit,
 			DefaultRuntime:     cfg.DefaultRuntime,
+		},
+	}
+
+	auth := middlewares.AuthMiddleware{Token: cfg.Token}
+	v1 := router.Group("/v1", auth.Auth)
+	appsHTTP.SetupRouter(appsDeps, v1)
+	deploymentsHTTP.SetupRouter(deployments.Dependencies{
+		Fetcher:  gitinfra.NewFetcher(cfg.GitHosts, cfg.CloneMaxBytes),
+		Builder:  builder,
+		Runtime:  runtime,
+		Images:   runtime,
+		Runner:   apps.NewService(appsDeps).Run,
+		Clock:    clock.System{},
+		GitHosts: cfg.GitHosts,
+		Budgets: deployments.Budgets{
+			CloneTimeout: cfg.CloneTimeout,
+			BuildTimeout: cfg.BuildTimeout,
+			HealthGrace:  cfg.HealthGrace,
 		},
 	}, v1)
 
