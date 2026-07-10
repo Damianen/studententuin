@@ -1,18 +1,23 @@
 import { useRef, useState } from 'react';
-import { Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Plus, RefreshCw, Rocket, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import ApplicationController from '@/controllers/application_controller';
+import type { ApplicationDto } from '@/dtos/application_dtos';
+import type { SubdomainListItemDto } from '@/dtos/subdomain_dtos';
+import { STAGE_LABELS, useDeployment } from '@/hooks/use_deployment';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
 	Card,
-	CardAction,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
-import { DemoBadge } from '@/components/resource/demo-badge';
+
+// Mirrors the key rule the api and servermanager enforce.
+const ENV_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 interface EnvVariable {
 	id: number;
@@ -21,16 +26,53 @@ interface EnvVariable {
 	visible: boolean;
 }
 
+function errorMessage(err: unknown): string {
+	return err instanceof Error ? err.message : 'Something went wrong';
+}
+
+// Sorted for a stable order — jsonb does not keep insertion order.
+function sortedEntries(env: Record<string, string>): Array<[string, string]> {
+	return Object.entries(env).sort(([a], [b]) => a.localeCompare(b));
+}
+
 export function EnvVarsCard({
-	initial,
+	subdomain,
+	application,
+	onChanged,
 }: {
-	initial: Array<{ key: string; value: string }>;
+	subdomain: SubdomainListItemDto;
+	application: ApplicationDto;
+	onChanged: () => Promise<void>;
 }) {
-	const nextId = useRef(initial.length);
+	const storedEnv = application.environment_variables ?? {};
+	const nextId = useRef(Object.keys(storedEnv).length);
 	const [variables, setVariables] = useState<EnvVariable[]>(() =>
-		initial.map((variable, index) => ({ id: index, visible: false, ...variable })),
+		sortedEntries(storedEnv).map(([key, value], index) => ({
+			id: index,
+			key,
+			value,
+			visible: false,
+		})),
 	);
 	const [draft, setDraft] = useState({ key: '', value: '' });
+	const [pending, setPending] = useState(false);
+	// Set after a successful save; drives the "takes effect on next deploy" offer.
+	const [saved, setSaved] = useState(false);
+
+	const {
+		deploying,
+		stage,
+		error: deployError,
+		deploy,
+	} = useDeployment(subdomain.id, application.id, (ok) => {
+		if (ok) {
+			setSaved(false);
+			toast.success(`${application.name} is live`);
+		} else {
+			toast.error('Deployment failed');
+		}
+		void onChanged();
+	});
 
 	const update = (id: number, patch: Partial<EnvVariable>) => {
 		setVariables((current) =>
@@ -54,6 +96,50 @@ export function EnvVarsCard({
 		setDraft({ key: '', value: '' });
 	};
 
+	const handleSave = async () => {
+		const env: Record<string, string> = {};
+		for (const variable of variables) {
+			const key = variable.key.trim();
+			if (!ENV_KEY_PATTERN.test(key)) {
+				toast.error(
+					key === ''
+						? 'Variable keys cannot be empty'
+						: `Invalid variable key "${key}" — use letters, digits and underscores, not starting with a digit`,
+				);
+				return;
+			}
+			if (key in env) {
+				toast.error(`Duplicate variable key "${key}"`);
+				return;
+			}
+			env[key] = variable.value;
+		}
+
+		setPending(true);
+		try {
+			await ApplicationController.patch(subdomain.id, application.id, {
+				environment_variables: env,
+			});
+			await onChanged();
+			setVariables(
+				sortedEntries(env).map(([key, value]) => ({
+					id: nextId.current++,
+					key,
+					value,
+					visible: false,
+				})),
+			);
+			setSaved(true);
+			toast.success('Environment variables saved');
+		} catch (err) {
+			toast.error(errorMessage(err));
+		} finally {
+			setPending(false);
+		}
+	};
+
+	const offerDeploy = saved && Boolean(application.repo_url);
+
 	return (
 		<Card>
 			<CardHeader>
@@ -63,9 +149,6 @@ export function EnvVarsCard({
 				<CardDescription>
 					Variables available to the application at runtime.
 				</CardDescription>
-				<CardAction>
-					<DemoBadge />
-				</CardAction>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{variables.map((variable) => (
@@ -165,16 +248,41 @@ export function EnvVarsCard({
 					</div>
 				</div>
 
-				<div className="flex justify-end border-t pt-4">
-					<Button
-						onClick={() =>
-							toast.info(
-								"Environment variables are a preview — the API doesn't store them yet.",
-							)
-						}
-					>
-						Save changes
-					</Button>
+				<div className="space-y-3 border-t pt-4">
+					{offerDeploy && !deploying && (
+						<p className="text-xs text-muted-foreground">
+							Saved — changes take effect on the next deploy.
+						</p>
+					)}
+					{deploying && (
+						<p className="text-xs text-status-pending">
+							Deploying — {STAGE_LABELS[stage ?? ''] ?? stage}
+						</p>
+					)}
+					{!deploying && deployError && (
+						<p className="text-xs text-status-failed">
+							{deployError} — the deployments tab has the build log.
+						</p>
+					)}
+					<div className="flex justify-end gap-2">
+						{offerDeploy && (
+							<Button
+								variant="outline"
+								onClick={deploy}
+								disabled={deploying || pending}
+							>
+								{deploying ? (
+									<RefreshCw className="size-3.5 animate-spin" />
+								) : (
+									<Rocket className="size-3.5" />
+								)}
+								{deploying ? 'Deploying…' : 'Deploy now'}
+							</Button>
+						)}
+						<Button onClick={handleSave} disabled={pending || deploying}>
+							{pending ? 'Saving…' : 'Save changes'}
+						</Button>
+					</div>
 				</div>
 			</CardContent>
 		</Card>

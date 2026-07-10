@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { makeDeployments, seededInt } from '@/lib/mock_telemetry';
 import type { DeploymentStatus } from '@/lib/mock_telemetry';
 import { cn } from '@/lib/utils';
-import { useDeployment } from '@/hooks/use_deployment';
+import { STAGE_LABELS, useDeployment } from '@/hooks/use_deployment';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
@@ -16,13 +16,6 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { DemoBadge } from '@/components/resource/demo-badge';
-
-const STAGE_LABELS: Record<string, string> = {
-	queued: 'Queued',
-	cloning: 'Cloning repository',
-	building: 'Building image',
-	starting: 'Starting container',
-};
 
 const STATUS_META: Record<
 	DeploymentStatus,

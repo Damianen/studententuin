@@ -1,4 +1,3 @@
-import type { DatabaseDto } from '@/dtos/database_dtos';
 
 export type ResourceKind = 'application' | 'database';
 export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
@@ -233,17 +232,4 @@ export function makeDeployments(
 				: `${minutes}m ${String(seconds).padStart(2, '0')}s`,
 		};
 	});
-}
-
-export function defaultEnvVars(
-	database?: DatabaseDto,
-): Array<{ key: string; value: string }> {
-	const vars = [
-		{ key: 'NODE_ENV', value: 'production' },
-		{ key: 'PORT', value: '3000' },
-	];
-	if (database?.connection_string) {
-		vars.push({ key: 'DATABASE_URL', value: database.connection_string });
-	}
-	return vars;
 }
