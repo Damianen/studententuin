@@ -168,12 +168,13 @@ func (c *Controller) GetAll(ginc *gin.Context) {
 
 		if s.Application != nil {
 			item.Application = &dtos.ApplicationListResponse{
-				ID:      s.Application.ID.String(),
-				Name:    *s.Application.Name,
-				Type:    string(s.Application.Type),
-				Status:  string(s.Application.Status),
-				RepoUrl: *s.Application.RepositoryURL,
-				Branch:  *s.Application.Branch,
+				ID:                   s.Application.ID.String(),
+				Name:                 *s.Application.Name,
+				Type:                 string(s.Application.Type),
+				Status:               string(s.Application.Status),
+				RepoUrl:              *s.Application.RepositoryURL,
+				Branch:               *s.Application.Branch,
+				EnvironmentVariables: s.Application.EnvironmentVariables,
 			}
 		}
 

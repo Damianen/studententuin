@@ -30,7 +30,7 @@ type Application struct {
 	Type     ApplicationType `gorm:"type:text;not null"`
 	BuildCommand *string `gorm:"type:text"`
 	StartCommand *string `gorm:"type:text"`
-	EnvironmentVariables map[string]string `gorm:"type:jsonb"`
+	EnvironmentVariables map[string]string `gorm:"type:jsonb;serializer:json"`
 	DockerImage        *string `gorm:"type:text"`
 	DockerContainerID  *string `gorm:"type:text"`
 	DockerContainerName *string `gorm:"type:text"`

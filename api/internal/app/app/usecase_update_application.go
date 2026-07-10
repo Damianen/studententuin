@@ -5,7 +5,15 @@ import (
 	"api/internal/domain"
 	"context"
 	"errors"
+	"fmt"
+	"regexp"
 )
+
+var envKeyPattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+// ErrInvalidEnvKey rejects environment variable names the servermanager
+// would refuse on deploy anyway.
+var ErrInvalidEnvKey = errors.New("invalid environment variable key")
 
 type UpdateApplication struct {
 	applicationRepo ports.ApplicationRepo
@@ -123,7 +131,14 @@ func (u *UpdateApplication) Execute(ctx context.Context, ai ApplicationUpdateInp
 		return s, nil
 	})
 	if err != nil { return err }
-	err = ports.SetIfNotNil(updates, "enviroment_variables", ai.EnvVariables, func(s map[string]string) (any, error) {
+	err = ports.SetIfNotNil(updates, "environment_variables", ai.EnvVariables, func(s map[string]string) (any, error) {
+		// Same key rule the servermanager enforces on deploy; values are
+		// secrets, so a rejection only ever names the key.
+		for key := range s {
+			if !envKeyPattern.MatchString(key) {
+				return nil, fmt.Errorf("%w: %q", ErrInvalidEnvKey, key)
+			}
+		}
 		return s, nil
 	})
 	if err != nil { return err }
