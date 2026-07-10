@@ -322,7 +322,7 @@ func (c *Controller) StreamLogs(ginc *gin.Context) {
 		select {
 		case entry, open := <-entries:
 			if !open {
-				conn.Close(websocket.StatusNormalClosure, "log stream ended")
+				_ = conn.Close(websocket.StatusNormalClosure, "log stream ended")
 				return
 			}
 			payload, err := json.Marshal(toLogEntryResponse(entry))
@@ -333,7 +333,7 @@ func (c *Controller) StreamLogs(ginc *gin.Context) {
 				return // client gone; deferred cancel unwinds the follow
 			}
 		case <-readCtx.Done():
-			conn.Close(websocket.StatusNormalClosure, "client closed")
+			_ = conn.Close(websocket.StatusNormalClosure, "client closed")
 			return
 		}
 	}
