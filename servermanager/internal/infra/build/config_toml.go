@@ -22,10 +22,10 @@ const configFileName = "stt-nixpacks.toml"
 // values as docker build args — those are returned for the daemon call.
 // Returns ("", nil, nil) when the request carries no overrides.
 func writeBuildConfig(in domain.BuildInput) (string, map[string]*string, error) {
-	if err := validateCommand("build command", in.BuildCommand); err != nil {
+	if err := domain.ValidateCommand("build command", in.BuildCommand); err != nil {
 		return "", nil, err
 	}
-	if err := validateCommand("start command", in.StartCommand); err != nil {
+	if err := domain.ValidateCommand("start command", in.StartCommand); err != nil {
 		return "", nil, err
 	}
 
@@ -114,13 +114,3 @@ func loadRepoConfig(dir string) (map[string]any, error) {
 	return cfg, nil
 }
 
-// validateCommand rejects control characters — commands are single-line
-// shell strings that end up in the generated Dockerfile.
-func validateCommand(field, cmd string) error {
-	for _, r := range cmd {
-		if r < 0x20 || r == 0x7f {
-			return fmt.Errorf("%s contains control characters: %w", field, domain.ErrInvalid)
-		}
-	}
-	return nil
-}
