@@ -183,12 +183,13 @@ func TestGetApplication(t *testing.T) {
 		branch := "main"
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
 		m.applicationRepo.EXPECT().FindByID(appID.String(), gomock.Any()).Return(&domain.Application{
-			ID:            appID,
-			Name:          &name,
-			Type:          domain.ApplicationTypeNodejs,
-			Status:        domain.ApplicationStatusRunning,
-			RepositoryURL: &repoURL,
-			Branch:        &branch,
+			ID:                   appID,
+			Name:                 &name,
+			Type:                 domain.ApplicationTypeNodejs,
+			Status:               domain.ApplicationStatusRunning,
+			RepositoryURL:        &repoURL,
+			Branch:               &branch,
+			EnvironmentVariables: map[string]string{"NODE_ENV": "production"},
 		}, nil)
 
 		w := doJSON(r, http.MethodGet, path, "", authCookie(t, ownerID.String()))
@@ -207,6 +208,10 @@ func TestGetApplication(t *testing.T) {
 		if data["id"] != appID.String() || data["name"] != name || data["type"] != "Nodejs" ||
 			data["status"] != "running" || data["repo_url"] != repoURL || data["branch"] != branch {
 			t.Errorf("unexpected application mapping: %v", data)
+		}
+		env, ok := data["environment_variables"].(map[string]any)
+		if !ok || env["NODE_ENV"] != "production" {
+			t.Errorf("expected environment_variables in response, got %v", data["environment_variables"])
 		}
 	})
 
@@ -518,6 +523,46 @@ func TestUpdateApplication(t *testing.T) {
 		w := doJSON(r, http.MethodPatch, path, `{"type":"python"}`, authCookie(t, ownerID.String()))
 		if w.Code != http.StatusBadRequest {
 			t.Fatalf("expected 400, got %d", w.Code)
+		}
+	})
+
+	t.Run("persists environment variables", func(t *testing.T) {
+		r, m := newAppRouter(t)
+		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
+		m.clock.EXPECT().Now().Return(now)
+		m.applicationRepo.EXPECT().Update(appID.String(), gomock.Any(), gomock.Any()).DoAndReturn(
+			func(id string, updates map[string]any, ctx any) error {
+				env, ok := updates["environment_variables"].(map[string]string)
+				if !ok {
+					t.Errorf("expected environment_variables in updates, got %v", updates)
+				} else if env["NODE_ENV"] != "production" || len(env) != 1 {
+					t.Errorf("unexpected env vars: %v", env)
+				}
+				return nil
+			})
+
+		body := `{"environment_variables":{"NODE_ENV":"production"}}`
+		w := doJSON(r, http.MethodPatch, path, body, authCookie(t, ownerID.String()))
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d (body %s)", w.Code, w.Body.String())
+		}
+	})
+
+	t.Run("invalid env var key returns 400 naming the key only", func(t *testing.T) {
+		r, m := newAppRouter(t)
+		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
+		m.clock.EXPECT().Now().Return(now)
+
+		body := `{"environment_variables":{"1BAD-KEY":"topsecret"}}`
+		w := doJSON(r, http.MethodPatch, path, body, authCookie(t, ownerID.String()))
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400, got %d (body %s)", w.Code, w.Body.String())
+		}
+		if !strings.Contains(w.Body.String(), "1BAD-KEY") {
+			t.Errorf("expected the offending key in the message, got %s", w.Body.String())
+		}
+		if strings.Contains(w.Body.String(), "topsecret") {
+			t.Errorf("env value leaked into the error response: %s", w.Body.String())
 		}
 	})
 

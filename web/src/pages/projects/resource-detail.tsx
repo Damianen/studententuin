@@ -23,7 +23,7 @@ import type { ApplicationDto } from '@/dtos/application_dtos';
 import type { DatabaseDto } from '@/dtos/database_dtos';
 import { useAsync } from '@/hooks/use_async';
 import { cn } from '@/lib/utils';
-import { defaultEnvVars, makeSeries, seededInt } from '@/lib/mock_telemetry';
+import { makeSeries, seededInt } from '@/lib/mock_telemetry';
 import type { ResourceKind } from '@/lib/mock_telemetry';
 import { headlineStats, overviewSpec } from '@/lib/metric_specs';
 import { StatusBadge } from '@/components/status-badge';
@@ -561,7 +561,12 @@ function SettingsTab({
 						application={application}
 						onChanged={onChanged}
 					/>
-					<EnvVarsCard initial={defaultEnvVars(subdomain.database)} />
+					<EnvVarsCard
+						key={`env-${application.id}`}
+						subdomain={subdomain}
+						application={application}
+						onChanged={onChanged}
+					/>
 				</>
 			) : database ? (
 				<DatabaseSettingsCard

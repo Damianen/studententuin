@@ -36,7 +36,10 @@ test.describe('deploy from git', () => {
 		test.setTimeout(10 * 60 * 1000);
 
 		await login(page, user);
-		await page.getByText('deploy-me').first().click();
+		await page
+			.getByRole('link', { name: `Open project ${subdomain}` })
+			.click();
+		await page.getByRole('link', { name: 'Open', exact: true }).click();
 		await page.getByRole('link', { name: 'Deployments' }).click();
 
 		await page.getByRole('button', { name: 'Deploy now' }).click();
@@ -54,9 +57,42 @@ test.describe('deploy from git', () => {
 		);
 	});
 
+	test('save env vars and redeploy from the settings tab', async ({ page }) => {
+		// A redeploy repeats the whole clone + build journey.
+		test.setTimeout(10 * 60 * 1000);
+
+		await login(page, user);
+		await page
+			.getByRole('link', { name: `Open project ${subdomain}` })
+			.click();
+		await page.getByRole('link', { name: 'Open', exact: true }).click();
+		await page.getByRole('link', { name: 'Settings' }).click();
+
+		const envCard = page.locator('[data-slot="card"]', {
+			has: page.getByText('Environment', { exact: true }),
+		});
+		await envCard.getByLabel('Key').last().fill('E2E_FLAG');
+		await envCard.getByLabel('Value').last().fill('from-settings');
+		await envCard.getByRole('button', { name: 'Add' }).click();
+		await envCard.getByRole('button', { name: 'Save changes' }).click();
+		await expect(
+			page.getByText('Environment variables saved').first()
+		).toBeVisible();
+
+		// Saving offers a redeploy in place, with live stage feedback.
+		await envCard.getByRole('button', { name: 'Deploy now' }).click();
+		await expect(envCard.getByText('Deploying —')).toBeVisible();
+		await expect(page.getByText('deploy-me is live').first()).toBeVisible({
+			timeout: 9 * 60 * 1000,
+		});
+	});
+
 	test('stop it from the UI', async ({ page }) => {
 		await login(page, user);
-		await page.getByText('deploy-me').first().click();
+		await page
+			.getByRole('link', { name: `Open project ${subdomain}` })
+			.click();
+		await page.getByRole('link', { name: 'Open', exact: true }).click();
 
 		await page.getByRole('button', { name: 'Stop' }).click();
 		await expect(page.getByText('stopped').first()).toBeVisible({

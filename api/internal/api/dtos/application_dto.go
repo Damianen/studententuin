@@ -16,6 +16,8 @@ type UpdateApplicationRequest struct {
 	Branch *string `json:"branch,omitempty" binding:"omitempty"`
 	BuildCommand *string `json:"build_command,omitempty" binding:"omitempty"`
 	StartCommand *string `json:"start_command,omitempty" binding:"omitempty"`
+	// Pointer so "not provided" and "provided empty" (= clear all) differ.
+	EnvironmentVariables *map[string]string `json:"environment_variables,omitempty" binding:"omitempty"`
 }
 
 type ApplicationListResponse struct {
@@ -25,6 +27,7 @@ type ApplicationListResponse struct {
 	Status string `json:"status"`
 	RepoUrl string `json:"repo_url"`
 	Branch string `json:"branch"`
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty"`
 }
 
 type LogEntryResponse struct {

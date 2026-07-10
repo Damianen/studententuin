@@ -280,8 +280,8 @@ The contracts are already defined — treat them as the API spec:
 to `web/src/services/application_service.ts`, swap `makeLogs(...)` in
 `logs-terminal.tsx:35` for a `useAsync` fetch, drop the `DemoBadge`, keep the
 existing search/filter/download UI untouched. Then, in later phases: enable the
-disabled "Deploy now" button in `deployments-list.tsx`, wire env-var persistence
-(`EnvironmentVariables` already round-trips through the api), then metrics charts.
+disabled "Deploy now" button in `deployments-list.tsx` (phase 3 ✅), wire env-var
+persistence through the PATCH + GET round-trip (phase 4 ✅), then metrics charts.
 
 Source split for app metrics, planned now so the contract doesn't churn later:
 `cpu`/`mem` come from container/host stats (cAdvisor, per §1.3); `resp`/`req` can
@@ -351,10 +351,19 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
   compatible); deploys are single-flight per app.
 
 ### Phase 4 — Env vars & app settings round-trip
-- [ ] Deploy sends `EnvironmentVariables`; editing env vars in the UI persists via
+- [x] Deploy sends `EnvironmentVariables`; editing env vars in the UI persists via
       the existing PATCH and offers redeploy ("changing env" is an explicit
       servermanager duty in the architecture diagram)
-- [ ] Replace `defaultEnvVars` mock in the env tab with stored values
+- [x] Replace `defaultEnvVars` mock in the env tab with stored values
+- [x] **Acceptance**: add a variable in the settings tab, save, hard-reload —
+      it's still there; Deploy now from the same card and `docker inspect`
+      shows it on the container. Covered by `web/e2e/env-vars.spec.ts` (no
+      deploy repo needed) plus a redeploy leg in `deploy.spec.ts`.
+- Landed with: the latent `enviroment_variables` column-key typo in the update
+  usecase fixed (a unit test now pins the real column name); `serializer:json`
+  on the jsonb map field (phase 4 is the first writer of that column); env
+  keys validated in the api with the same `^[A-Za-z_][A-Za-z0-9_]*$` rule the
+  manager enforces — a 400 names the key, never the value.
 
 ### Phase 5 — Databases
 - [ ] Manager provisions `domain.Database` containers from official images
@@ -405,7 +414,10 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
 - [x] Builds run containerized (docker daemon legacy builder; each RUN step is
       a container) on throwaway clones; build context tars never follow
       symlinks and exclude `.git`
-- [ ] Env var values treated as secrets in logs (redact)
+- [x] Env var values treated as secrets in logs: neither service logs env
+      maps, and the api's PATCH validation errors name the offending key only —
+      values never reach a log line. (A user's own build log can still echo
+      env their build prints; it is shown only to the owner.)
 - [ ] Disk quotas / volume size caps; image GC
 - [ ] Plays into Epic 5's "done": ZAP clean, SAST clean — manager endpoints are
       internal-only so the DAST surface stays the api

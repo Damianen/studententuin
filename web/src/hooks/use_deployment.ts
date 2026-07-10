@@ -7,6 +7,13 @@ const POLL_BUDGET_MS = 15 * 60 * 1000;
 
 const TERMINAL = new Set(['running', 'failed']);
 
+export const STAGE_LABELS: Record<string, string> = {
+	queued: 'Queued',
+	cloning: 'Cloning repository',
+	building: 'Building image',
+	starting: 'Starting container',
+};
+
 export interface DeploymentState {
 	/** true from the deploy click until the job reaches running/failed */
 	deploying: boolean;

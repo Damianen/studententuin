@@ -124,11 +124,16 @@ func (c *Controller) Updates(ginc *gin.Context) {
 		Type:         (*domain.ApplicationType)(req.Type),
 		BuildCommand: req.BuildCommand,
 		StartCommand: req.StartCommand,
+		EnvVariables: req.EnvironmentVariables,
 	}
 
 	err := c.appService.Update.Execute(ginc.Request.Context(), appInput)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		middlewares.Respond(ginc, http.StatusNotFound, "application not found", nil)
+		return
+	}
+	if errors.Is(err, app.ErrInvalidEnvKey) {
+		middlewares.Respond(ginc, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 	if err != nil {
@@ -184,12 +189,13 @@ func (c *Controller) Get(ginc *gin.Context) {
 	}
 
 	applicationResponse := dtos.ApplicationListResponse{
-		ID:      application.ID.String(),
-		Name:    *application.Name,
-		Type:    string(application.Type),
-		Status:  string(application.Status),
-		RepoUrl: *application.RepositoryURL,
-		Branch:  *application.Branch,
+		ID:                   application.ID.String(),
+		Name:                 *application.Name,
+		Type:                 string(application.Type),
+		Status:               string(application.Status),
+		RepoUrl:              *application.RepositoryURL,
+		Branch:               *application.Branch,
+		EnvironmentVariables: application.EnvironmentVariables,
 	}
 
 	middlewares.Respond(ginc, http.StatusOK, "success", applicationResponse)

@@ -5,6 +5,7 @@ export interface ApplicationDto {
 	status: string;
 	repo_url: string;
 	branch: string;
+	environment_variables?: Record<string, string>;
 }
 
 export interface CreateApplicationDto {
@@ -23,6 +24,7 @@ export interface UpdateApplicationDto {
 	branch?: string;
 	build_command?: string;
 	start_command?: string;
+	environment_variables?: Record<string, string>;
 }
 
 export interface LogEntryDto {

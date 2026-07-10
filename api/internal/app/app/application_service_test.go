@@ -178,6 +178,22 @@ func TestUpdateApplication_Execute(t *testing.T) {
 			},
 			wantErr: "no fields to update!",
 		},
+		{
+			name:  "invalid env var key error",
+			input: ApplicationUpdateInput{ID: "123", EnvVariables: &map[string]string{"1BAD-KEY": "value"}},
+			setup: func(ar *mocks.MockApplicationRepo, c *mocks.MockClock) {
+				c.EXPECT().Now().Return(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC))
+			},
+			wantErr: `invalid environment variable key: "1BAD-KEY"`,
+		},
+		{
+			name:  "empty env var key error",
+			input: ApplicationUpdateInput{ID: "123", EnvVariables: &map[string]string{"": "value"}},
+			setup: func(ar *mocks.MockApplicationRepo, c *mocks.MockClock) {
+				c.EXPECT().Now().Return(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC))
+			},
+			wantErr: `invalid environment variable key: ""`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -202,6 +218,53 @@ func TestUpdateApplication_Execute(t *testing.T) {
 			}
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+// The updates map keys are raw column names — a misspelling only surfaces as
+// a runtime SQL error, so pin the exact key the env vars land under.
+func TestUpdateApplication_EnvVarsColumn(t *testing.T) {
+	tests := []struct {
+		name    string
+		envVars map[string]string
+	}{
+		{name: "set values", envVars: map[string]string{"NODE_ENV": "production", "_UNDERSCORE": "ok"}},
+		{name: "empty map clears all", envVars: map[string]string{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			ar := mocks.NewMockApplicationRepo(ctrl)
+			c := mocks.NewMockClock(ctrl)
+			c.EXPECT().Now().Return(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC))
+
+			var gotUpdates map[string]any
+			ar.EXPECT().Update("123", gomock.Any(), gomock.Any()).DoAndReturn(
+				func(_ string, updates map[string]any, _ context.Context) error {
+					gotUpdates = updates
+					return nil
+				})
+
+			svc := NewService(Dependencies{ApplicationRepo: ar, Clock: c})
+			err := svc.Update.Execute(context.Background(), ApplicationUpdateInput{ID: "123", EnvVariables: &tt.envVars})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			got, ok := gotUpdates["environment_variables"].(map[string]string)
+			if !ok {
+				t.Fatalf("updates map is missing the environment_variables column, got keys %v", gotUpdates)
+			}
+			if len(got) != len(tt.envVars) {
+				t.Fatalf("expected %d env vars, got %d", len(tt.envVars), len(got))
+			}
+			for k, v := range tt.envVars {
+				if got[k] != v {
+					t.Errorf("env var %q: expected %q, got %q", k, v, got[k])
+				}
 			}
 		})
 	}
