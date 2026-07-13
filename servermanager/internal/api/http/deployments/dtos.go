@@ -15,6 +15,7 @@ type DeployRequest struct {
 	MemoryLimit   string            `json:"memory_limit"`
 	CpuLimit      string            `json:"cpu_limit"`
 	Runtime       string            `json:"runtime"`
+	DatabaseID    string            `json:"database_id"`
 }
 
 type DeployResponse struct {

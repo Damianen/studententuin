@@ -23,4 +23,17 @@ type ContainerRuntime interface {
 	// canceled or the container's log stream ends. The channel is closed when
 	// the stream ends; setup failures are returned synchronously.
 	FollowLogs(ctx context.Context, nameOrID string, opts domain.LogOptions) (<-chan domain.LogLine, error)
+	// PullImage fetches ref from its registry unless it is already present on
+	// the host. ref comes from the server-side image allowlist, never from a
+	// request.
+	PullImage(ctx context.Context, ref string) error
+	// ConnectNetwork attaches a container to an existing network; it never
+	// creates the network (a missing one is the caller's error to surface).
+	ConnectNetwork(ctx context.Context, networkName, nameOrID string) error
+	// RemoveNetwork force-disconnects any remaining endpoints, then removes
+	// the network. Missing networks map to domain.ErrNotFound.
+	RemoveNetwork(ctx context.Context, networkName string) error
+	// RemoveVolume removes a named volume; in-use volumes map to
+	// domain.ErrConflict, missing ones to domain.ErrNotFound.
+	RemoveVolume(ctx context.Context, name string) error
 }

@@ -11,11 +11,9 @@ import (
 	"github.com/moby/moby/client"
 )
 
-// ensureNetwork makes sure the app's isolated bridge network exists.
+// ensureNetwork makes sure an isolated bridge network exists.
 // Idempotent: a concurrent create racing us is fine.
-func (r *Runtime) ensureNetwork(ctx context.Context, appID string) error {
-	name := domain.AppNetworkName(appID)
-
+func (r *Runtime) ensureNetwork(ctx context.Context, name string, labels map[string]string) error {
 	_, err := r.cli.NetworkInspect(ctx, name, client.NetworkInspectOptions{})
 	if err == nil {
 		return nil
@@ -24,17 +22,42 @@ func (r *Runtime) ensureNetwork(ctx context.Context, appID string) error {
 		return mapErr("inspect network "+name, err)
 	}
 
+	withManaged := map[string]string{"studententuin.managed": "true"}
+	for k, v := range labels {
+		withManaged[k] = v
+	}
 	_, err = r.cli.NetworkCreate(ctx, name, client.NetworkCreateOptions{
 		Driver: "bridge",
-		Labels: map[string]string{
-			"studententuin.managed": "true",
-			"studententuin.app-id":  appID,
-		},
+		Labels: withManaged,
 	})
 	if err != nil && !errors.Is(mapErr("", err), domain.ErrConflict) {
 		return mapErr("create network "+name, err)
 	}
 	return nil
+}
+
+// ConnectNetwork attaches a container to an existing network. It deliberately
+// never creates the network: a missing database network means the database
+// isn't provisioned, and the caller must surface that, not paper over it.
+func (r *Runtime) ConnectNetwork(ctx context.Context, networkName, nameOrID string) error {
+	_, err := r.cli.NetworkConnect(ctx, networkName, client.NetworkConnectOptions{Container: nameOrID})
+	return mapErr("connect "+nameOrID+" to "+networkName, err)
+}
+
+// RemoveNetwork force-disconnects whatever is still attached (e.g. a linked
+// app container outliving its database), then removes the network.
+func (r *Runtime) RemoveNetwork(ctx context.Context, networkName string) error {
+	res, err := r.cli.NetworkInspect(ctx, networkName, client.NetworkInspectOptions{})
+	if err != nil {
+		return mapErr("inspect network "+networkName, err)
+	}
+	for id := range res.Network.Containers {
+		_, err := r.cli.NetworkDisconnect(ctx, networkName, client.NetworkDisconnectOptions{Container: id, Force: true})
+		if err != nil && !errors.Is(mapErr("", err), domain.ErrNotFound) {
+			return mapErr("disconnect "+id+" from "+networkName, err)
+		}
+	}
+	return r.removeNetworks(ctx, []string{networkName})
 }
 
 // removeNetworks tears down per-app networks after their container is gone.

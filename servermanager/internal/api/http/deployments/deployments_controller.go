@@ -47,6 +47,7 @@ func (c *Controller) Deploy(ginc *gin.Context) {
 		MemoryLimit:   req.MemoryLimit,
 		CpuLimit:      req.CpuLimit,
 		Runtime:       req.Runtime,
+		DatabaseID:    req.DatabaseID,
 	})
 	if err != nil {
 		respondServiceErr(ginc, "deploy", appID, err)

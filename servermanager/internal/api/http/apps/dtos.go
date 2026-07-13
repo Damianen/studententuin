@@ -20,6 +20,7 @@ type RunRequest struct {
 	Runtime        string            `json:"runtime"`
 	Volumes        []string          `json:"volumes"`
 	ReadonlyRootfs bool              `json:"readonly_rootfs"`
+	DatabaseID     string            `json:"database_id"`
 }
 
 type RunResponse struct {

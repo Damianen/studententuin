@@ -41,6 +41,20 @@ func (m *MockContainerRuntime) EXPECT() *MockContainerRuntimeMockRecorder {
 	return m.recorder
 }
 
+// ConnectNetwork mocks base method.
+func (m *MockContainerRuntime) ConnectNetwork(ctx context.Context, networkName, nameOrID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConnectNetwork", ctx, networkName, nameOrID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConnectNetwork indicates an expected call of ConnectNetwork.
+func (mr *MockContainerRuntimeMockRecorder) ConnectNetwork(ctx, networkName, nameOrID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConnectNetwork", reflect.TypeOf((*MockContainerRuntime)(nil).ConnectNetwork), ctx, networkName, nameOrID)
+}
+
 // Create mocks base method.
 func (m *MockContainerRuntime) Create(ctx context.Context, spec domain.ContainerSpec) (string, error) {
 	m.ctrl.T.Helper()
@@ -101,6 +115,20 @@ func (mr *MockContainerRuntimeMockRecorder) Logs(ctx, nameOrID, opts any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logs", reflect.TypeOf((*MockContainerRuntime)(nil).Logs), ctx, nameOrID, opts)
 }
 
+// PullImage mocks base method.
+func (m *MockContainerRuntime) PullImage(ctx context.Context, ref string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PullImage", ctx, ref)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PullImage indicates an expected call of PullImage.
+func (mr *MockContainerRuntimeMockRecorder) PullImage(ctx, ref any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PullImage", reflect.TypeOf((*MockContainerRuntime)(nil).PullImage), ctx, ref)
+}
+
 // Remove mocks base method.
 func (m *MockContainerRuntime) Remove(ctx context.Context, nameOrID string) error {
 	m.ctrl.T.Helper()
@@ -127,6 +155,34 @@ func (m *MockContainerRuntime) RemoveContainer(ctx context.Context, nameOrID str
 func (mr *MockContainerRuntimeMockRecorder) RemoveContainer(ctx, nameOrID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveContainer", reflect.TypeOf((*MockContainerRuntime)(nil).RemoveContainer), ctx, nameOrID)
+}
+
+// RemoveNetwork mocks base method.
+func (m *MockContainerRuntime) RemoveNetwork(ctx context.Context, networkName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveNetwork", ctx, networkName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveNetwork indicates an expected call of RemoveNetwork.
+func (mr *MockContainerRuntimeMockRecorder) RemoveNetwork(ctx, networkName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveNetwork", reflect.TypeOf((*MockContainerRuntime)(nil).RemoveNetwork), ctx, networkName)
+}
+
+// RemoveVolume mocks base method.
+func (m *MockContainerRuntime) RemoveVolume(ctx context.Context, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveVolume", ctx, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveVolume indicates an expected call of RemoveVolume.
+func (mr *MockContainerRuntimeMockRecorder) RemoveVolume(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveVolume", reflect.TypeOf((*MockContainerRuntime)(nil).RemoveVolume), ctx, name)
 }
 
 // Start mocks base method.
