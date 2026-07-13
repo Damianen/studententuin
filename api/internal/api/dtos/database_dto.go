@@ -1,11 +1,13 @@
 package dtos
 
+// CreateDatabaseRequest deliberately has no password field: credentials are
+// generated server-side (§6 phase 5) and surface only via the connection
+// string on the record.
 type CreateDatabaseRequest struct {
 	Name string `json:"name" binding:"required"`
 	Type string `json:"type" binding:"required"`
 	Version string `json:"version" binding:"required"`
 	DbName string `json:"db_name" binding:"required"`
-	DbPassword string `json:"db_password" binding:"required"`
 }
 
 type UpdateDatabaseRequest struct {

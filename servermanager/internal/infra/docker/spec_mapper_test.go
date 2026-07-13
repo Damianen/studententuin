@@ -123,6 +123,94 @@ func TestBuildCreateOptionsHardening(t *testing.T) {
 	if opts.NetworkingConfig == nil || opts.NetworkingConfig.EndpointsConfig[netName] == nil {
 		t.Errorf("NetworkingConfig missing endpoint for %s", netName)
 	}
+
+	// App specs must not accidentally grow database-only settings.
+	if cfg.User != "" {
+		t.Errorf("User = %q, want empty for app specs", cfg.User)
+	}
+	if cfg.Healthcheck != nil {
+		t.Errorf("Healthcheck = %+v, want nil for app specs", cfg.Healthcheck)
+	}
+	if hc.ShmSize != 0 {
+		t.Errorf("ShmSize = %d, want 0 (daemon default) for app specs", hc.ShmSize)
+	}
+}
+
+// TestBuildCreateOptionsDBSpec is the database twin of the hardening test: a
+// KindDB spec derives db names, carries the postgres-specific settings, and
+// keeps every §3.3 default that matters.
+func TestBuildCreateOptionsDBSpec(t *testing.T) {
+	spec := domain.ContainerSpec{
+		AppID: testAppID,
+		Kind:  domain.KindDB,
+		Image: "postgres:16",
+		Env:   map[string]string{"POSTGRES_USER": "app"},
+		Port:  5432,
+		User:  "postgres",
+		Healthcheck: &domain.Healthcheck{
+			Test:     []string{"CMD", "pg_isready", "-h", "127.0.0.1", "-U", "app"},
+			Interval: 2_000_000_000,
+			Timeout:  3_000_000_000,
+			Retries:  30,
+		},
+		MemoryBytes:  512 * 1024 * 1024,
+		NanoCPUs:     500_000_000,
+		PidsLimit:    256,
+		ShmSizeBytes: 256 * 1024 * 1024,
+		Runtime:      domain.RuntimeRunc,
+		Volumes:      []string{"stt-db-data-" + testAppID + ":/var/lib/postgresql/data"},
+	}
+	opts, err := buildCreateOptions(spec)
+	if err != nil {
+		t.Fatalf("buildCreateOptions: %v", err)
+	}
+
+	if opts.Name != "stt-db-"+testAppID {
+		t.Errorf("Name = %q, want stt-db-%s", opts.Name, testAppID)
+	}
+	hc := opts.HostConfig
+	if want := container.NetworkMode("stt-dbnet-" + testAppID); hc.NetworkMode != want {
+		t.Errorf("NetworkMode = %q, want %q", hc.NetworkMode, want)
+	}
+	if opts.NetworkingConfig == nil || opts.NetworkingConfig.EndpointsConfig["stt-dbnet-"+testAppID] == nil {
+		t.Errorf("NetworkingConfig missing endpoint for stt-dbnet-%s", testAppID)
+	}
+	if opts.Config.User != "postgres" {
+		t.Errorf("User = %q, want postgres", opts.Config.User)
+	}
+	gotHC := opts.Config.Healthcheck
+	if gotHC == nil || !reflect.DeepEqual(gotHC.Test, spec.Healthcheck.Test) ||
+		gotHC.Interval != spec.Healthcheck.Interval || gotHC.Timeout != spec.Healthcheck.Timeout ||
+		gotHC.Retries != spec.Healthcheck.Retries {
+		t.Errorf("Healthcheck = %+v, want %+v", gotHC, spec.Healthcheck)
+	}
+	if hc.ShmSize != spec.ShmSizeBytes {
+		t.Errorf("ShmSize = %d, want %d", hc.ShmSize, spec.ShmSizeBytes)
+	}
+	if hc.ReadonlyRootfs {
+		t.Error("ReadonlyRootfs = true, want false for postgres")
+	}
+
+	// The §3.3 hardening must hold for databases exactly as for apps.
+	if want := []string{"ALL"}; !reflect.DeepEqual(hc.CapDrop, want) {
+		t.Errorf("CapDrop = %v, want %v", hc.CapDrop, want)
+	}
+	if want := []string{"no-new-privileges:true"}; !reflect.DeepEqual(hc.SecurityOpt, want) {
+		t.Errorf("SecurityOpt = %v, want %v", hc.SecurityOpt, want)
+	}
+	if len(hc.Binds) != 0 || len(hc.PortBindings) != 0 {
+		t.Errorf("Binds/PortBindings = %v/%v, want empty", hc.Binds, hc.PortBindings)
+	}
+	if hc.PidsLimit == nil || *hc.PidsLimit != spec.PidsLimit {
+		t.Errorf("PidsLimit = %v, want %d", hc.PidsLimit, spec.PidsLimit)
+	}
+	if hc.Memory != spec.MemoryBytes || hc.MemorySwap != spec.MemoryBytes {
+		t.Errorf("Memory/MemorySwap = %d/%d, want %d", hc.Memory, hc.MemorySwap, spec.MemoryBytes)
+	}
+	wantLog := container.LogConfig{Type: "json-file", Config: map[string]string{"max-size": "10m", "max-file": "3"}}
+	if !reflect.DeepEqual(hc.LogConfig, wantLog) {
+		t.Errorf("LogConfig = %+v, want %+v", hc.LogConfig, wantLog)
+	}
 }
 
 func TestBuildCreateOptionsNoPort(t *testing.T) {

@@ -84,6 +84,21 @@ func (mr *MockApplicationRepoMockRecorder) FindByID(id, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockApplicationRepo)(nil).FindByID), id, arg1)
 }
 
+// FindBySubdomainID mocks base method.
+func (m *MockApplicationRepo) FindBySubdomainID(subdomainID string, arg1 context.Context) (*domain.Application, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindBySubdomainID", subdomainID, arg1)
+	ret0, _ := ret[0].(*domain.Application)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindBySubdomainID indicates an expected call of FindBySubdomainID.
+func (mr *MockApplicationRepoMockRecorder) FindBySubdomainID(subdomainID, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindBySubdomainID", reflect.TypeOf((*MockApplicationRepo)(nil).FindBySubdomainID), subdomainID, arg1)
+}
+
 // Update mocks base method.
 func (m *MockApplicationRepo) Update(id string, updates map[string]any, arg2 context.Context) error {
 	m.ctrl.T.Helper()

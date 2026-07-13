@@ -14,6 +14,7 @@ type UpdateDatabase struct {
 
 type DatabaseUpdateInput struct {
 	ID string
+	SubdomainID string
 	Name *string
 	Type *domain.DatabaseType
 	Status *domain.DatabaseStatus
@@ -28,12 +29,20 @@ type DatabaseUpdateInput struct {
 }
 
 func (u *UpdateDatabase) Execute(ctx context.Context, di DatabaseUpdateInput) error {
+	database, err := u.databaseRepo.FindByID(di.ID, ctx)
+	if err != nil {
+		return err
+	}
+	if database.SubdomainID.String() != di.SubdomainID {
+		return ErrNotInSubdomain
+	}
+
 	now := u.clock.Now()
 	updates := map[string]any{
 		"updated_at": now,
 	}
 
-	err := ports.SetIfNotNil(updates, "name", di.Name, func(s string) (any, error) {
+	err = ports.SetIfNotNil(updates, "name", di.Name, func(s string) (any, error) {
 		if s == "" {
 			return nil, errors.New("name cannot be empty")
 		}

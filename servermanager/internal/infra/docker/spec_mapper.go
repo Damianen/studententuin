@@ -28,6 +28,16 @@ func buildCreateOptions(spec domain.ContainerSpec) (client.ContainerCreateOption
 		Image: spec.Image,
 		Env:   envSlice(spec.Env),
 		Cmd:   spec.Cmd,
+		User:  spec.User,
+	}
+	if hc := spec.Healthcheck; hc != nil {
+		cfg.Healthcheck = &container.HealthConfig{
+			Test:        hc.Test,
+			Interval:    hc.Interval,
+			Timeout:     hc.Timeout,
+			StartPeriod: hc.StartPeriod,
+			Retries:     hc.Retries,
+		}
 	}
 	if spec.Port > 0 {
 		port, err := network.ParsePort(fmt.Sprintf("%d/tcp", spec.Port))
@@ -46,7 +56,7 @@ func buildCreateOptions(spec domain.ContainerSpec) (client.ContainerCreateOption
 		mounts = append(mounts, mount.Mount{Type: mount.TypeVolume, Source: name, Target: target})
 	}
 
-	netName := domain.AppNetworkName(spec.AppID)
+	netName := spec.NetworkName()
 	hostCfg := &container.HostConfig{
 		Resources: container.Resources{
 			Memory:     spec.MemoryBytes,
@@ -59,6 +69,7 @@ func buildCreateOptions(spec domain.ContainerSpec) (client.ContainerCreateOption
 		NetworkMode:    container.NetworkMode(netName),
 		Mounts:         mounts,
 		ReadonlyRootfs: spec.ReadonlyRootfs,
+		ShmSize:        spec.ShmSizeBytes, // 0 keeps the daemon default
 		Tmpfs:          map[string]string{"/tmp": "rw,noexec,nosuid,size=64m"},
 		RestartPolicy: container.RestartPolicy{
 			Name:              container.RestartPolicyOnFailure,
@@ -72,7 +83,7 @@ func buildCreateOptions(spec domain.ContainerSpec) (client.ContainerCreateOption
 	}
 
 	return client.ContainerCreateOptions{
-		Name:       domain.AppContainerName(spec.AppID),
+		Name:       spec.ContainerName(),
 		Config:     cfg,
 		HostConfig: hostCfg,
 		NetworkingConfig: &network.NetworkingConfig{

@@ -47,6 +47,9 @@ type DeploySpec struct {
 	Port          int               `json:"port,omitempty"`
 	MemoryLimit   string            `json:"memory_limit,omitempty"`
 	CpuLimit      string            `json:"cpu_limit,omitempty"`
+	// DatabaseID links the app to the subdomain's database: the manager
+	// attaches the new container to that database's private network.
+	DatabaseID string `json:"database_id,omitempty"`
 }
 
 // DeploymentStatus is the manager's job resource the api polls. Status moves
@@ -70,8 +73,62 @@ func (d *DeploymentStatus) Terminal() bool {
 	return d.Status == "running" || d.Status == "failed"
 }
 
+// ErrProvisionInFlight maps the manager's 409 on database provisioning: one
+// provision per database at a time, and an existing container means DELETE
+// first.
+var ErrProvisionInFlight = errors.New("a provision is already in flight for this database")
+
+// ErrDatabaseNotProvisioned means the manager has no container for this
+// database.
+var ErrDatabaseNotProvisioned = errors.New("no container for this database")
+
+// DBProvisionSpec is the provision body. Credentials are api-generated; the
+// manager passes them into the container env and never logs or stores them.
+type DBProvisionSpec struct {
+	Type        string `json:"type"`
+	Version     string `json:"version"`
+	DBName      string `json:"db_name"`
+	DBUser      string `json:"db_user"`
+	DBPassword  string `json:"db_password"`
+	MemoryLimit string `json:"memory_limit,omitempty"`
+	CpuLimit    string `json:"cpu_limit,omitempty"`
+	Runtime     string `json:"runtime,omitempty"`
+}
+
+// DBProvisionState is the provision job folded into the status response.
+// Status moves queued → pulling → starting → running | failed.
+type DBProvisionState struct {
+	ID            string    `json:"id"`
+	Status        string    `json:"status"`
+	Error         string    `json:"error,omitempty"`
+	Image         string    `json:"image,omitempty"`
+	ContainerID   string    `json:"container_id,omitempty"`
+	ContainerName string    `json:"container_name,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+// Terminal reports whether the provision reached an end state.
+func (p *DBProvisionState) Terminal() bool {
+	return p.Status == "running" || p.Status == "failed"
+}
+
+// DBStatus is the manager's database resource: actual Docker state plus the
+// latest provision job. Provision is nil when the manager lost the job (e.g.
+// restart) — the poller treats exists=false with a nil Provision as a strike.
+type DBStatus struct {
+	Exists       bool              `json:"exists"`
+	Running      bool              `json:"running"`
+	StartedAt    *time.Time        `json:"started_at,omitempty"`
+	RestartCount int               `json:"restart_count"`
+	Status       string            `json:"status"`
+	Health       string            `json:"health,omitempty"`
+	Provision    *DBProvisionState `json:"provision,omitempty"`
+}
+
 // ServerManagerClient is the api-side view of the servermanager's internal
-// HTTP API. It grows per phase; phase 3 adds deploy and lifecycle.
+// HTTP API. It grows per phase; phase 3 added deploy and lifecycle, phase 5
+// adds databases.
 type ServerManagerClient interface {
 	Logs(ctx context.Context, appID string, opts LogOptions) ([]LogEntry, error)
 	// StreamLogs follows the container's logs live. The channel is closed
@@ -90,4 +147,20 @@ type ServerManagerClient interface {
 	// Remove deletes the container, its per-app networks, and anonymous
 	// volumes. ErrAppNotDeployed when there is nothing to remove.
 	Remove(ctx context.Context, appID string) error
+	// ProvisionDatabase queues the async pull→create→start job (manager 202).
+	// ErrProvisionInFlight on a concurrent provision or existing container;
+	// ErrSpecRejected when the manager refuses the spec (allowlist).
+	ProvisionDatabase(ctx context.Context, dbID string, spec DBProvisionSpec) (string, error)
+	// DatabaseStatus reports Docker state + provision job; poll it after
+	// ProvisionDatabase.
+	DatabaseStatus(ctx context.Context, dbID string) (*DBStatus, error)
+	// RemoveDatabase sweeps the database's container, network, and data
+	// volume. Safe to call when nothing exists.
+	RemoveDatabase(ctx context.Context, dbID string) error
+	// DatabaseLogs reads the database container's logs;
+	// ErrDatabaseNotProvisioned when there is no container.
+	DatabaseLogs(ctx context.Context, dbID string, opts LogOptions) ([]LogEntry, error)
+	// StreamDatabaseLogs follows the database container's logs live,
+	// mirroring StreamLogs.
+	StreamDatabaseLogs(ctx context.Context, dbID string, opts LogOptions) (<-chan LogEntry, error)
 }

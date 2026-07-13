@@ -18,6 +18,7 @@ const defaultAppPort = 3000
 
 type DeployApplication struct {
 	applicationRepo ports.ApplicationRepo
+	databaseRepo    ports.DatabaseRepo
 	serverManager   ports.ServerManagerClient
 	clock           ports.Clock
 	poller          *DeploymentPoller
@@ -40,7 +41,10 @@ func (d *DeployApplication) Execute(ctx context.Context, subdomainID, appID stri
 		return "", fmt.Errorf("%w: set a repository URL first", ErrNotDeployable)
 	}
 
-	deploymentID, err := d.serverManager.Deploy(ctx, appID, deploySpec(application))
+	spec := deploySpec(application)
+	d.linkDatabase(ctx, subdomainID, &spec)
+
+	deploymentID, err := d.serverManager.Deploy(ctx, appID, spec)
 	if err != nil {
 		return "", err
 	}
@@ -71,6 +75,29 @@ func deploySpec(application *domain.Application) ports.DeploySpec {
 		MemoryLimit:   deref(application.MemoryLimit),
 		CpuLimit:      deref(application.CpuLimit),
 	}
+}
+
+// linkDatabase injects the subdomain's provisioned database into the deploy:
+// DATABASE_URL in the env (a user-defined DATABASE_URL always wins) and the
+// database id so the manager attaches the container to the database's
+// private network. A subdomain without a running database deploys unlinked —
+// that's the common case, not an error.
+func (d *DeployApplication) linkDatabase(ctx context.Context, subdomainID string, spec *ports.DeploySpec) {
+	database, err := d.databaseRepo.FindBySubdomainID(subdomainID, ctx)
+	if err != nil || database.ConnectionString == nil || *database.ConnectionString == "" {
+		return
+	}
+
+	spec.DatabaseID = database.ID.String()
+	if _, exists := spec.Env["DATABASE_URL"]; exists {
+		return
+	}
+	env := make(map[string]string, len(spec.Env)+1)
+	for k, v := range spec.Env {
+		env[k] = v
+	}
+	env["DATABASE_URL"] = *database.ConnectionString
+	spec.Env = env
 }
 
 // deployPort picks the app's configured port, falling back to the

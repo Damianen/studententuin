@@ -48,6 +48,7 @@ type DeployInput struct {
 	MemoryLimit   string
 	CpuLimit      string
 	Runtime       string
+	DatabaseID    string
 }
 
 // Execute validates everything it can synchronously (the HTTP 400/409
@@ -78,6 +79,7 @@ func (u *Deploy) Execute(_ context.Context, in DeployInput) (string, error) {
 		MemoryLimit: in.MemoryLimit,
 		CpuLimit:    in.CpuLimit,
 		Runtime:     in.Runtime,
+		DatabaseID:  in.DatabaseID,
 		// No StartCommand: nixpacks bakes it into the image CMD.
 	}
 	if err := u.runner.Validate(runInput); err != nil {

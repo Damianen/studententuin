@@ -23,11 +23,9 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 
-const VERSION_PLACEHOLDERS: Record<string, string> = {
-	postgres: '16',
-	mysql: '8.0',
-	mongodb: '7',
-};
+// Postgres only through phase 5 (allowlisted server-side); MySQL/MongoDB stay
+// visible but disabled so the roadmap is legible in the UI.
+const POSTGRES_VERSIONS = ['16', '17'];
 
 export default function NewDatabase() {
 	const navigate = useNavigate();
@@ -36,6 +34,7 @@ export default function NewDatabase() {
 		searchParams.get('subdomain') ?? ''
 	);
 	const [type, setType] = useState('postgres');
+	const [version, setVersion] = useState(POSTGRES_VERSIONS[0]);
 	const [error, setError] = useState<string | null>(null);
 	const [pending, setPending] = useState(false);
 
@@ -50,9 +49,8 @@ export default function NewDatabase() {
 			await DatabaseController.create(project.id, {
 				name: String(formData.get('name') ?? '').trim(),
 				type,
-				version: String(formData.get('version') ?? '').trim(),
+				version,
 				db_name: String(formData.get('db_name') ?? '').trim(),
-				db_password: String(formData.get('db_password') ?? '').trim(),
 			});
 			toast.success('Database planted');
 			navigate(`/projects/${project.id}`);
@@ -131,36 +129,46 @@ export default function NewDatabase() {
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="postgres">PostgreSQL</SelectItem>
-										<SelectItem value="mysql">MySQL</SelectItem>
-										<SelectItem value="mongodb">MongoDB</SelectItem>
+										<SelectItem value="mysql" disabled>
+											MySQL — coming soon
+										</SelectItem>
+										<SelectItem value="mongodb" disabled>
+											MongoDB — coming soon
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="version">Version</Label>
-								<Input
-									id="version"
-									name="version"
-									placeholder={VERSION_PLACEHOLDERS[type]}
-									required
-								/>
+								<Label>Version</Label>
+								<Select value={version} onValueChange={setVersion}>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Select a version…" />
+									</SelectTrigger>
+									<SelectContent>
+										{POSTGRES_VERSIONS.map((v) => (
+											<SelectItem key={v} value={v}>
+												{v}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
 						</div>
 
 						<div className="space-y-2">
 							<Label htmlFor="db_name">Database name</Label>
-							<Input id="db_name" name="db_name" placeholder="app_db" required />
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="db_password">Database password</Label>
 							<Input
-								id="db_password"
-								name="db_password"
-								type="password"
-								autoComplete="new-password"
+								id="db_name"
+								name="db_name"
+								placeholder="app_db"
 								required
+								pattern="^[a-z_][a-z0-9_]*$"
+								title="Lowercase letters, digits and underscores, starting with a letter"
 							/>
+							<p className="text-xs text-muted-foreground">
+								Login credentials are generated for you — the connection string
+								appears on the database card once it is running.
+							</p>
 						</div>
 
 						{error && (

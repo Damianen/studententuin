@@ -25,10 +25,10 @@ test.describe('projects', () => {
 
 		await page.getByLabel('Name', { exact: true }).fill('my-database');
 		await page.getByLabel('Subdomain').fill(subdomain);
+		// Engine (postgres) and version (16) keep their defaults; credentials
+		// are generated server-side since phase 5, so there is no password field.
 		await pickOption(page, 'PostgreSQL', 'PostgreSQL');
-		await page.getByLabel('Version').fill('16');
 		await page.getByLabel('Database name').fill('app_db');
-		await page.getByLabel('Database password').fill('db-secret-123');
 		await page.getByRole('button', { name: 'Create database' }).click();
 
 		// ensureSubdomain claims the subdomain, then the database is planted on it.
@@ -92,9 +92,15 @@ test.describe('projects', () => {
 	});
 
 	test('delete the project with type-to-confirm', async ({ page }) => {
+		// Deleting is blocked (409) while the database provision is in flight,
+		// so wait for the badge to settle first (cold hosts pull the image).
+		test.setTimeout(300_000);
 		await login(page, user);
 		await page.getByRole('link', { name: `Open project ${renamed}` }).click();
 		await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+		await expect(page.getByText(/^(running|failed)$/).first()).toBeVisible({
+			timeout: 240_000,
+		});
 
 		await page.getByRole('button', { name: 'Delete project' }).click();
 		const dialog = page.getByRole('dialog');

@@ -46,6 +46,7 @@ func (c *Controller) Run(ginc *gin.Context) {
 		Runtime:        req.Runtime,
 		Volumes:        req.Volumes,
 		ReadonlyRootfs: req.ReadonlyRootfs,
+		DatabaseID:     req.DatabaseID,
 	})
 	if err != nil {
 		respondServiceErr(ginc, "run", appID, err)

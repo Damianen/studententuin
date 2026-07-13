@@ -1,15 +1,18 @@
 package subdomain
 
 import (
+	"api/internal/app/ports"
 	"api/internal/domain"
 	"api/internal/mocks"
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 )
 
 func TestCreateSubdomain_Execute(t *testing.T) {
@@ -190,32 +193,76 @@ func TestUpdateSubdomain_Execute(t *testing.T) {
 
 func TestDeleteSubdomain_Execute(t *testing.T) {
 	subID := uuid.New()
+	appID := uuid.New()
+	dbID := uuid.New()
+
+	// bare wires a subdomain with no application and no database.
+	bare := func(ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo) {
+		ar.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound).AnyTimes()
+		dr.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound).AnyTimes()
+	}
 
 	tests := []struct {
 		name    string
-		setup   func(sr *mocks.MockSubdomainRepo)
+		setup   func(sr *mocks.MockSubdomainRepo, ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo, sm *mocks.MockServerManagerClient)
 		wantErr string
 	}{
 		{
-			name: "success",
-			setup: func(sr *mocks.MockSubdomainRepo) {
+			name: "success without children",
+			setup: func(sr *mocks.MockSubdomainRepo, ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo, sm *mocks.MockServerManagerClient) {
 				sub := &domain.Subdomain{ID: subID}
 				sr.EXPECT().FindByID(subID.String(), gomock.Any()).Return(sub, nil)
+				bare(ar, dr)
 				sr.EXPECT().Delete(sub, gomock.Any()).Return(nil)
 			},
 		},
 		{
+			name: "removes app and database containers before the row",
+			setup: func(sr *mocks.MockSubdomainRepo, ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo, sm *mocks.MockServerManagerClient) {
+				sub := &domain.Subdomain{ID: subID}
+				sr.EXPECT().FindByID(subID.String(), gomock.Any()).Return(sub, nil)
+				ar.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(&domain.Application{ID: appID, SubdomainID: subID}, nil)
+				sm.EXPECT().Remove(gomock.Any(), appID.String()).Return(nil)
+				dr.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(&domain.Database{ID: dbID, SubdomainID: subID}, nil)
+				sm.EXPECT().RemoveDatabase(gomock.Any(), dbID.String()).Return(nil)
+				sr.EXPECT().Delete(sub, gomock.Any()).Return(nil)
+			},
+		},
+		{
+			name: "never-deployed app is not an error",
+			setup: func(sr *mocks.MockSubdomainRepo, ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo, sm *mocks.MockServerManagerClient) {
+				sub := &domain.Subdomain{ID: subID}
+				sr.EXPECT().FindByID(subID.String(), gomock.Any()).Return(sub, nil)
+				ar.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(&domain.Application{ID: appID, SubdomainID: subID}, nil)
+				sm.EXPECT().Remove(gomock.Any(), appID.String()).Return(fmt.Errorf("servermanager remove: %w", ports.ErrAppNotDeployed))
+				dr.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
+				sr.EXPECT().Delete(sub, gomock.Any()).Return(nil)
+			},
+		},
+		{
+			name: "database removal failure blocks the row delete",
+			setup: func(sr *mocks.MockSubdomainRepo, ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo, sm *mocks.MockServerManagerClient) {
+				sub := &domain.Subdomain{ID: subID}
+				sr.EXPECT().FindByID(subID.String(), gomock.Any()).Return(sub, nil)
+				ar.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
+				dr.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(&domain.Database{ID: dbID, SubdomainID: subID}, nil)
+				sm.EXPECT().RemoveDatabase(gomock.Any(), dbID.String()).Return(errors.New("sweep failed"))
+			},
+			wantErr: "sweep failed",
+		},
+		{
 			name: "find error",
-			setup: func(sr *mocks.MockSubdomainRepo) {
+			setup: func(sr *mocks.MockSubdomainRepo, ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo, sm *mocks.MockServerManagerClient) {
 				sr.EXPECT().FindByID(subID.String(), gomock.Any()).Return(nil, errors.New("not found"))
 			},
 			wantErr: "not found",
 		},
 		{
 			name: "delete error",
-			setup: func(sr *mocks.MockSubdomainRepo) {
+			setup: func(sr *mocks.MockSubdomainRepo, ar *mocks.MockApplicationRepo, dr *mocks.MockDatabaseRepo, sm *mocks.MockServerManagerClient) {
 				sub := &domain.Subdomain{ID: subID}
 				sr.EXPECT().FindByID(subID.String(), gomock.Any()).Return(sub, nil)
+				bare(ar, dr)
 				sr.EXPECT().Delete(sub, gomock.Any()).Return(errors.New("delete failed"))
 			},
 			wantErr: "delete failed",
@@ -226,10 +273,13 @@ func TestDeleteSubdomain_Execute(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			sr := mocks.NewMockSubdomainRepo(ctrl)
+			ar := mocks.NewMockApplicationRepo(ctrl)
+			dr := mocks.NewMockDatabaseRepo(ctrl)
+			sm := mocks.NewMockServerManagerClient(ctrl)
 
-			tt.setup(sr)
+			tt.setup(sr, ar, dr, sm)
 
-			svc := NewService(Dependencies{SubdomainRepo: sr})
+			svc := NewService(Dependencies{SubdomainRepo: sr, ApplicationRepo: ar, DatabaseRepo: dr, ServerManager: sm})
 			err := svc.Delete.Execute(context.Background(), subID.String())
 
 			if tt.wantErr != "" {

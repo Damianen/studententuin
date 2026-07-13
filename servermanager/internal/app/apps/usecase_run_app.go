@@ -2,6 +2,7 @@ package apps
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 	"servermanager/internal/ports"
 
 	"github.com/distribution/reference"
+	"github.com/google/uuid"
 )
 
 // minMemoryBytes is the Docker daemon's memory-limit floor (6 MiB); reject
@@ -36,6 +38,9 @@ type RunInput struct {
 	Runtime        string
 	Volumes        []string
 	ReadonlyRootfs bool
+	// DatabaseID links the app to its database: the container is attached to
+	// the database's private network before start, so DATABASE_URL resolves.
+	DatabaseID string
 }
 
 // Execute validates and defaults the input against the server-side caps,
@@ -52,15 +57,35 @@ func (u *RunApp) Execute(ctx context.Context, in RunInput) (string, error) {
 		return "", err
 	}
 
-	if err := u.runtime.Start(ctx, containerID); err != nil {
-		// Keep the per-app network: a failed start must not tear down what
-		// other attachments (or the next deploy attempt) still need.
-		if rmErr := u.runtime.RemoveContainer(ctx, containerID); rmErr != nil {
-			slog.Error("removing container after failed start", "container_id", containerID, "error", rmErr)
+	// Attach to the linked database's network before start, so the db host
+	// name resolves from the app's first instruction on. The network is owned
+	// by the database provision flow — a missing one is a hard error, not
+	// something to create empty here.
+	if in.DatabaseID != "" {
+		netName := domain.DBNetworkName(in.DatabaseID)
+		if err := u.runtime.ConnectNetwork(ctx, netName, containerID); err != nil {
+			u.removeAfterFailure(ctx, containerID)
+			if errors.Is(err, domain.ErrNotFound) {
+				return "", fmt.Errorf("database network %s missing — provision the database first: %w", netName, domain.ErrInvalid)
+			}
+			return "", err
 		}
+	}
+
+	if err := u.runtime.Start(ctx, containerID); err != nil {
+		u.removeAfterFailure(ctx, containerID)
 		return "", err
 	}
 	return containerID, nil
+}
+
+// removeAfterFailure cleans up a container that never reached running. It
+// keeps the per-app network: a failed start must not tear down what other
+// attachments (or the next deploy attempt) still need.
+func (u *RunApp) removeAfterFailure(ctx context.Context, containerID string) {
+	if rmErr := u.runtime.RemoveContainer(ctx, containerID); rmErr != nil {
+		slog.Error("removing container after failed start", "container_id", containerID, "error", rmErr)
+	}
 }
 
 // Validate runs the full input validation (image ref, port, env keys,
@@ -87,6 +112,12 @@ func (u *RunApp) buildSpec(in RunInput) (*domain.ContainerSpec, error) {
 	for _, v := range in.Volumes {
 		if _, _, err := domain.ParseVolumeSpec(v); err != nil {
 			return nil, fmt.Errorf("%w: %w", err, domain.ErrInvalid)
+		}
+	}
+	if in.DatabaseID != "" {
+		// Network names are derived from it — same UUID rule as the routes.
+		if _, err := uuid.Parse(in.DatabaseID); err != nil {
+			return nil, fmt.Errorf("database_id must be a UUID: %w", domain.ErrInvalid)
 		}
 	}
 

@@ -21,6 +21,15 @@ func (repo *GormDatabaseRepo) FindByID(id string, context context.Context) (*dom
 	return &database, nil
 }
 
+func (repo *GormDatabaseRepo) FindBySubdomainID(subdomainID string, context context.Context) (*domain.Database, error) {
+	var database domain.Database
+	err := repo.DB.WithContext(context).First(&database, "subdomain_id = ?", subdomainID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &database, nil
+}
+
 func (repo *GormDatabaseRepo) Create(database *domain.Database, context context.Context) error {
 	return repo.DB.WithContext(context).Create(database).Error
 }

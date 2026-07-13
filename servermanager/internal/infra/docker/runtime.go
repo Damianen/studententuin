@@ -46,16 +46,20 @@ func New(ctx context.Context) (*Runtime, error) {
 
 func (r *Runtime) Close() error { return r.cli.Close() }
 
-// Create ensures the per-app network exists and creates the hardened
-// container attached to it. It never pulls images: Phase 1 images are
-// hand-pushed by the operator, later phases build them locally.
+// Create ensures the container's private network exists and creates the
+// hardened container attached to it. It never pulls images: app images are
+// built locally, database images are pulled explicitly by the provision flow.
 func (r *Runtime) Create(ctx context.Context, spec domain.ContainerSpec) (string, error) {
 	opts, err := buildCreateOptions(spec)
 	if err != nil {
 		return "", err
 	}
 
-	if err := r.ensureNetwork(ctx, spec.AppID); err != nil {
+	labels := map[string]string{"studententuin.app-id": spec.AppID}
+	if spec.Kind == domain.KindDB {
+		labels = map[string]string{"studententuin.db-id": spec.AppID}
+	}
+	if err := r.ensureNetwork(ctx, spec.NetworkName(), labels); err != nil {
 		return "", err
 	}
 
@@ -123,6 +127,9 @@ func (r *Runtime) Inspect(ctx context.Context, nameOrID string) (*domain.Contain
 		state.Running = s.Running
 		state.Status = string(s.Status)
 		state.StartedAt = parseDockerTime(s.StartedAt)
+		if s.Health != nil {
+			state.Health = string(s.Health.Status)
+		}
 	}
 	return state, nil
 }

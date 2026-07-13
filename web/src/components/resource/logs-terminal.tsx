@@ -12,7 +12,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
-import { DemoBadge } from '@/components/resource/demo-badge';
 
 const LEVELS: LogLevel[] = ['info', 'warn', 'error', 'debug'];
 
@@ -88,7 +87,6 @@ export function LogsTerminal({
 					What {resourceName} has been murmuring lately.
 				</CardDescription>
 				<CardAction className="flex items-center gap-2">
-					{kind === 'database' && <DemoBadge />}
 					{live && (
 						<span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
 							<span className="size-1.5 animate-pulse rounded-full bg-primary" />

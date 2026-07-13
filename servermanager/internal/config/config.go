@@ -13,6 +13,9 @@ import (
 // maxHealthGrace keeps a typo'd SM_HEALTH_GRACE from stalling every deploy.
 const maxHealthGrace = 60 * time.Second
 
+// maxDBHealthBudget bounds SM_DB_HEALTH_BUDGET the same way.
+const maxDBHealthBudget = 5 * time.Minute
+
 type Config struct {
 	Port           string
 	BindAddr       string
@@ -31,6 +34,9 @@ type Config struct {
 	BuildTimeout  time.Duration
 	HealthGrace   time.Duration
 	NixpacksBin   string
+
+	DBPullTimeout  time.Duration
+	DBHealthBudget time.Duration
 }
 
 // Load reads the SM_* environment (SERVERMANAGEMENT.md §9) and fails on a
@@ -101,6 +107,18 @@ func Load() (*Config, error) {
 	}
 	if cfg.NixpacksBin = getenv("SM_NIXPACKS_BIN", "nixpacks"); cfg.NixpacksBin == "" {
 		return nil, fmt.Errorf("SM_NIXPACKS_BIN must not be empty")
+	}
+
+	// Database provisioning (§6 phase 5): the first pull of an official image
+	// dominates; the health budget covers initdb on slow disks.
+	if cfg.DBPullTimeout, err = positiveDuration("SM_DB_PULL_TIMEOUT", "5m"); err != nil {
+		return nil, err
+	}
+	if cfg.DBHealthBudget, err = positiveDuration("SM_DB_HEALTH_BUDGET", "60s"); err != nil {
+		return nil, err
+	}
+	if cfg.DBHealthBudget > maxDBHealthBudget {
+		return nil, fmt.Errorf("SM_DB_HEALTH_BUDGET exceeds the %s maximum", maxDBHealthBudget)
 	}
 
 	return cfg, nil

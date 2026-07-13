@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import {
@@ -13,6 +13,8 @@ import {
 	GitBranch,
 	Pencil,
 	Plus,
+	RefreshCw,
+	Rocket,
 	Trash2,
 	X,
 } from 'lucide-react';
@@ -24,6 +26,8 @@ import type { SubdomainListItemDto } from '@/dtos/subdomain_dtos';
 import type { ApplicationDto } from '@/dtos/application_dtos';
 import type { DatabaseDto } from '@/dtos/database_dtos';
 import { useAsync } from '@/hooks/use_async';
+import { STAGE_LABELS, useDeployment } from '@/hooks/use_deployment';
+import { useProvisionWatch } from '@/hooks/use_provision_watch';
 import { StatusBadge } from '@/components/status-badge';
 import { CopyButton } from '@/components/copy-button';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -369,10 +373,43 @@ function DatabaseSection({
 	const [editing, setEditing] = useState(false);
 	const [pending, setPending] = useState(false);
 	const [revealed, setRevealed] = useState(false);
-	const [form, setForm] = useState({
-		name: database?.name ?? '',
-		version: database?.version ?? '',
-	});
+	const [name, setName] = useState(database?.name ?? '');
+
+	// Keep the card fresh while the container is coming up (phase 5).
+	useProvisionWatch(database?.status, onChanged);
+
+	// When the database turns running while we watch, an already-deployed app
+	// doesn't have DATABASE_URL yet — offer the redeploy that injects it,
+	// mirroring the env-tab offer from phase 4.
+	const application = subdomain.application;
+	const [offerRedeploy, setOfferRedeploy] = useState(false);
+	const previousStatus = useRef(database?.status);
+	useEffect(() => {
+		const current = database?.status?.toLowerCase();
+		const previous = previousStatus.current?.toLowerCase();
+		previousStatus.current = database?.status;
+		if (previous === 'provisioning' && current === 'running') {
+			toast.success(`${database?.name} is running`);
+			// Reacting to polled (external) state settling — the documented
+			// exception to the no-setState-in-effect rule.
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			if (application?.repo_url) setOfferRedeploy(true);
+		}
+	}, [database?.status, database?.name, application?.repo_url]);
+
+	const { deploying, stage, deploy } = useDeployment(
+		subdomain.id,
+		application?.id ?? '',
+		(ok) => {
+			if (ok) {
+				setOfferRedeploy(false);
+				toast.success(`${application?.name} is live with DATABASE_URL`);
+			} else {
+				toast.error('Deployment failed — check the app card');
+			}
+			void onChanged();
+		},
+	);
 
 	if (!database) {
 		return (
@@ -391,8 +428,7 @@ function DatabaseSection({
 		setPending(true);
 		try {
 			await DatabaseController.patch(subdomain.id, database.id, {
-				name: form.name.trim() || undefined,
-				version: form.version.trim() || undefined,
+				name: name.trim() || undefined,
 			});
 			await onChanged();
 			toast.success('Database updated');
@@ -468,20 +504,17 @@ function DatabaseSection({
 							<Label htmlFor="db-name">Name</Label>
 							<Input
 								id="db-name"
-								value={form.name}
-								onChange={(event) =>
-									setForm({ ...form, name: event.target.value })
-								}
+								value={name}
+								onChange={(event) => setName(event.target.value)}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="db-version">Version</Label>
+							<Label htmlFor="db-engine">Engine</Label>
 							<Input
-								id="db-version"
-								value={form.version}
-								onChange={(event) =>
-									setForm({ ...form, version: event.target.value })
-								}
+								id="db-engine"
+								value={`${database.type} ${database.version}`}
+								disabled
+								title="The engine is fixed after creation — delete and recreate to change it"
 							/>
 						</div>
 						<div className="flex items-end justify-end gap-2 sm:col-span-2">
@@ -534,6 +567,28 @@ function DatabaseSection({
 						The connection string will appear here once the database is
 						provisioned.
 					</p>
+				)}
+				{(offerRedeploy || deploying) && application && (
+					<div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
+						<p className="text-xs text-muted-foreground">
+							{deploying
+								? `Deploying ${application.name} — ${STAGE_LABELS[stage ?? ''] ?? stage}`
+								: `Redeploy ${application.name} to inject DATABASE_URL.`}
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={deploy}
+							disabled={deploying}
+						>
+							{deploying ? (
+								<RefreshCw className="size-3.5 animate-spin" />
+							) : (
+								<Rocket className="size-3.5" />
+							)}
+							{deploying ? 'Deploying…' : 'Deploy now'}
+						</Button>
+					</div>
 				)}
 			</CardContent>
 		</Card>

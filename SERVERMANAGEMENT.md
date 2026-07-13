@@ -138,6 +138,10 @@ names from it (`stt-app-<uuid>`, `stt-db-<uuid>`) — names are never user input
 | `GET  /v1/apps/:id/logs?tail=200&since=<rfc3339>` | structured log lines from the Docker logs API |
 | `GET  /v1/apps/:id/logs/stream?tail=200` | live NDJSON log tail (`follow=true`); the api bridges it onto a browser WebSocket |
 | `GET  /v1/apps/:id/metrics?range=24h` | series matching the frontend contract (phase 6) |
+| `POST /v1/dbs/:id/provision` | async: pull → create → start → wait healthy. Returns `202 {provision_id}`; 409 while one is in flight or the container exists |
+| `GET  /v1/dbs/:id` | Docker state (exists, running, health) + the latest provision job (`queued → pulling → starting → running \| failed` + error) |
+| `DELETE /v1/dbs/:id` | idempotent sweep: container + `stt-dbnet-*` network + named data volume |
+| `GET  /v1/dbs/:id/logs` (+`/stream`) | database container logs, same shapes as the app endpoints |
 | `GET  /health` | unauthenticated liveness for compose/CI |
 
 Deploy request body (everything the api already stores on `domain.Application`):
@@ -182,6 +186,12 @@ Every user container is created with:
 - **Isolated bridge network per app** (`stt-net-<uuid>`): app + its database only.
   No host network. No connectivity to the manager or other tenants. `ICC` off on any
   shared network.
+  - Phase 5 refined the attachment direction: the shared app↔db network is
+    **owned by the database** (`stt-dbnet-<db-uuid>`; the distinct prefix keeps
+    the app-removal sweep of `stt-net-*` from touching it) and the app container
+    is connected to it at deploy/run when the spec carries `database_id`. Same
+    isolation, but the database can exist before/without an app and survives app
+    deletion; every cutover re-attaches the new container.
 - No bind mounts from the host; volumes are named Docker volumes only
   (`domain.Application.Volumes`). **The Docker socket is never mounted into any user
   container, under any circumstances.**
@@ -281,7 +291,9 @@ to `web/src/services/application_service.ts`, swap `makeLogs(...)` in
 `logs-terminal.tsx:35` for a `useAsync` fetch, drop the `DemoBadge`, keep the
 existing search/filter/download UI untouched. Then, in later phases: enable the
 disabled "Deploy now" button in `deployments-list.tsx` (phase 3 ✅), wire env-var
-persistence through the PATCH + GET round-trip (phase 4 ✅), then metrics charts.
+persistence through the PATCH + GET round-trip (phase 4 ✅), real database
+provisioning with live status/connection string/logs (phase 5 ✅ — the DemoBadge
+now survives only on metrics), then metrics charts.
 
 Source split for app metrics, planned now so the contract doesn't churn later:
 `cpu`/`mem` come from container/host stats (cAdvisor, per §1.3); `resp`/`req` can
@@ -366,13 +378,38 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
   manager enforces — a 400 names the key, never the value.
 
 ### Phase 5 — Databases
-- [ ] Manager provisions `domain.Database` containers from official images
+- [x] Manager provisions `domain.Database` containers from official images
       (postgres first; type/version from an **allowlist**, §3.3 hardening, named
       volume, generated credentials)
-- [ ] Connection string stored on the database record; injected as `DATABASE_URL`
-      into the linked app (same per-app network — never published to the internet)
-- [ ] **Acceptance**: create database in UI → running postgres container; its app
-      can reach it; `ConnectionString` no longer null
+- [x] Connection string stored on the database record; injected as `DATABASE_URL`
+      into the linked app (shared private network — never published to the
+      internet; see the §3.3 note on the attachment direction)
+- [x] **Acceptance**: create database in UI → running postgres container; its app
+      can reach it; `ConnectionString` no longer null. Covered end-to-end by
+      `web/e2e/databases.spec.ts` (no deploy repo needed) plus the manager-side
+      `TestIntegrationProvisionPipeline` (provision → healthy → reachable from a
+      linked container → delete sweeps container+network+volume → re-provision).
+- Landed with: async provision job in the manager (`queued → pulling → starting
+  → running | failed`, dbID-keyed single-flight store) polled by the api's
+  `ProvisionPoller`; readiness via a TCP-forced `pg_isready` Docker healthcheck
+  (the entrypoint's socket-only init server false-positives otherwise); postgres
+  runs as the named `postgres` user under CapDrop ALL (fresh named volumes
+  copy-up image ownership, so no chown is ever needed); `ShmSize` 256m against
+  the postgres shared-memory footgun, so the api asks 512m memory for databases;
+  db logs wired end-to-end (poll + WS stream), DemoBadge now metrics-only;
+  db_password removed from the create flow — the api generates `app` + 32-hex
+  creds and composes `postgres://…?sslmode=disable` (accepted MVP tradeoff on
+  the isolated bridge); engine (type/version) immutable after create; the
+  existing get/update/delete IDOR (no db-belongs-to-subdomain check — a foreign
+  connection-string read and foreign volume destruction once containers exist)
+  fixed alongside; subdomain delete now also sweeps its app container and its
+  database (container + network + volume) on the hosting server.
+- MVP limits (documented): manager restart mid-provision loses the job (stray
+  container → 409; recover via delete + recreate); no re-provision endpoint and
+  no credential rotation (delete + recreate); pull-if-missing pins images de
+  facto — security patches need a manual pull; a running app picks up
+  `DATABASE_URL` only on its next deploy (the UI offers that redeploy when the
+  database turns running).
 
 ### Phase 6 — Metrics (research-informed)
 - [ ] cAdvisor (or direct cgroup v2 reads) on the hosting server — host-level per
@@ -410,7 +447,10 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
       the integration test)
 - [x] Repo URL validation (scheme/host allowlist, https-only, no credentials/
       ports/queries) + clone size cap + per-stage timeouts
-- [ ] Image/version allowlists for databases; runtime allowlist
+- [x] Image/version allowlists for databases (postgres 16/17, in manager code —
+      the api mirrors it for clean 400s); runtime allowlist unchanged. Manager
+      re-validates identifiers/password shape defensively; the provision job
+      store never retains credentials.
 - [x] Builds run containerized (docker daemon legacy builder; each RUN step is
       a container) on throwaway clones; build context tars never follow
       symlinks and exclude `.git`
@@ -451,6 +491,8 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
 | `SM_BUILD_TIMEOUT` | servermanager | default `10m` |
 | `SM_HEALTH_GRACE` | servermanager | post-start health wait; default `3s`, capped at 60s |
 | `SM_NIXPACKS_BIN` | servermanager | default `nixpacks` (in the Docker image; pinned version) |
+| `SM_DB_PULL_TIMEOUT` | servermanager | first pull of a database image; default `5m` |
+| `SM_DB_HEALTH_BUDGET` | servermanager | db start → healthy (covers initdb); default `60s`, capped at 5m |
 | `SERVERMANAGER_URL` | api | e.g. `http://10.0.0.2:8080` |
 | `SERVERMANAGER_TOKEN` | api | same secret |
 
@@ -471,8 +513,10 @@ the host's Docker, outside the compose network — fine for dev.
 2. **Deploy status propagation**: api polls the manager (proposed, simplest) vs
    manager callbacks/webhooks to the api. Polling wins for MVP; revisit if we want
    live build logs streaming in the UI.
-3. **Database engine scope**: domain enum lists postgres/mysql/mongodb — suggest
-   postgres-only through phase 5, add others once the pattern is proven.
+3. **Database engine scope** — ✅ decided (phase 5): **postgres-only** (16/17
+   allowlisted). The domain enum keeps mysql/mongodb and the create dialog shows
+   them disabled ("coming soon"); adding an engine is an allowlist entry plus
+   engine-specific env/healthcheck/data-dir handling in the provision usecase.
 4. **Job persistence**: in-memory (proposed for single-instance MVP, reconstructed
    from Docker state on restart) vs SQLite in the manager. Decide when deployment
    history (phase 6) lands — history likely belongs in the api's postgres anyway.

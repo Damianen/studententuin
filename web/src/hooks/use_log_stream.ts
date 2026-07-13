@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { makeLogs } from '@/lib/mock_telemetry';
 import type { LogEntry, ResourceKind } from '@/lib/mock_telemetry';
 import type { LogEntryDto } from '@/dtos/application_dtos';
 import ApplicationController, {
 	mapLogEntry,
 } from '@/controllers/application_controller';
+import DatabaseController from '@/controllers/database_controller';
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_BUFFERED_LINES = 2000;
@@ -18,42 +18,36 @@ interface LogStream {
 }
 
 /**
- * Application logs arrive over a live websocket tail (history first, then
- * lines as the container writes them). When the stream is unavailable —
- * app not deployed, handshake rejected, connection dropped — it degrades
- * to polling the one-shot endpoint. Database logs stay on seeded sample
- * data until the backend grows database provisioning (phase 5).
+ * Logs arrive over a live websocket tail (history first, then lines as the
+ * container writes them). When the stream is unavailable — container not
+ * provisioned/deployed, handshake rejected, connection dropped — it degrades
+ * to polling the one-shot endpoint. Applications and databases share the
+ * machinery and differ only in endpoint paths (phase 2 / phase 5).
  */
 export function useLogStream(
 	kind: ResourceKind,
 	subdomainId: string,
 	resourceId: string,
 ): LogStream {
-	// Non-application kinds render their sample data immediately and never
-	// touch the network, so their state is final from the first render.
-	const isApplication = kind === 'application';
-	const [logs, setLogs] = useState<LogEntry[]>(() =>
-		isApplication ? [] : makeLogs(resourceId, kind),
-	);
-	const [loading, setLoading] = useState(isApplication);
+	const [logs, setLogs] = useState<LogEntry[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [live, setLive] = useState(false);
 
 	useEffect(() => {
-		if (kind !== 'application') {
-			return;
-		}
-
 		let disposed = false;
 		let socket: WebSocket | null = null;
 		let pollTimer: ReturnType<typeof setInterval> | null = null;
 
+		const segment = kind === 'application' ? 'application' : 'database';
+		const getLogs =
+			kind === 'application'
+				? ApplicationController.getLogs
+				: DatabaseController.getLogs;
+
 		const fetchOnce = async () => {
 			try {
-				const entries = await ApplicationController.getLogs(
-					subdomainId,
-					resourceId,
-				);
+				const entries = await getLogs(subdomainId, resourceId);
 				if (disposed) return;
 				setLogs(entries);
 				setError(null);
@@ -77,7 +71,7 @@ export function useLogStream(
 		try {
 			const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 			socket = new WebSocket(
-				`${scheme}://${window.location.host}/api/subdomain/${subdomainId}/application/${resourceId}/logs/stream`,
+				`${scheme}://${window.location.host}/api/subdomain/${subdomainId}/${segment}/${resourceId}/logs/stream`,
 			);
 			socket.onopen = () => {
 				if (disposed) return;
@@ -99,8 +93,8 @@ export function useLogStream(
 				}
 			};
 			socket.onclose = () => {
-				// Rejected handshake (e.g. app not deployed), network drop, or
-				// the container's log stream ended — degrade to polling.
+				// Rejected handshake (e.g. nothing provisioned yet), network
+				// drop, or the container's log stream ended — degrade to polling.
 				if (!disposed) startPolling();
 			};
 		} catch {

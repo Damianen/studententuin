@@ -10,9 +10,11 @@ import (
 	"time"
 
 	appsHTTP "servermanager/internal/api/http/apps"
+	databasesHTTP "servermanager/internal/api/http/databases"
 	deploymentsHTTP "servermanager/internal/api/http/deployments"
 	"servermanager/internal/api/http/middlewares"
 	"servermanager/internal/app/apps"
+	"servermanager/internal/app/databases"
 	"servermanager/internal/app/deployments"
 	"servermanager/internal/config"
 	"servermanager/internal/infra/build"
@@ -91,6 +93,15 @@ func main() {
 			CloneTimeout: cfg.CloneTimeout,
 			BuildTimeout: cfg.BuildTimeout,
 			HealthGrace:  cfg.HealthGrace,
+		},
+	}, v1)
+	databasesHTTP.SetupRouter(databases.Dependencies{
+		Runtime: runtime,
+		Limits:  appsDeps.Limits,
+		Clock:   clock.System{},
+		Budgets: databases.Budgets{
+			PullTimeout:  cfg.DBPullTimeout,
+			HealthBudget: cfg.DBHealthBudget,
 		},
 	}, v1)
 

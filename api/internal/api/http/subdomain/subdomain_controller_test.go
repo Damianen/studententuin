@@ -30,9 +30,12 @@ func init() {
 const testSecret = "test-secret-key"
 
 type subdomainMocks struct {
-	subdomainRepo *mocks.MockSubdomainRepo
-	userRepo      *mocks.MockUserRepo
-	clock         *mocks.MockClock
+	subdomainRepo   *mocks.MockSubdomainRepo
+	userRepo        *mocks.MockUserRepo
+	applicationRepo *mocks.MockApplicationRepo
+	databaseRepo    *mocks.MockDatabaseRepo
+	serverManager   *mocks.MockServerManagerClient
+	clock           *mocks.MockClock
 }
 
 type envelope struct {
@@ -44,14 +47,20 @@ type envelope struct {
 func newSubdomainRouter(t *testing.T) (*gin.Engine, subdomainMocks) {
 	ctrl := gomock.NewController(t)
 	m := subdomainMocks{
-		subdomainRepo: mocks.NewMockSubdomainRepo(ctrl),
-		userRepo:      mocks.NewMockUserRepo(ctrl),
-		clock:         mocks.NewMockClock(ctrl),
+		subdomainRepo:   mocks.NewMockSubdomainRepo(ctrl),
+		userRepo:        mocks.NewMockUserRepo(ctrl),
+		applicationRepo: mocks.NewMockApplicationRepo(ctrl),
+		databaseRepo:    mocks.NewMockDatabaseRepo(ctrl),
+		serverManager:   mocks.NewMockServerManagerClient(ctrl),
+		clock:           mocks.NewMockClock(ctrl),
 	}
 	deps := appsubdomain.Dependencies{
-		SubdomainRepo: m.subdomainRepo,
-		UserRepo:      m.userRepo,
-		Clock:         m.clock,
+		SubdomainRepo:   m.subdomainRepo,
+		UserRepo:        m.userRepo,
+		ApplicationRepo: m.applicationRepo,
+		DatabaseRepo:    m.databaseRepo,
+		ServerManager:   m.serverManager,
+		Clock:           m.clock,
 	}
 	mw := middlewares.AuthMiddleware{
 		JwtTokenizer: infraauth.JwtTokenizer{Clock: utils.SystemClock{}, SecretKey: testSecret},
@@ -369,6 +378,8 @@ func TestDeleteSubdomain(t *testing.T) {
 		r, m := newSubdomainRouter(t)
 		// Once for CheckOwnership, once inside the delete usecase.
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil).Times(2)
+		m.applicationRepo.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
+		m.databaseRepo.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
 		m.subdomainRepo.EXPECT().Delete(owned, gomock.Any()).Return(nil)
 
 		w := doJSON(r, http.MethodDelete, "/subdomain/"+subID.String(), "", authCookie(t, ownerID.String()))

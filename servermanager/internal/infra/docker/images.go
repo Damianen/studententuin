@@ -42,3 +42,19 @@ func (r *Runtime) RemoveImage(ctx context.Context, ref string) error {
 	_, err := r.cli.ImageRemove(ctx, ref, client.ImageRemoveOptions{PruneChildren: true})
 	return mapErr("remove image "+ref, err)
 }
+
+// PullImage pulls ref unless it is already present. Wait (not a body drain)
+// consumes the progress stream — it also surfaces in-stream pull errors.
+func (r *Runtime) PullImage(ctx context.Context, ref string) error {
+	if _, err := r.cli.ImageInspect(ctx, ref); err == nil {
+		return nil
+	}
+	resp, err := r.cli.ImagePull(ctx, ref, client.ImagePullOptions{})
+	if err != nil {
+		return mapErr("pull "+ref, err)
+	}
+	if err := resp.Wait(ctx); err != nil {
+		return mapErr("pull "+ref, err)
+	}
+	return nil
+}

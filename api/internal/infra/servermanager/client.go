@@ -38,16 +38,19 @@ func NewClient(baseURL, token string) *Client {
 }
 
 func (c *Client) Logs(ctx context.Context, appID string, opts ports.LogOptions) ([]ports.LogEntry, error) {
-	query := url.Values{}
-	if opts.Tail > 0 {
-		query.Set("tail", strconv.Itoa(opts.Tail))
-	}
-	if !opts.Since.IsZero() {
-		query.Set("since", opts.Since.Format(time.RFC3339))
-	}
+	return c.logsAt(ctx, "/v1/apps/"+url.PathEscape(appID)+"/logs", opts, ports.ErrAppNotDeployed)
+}
 
-	endpoint := c.baseURL + "/v1/apps/" + url.PathEscape(appID) + "/logs"
-	if len(query) > 0 {
+// DatabaseLogs mirrors Logs for the database container.
+func (c *Client) DatabaseLogs(ctx context.Context, dbID string, opts ports.LogOptions) ([]ports.LogEntry, error) {
+	return c.logsAt(ctx, "/v1/dbs/"+url.PathEscape(dbID)+"/logs", opts, ports.ErrDatabaseNotProvisioned)
+}
+
+// logsAt reads one log endpoint; apps and databases share the response
+// contract and differ only in path and 404 meaning.
+func (c *Client) logsAt(ctx context.Context, path string, opts ports.LogOptions, notFound error) ([]ports.LogEntry, error) {
+	endpoint := c.baseURL + path
+	if query := logQuery(opts); len(query) > 0 {
 		endpoint += "?" + query.Encode()
 	}
 
@@ -73,7 +76,7 @@ func (c *Client) Logs(ctx context.Context, appID string, opts ports.LogOptions) 
 		}
 		return body.Logs, nil
 	case http.StatusNotFound:
-		return nil, fmt.Errorf("servermanager logs: %w", ports.ErrAppNotDeployed)
+		return nil, fmt.Errorf("servermanager logs: %w", notFound)
 	case http.StatusUnauthorized:
 		// Operator-facing: the shared token doesn't match. Never echo it.
 		return nil, fmt.Errorf("servermanager logs: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
@@ -82,10 +85,7 @@ func (c *Client) Logs(ctx context.Context, appID string, opts ports.LogOptions) 
 	}
 }
 
-// StreamLogs follows the manager's NDJSON log stream and re-emits each line
-// as a LogEntry. The channel closes when the manager ends the stream or ctx
-// is canceled (which also closes the underlying response body).
-func (c *Client) StreamLogs(ctx context.Context, appID string, opts ports.LogOptions) (<-chan ports.LogEntry, error) {
+func logQuery(opts ports.LogOptions) url.Values {
 	query := url.Values{}
 	if opts.Tail > 0 {
 		query.Set("tail", strconv.Itoa(opts.Tail))
@@ -93,9 +93,24 @@ func (c *Client) StreamLogs(ctx context.Context, appID string, opts ports.LogOpt
 	if !opts.Since.IsZero() {
 		query.Set("since", opts.Since.Format(time.RFC3339))
 	}
+	return query
+}
 
-	endpoint := c.baseURL + "/v1/apps/" + url.PathEscape(appID) + "/logs/stream"
-	if len(query) > 0 {
+// StreamLogs follows the manager's NDJSON log stream and re-emits each line
+// as a LogEntry. The channel closes when the manager ends the stream or ctx
+// is canceled (which also closes the underlying response body).
+func (c *Client) StreamLogs(ctx context.Context, appID string, opts ports.LogOptions) (<-chan ports.LogEntry, error) {
+	return c.streamAt(ctx, "/v1/apps/"+url.PathEscape(appID)+"/logs/stream", opts, ports.ErrAppNotDeployed)
+}
+
+// StreamDatabaseLogs mirrors StreamLogs for the database container.
+func (c *Client) StreamDatabaseLogs(ctx context.Context, dbID string, opts ports.LogOptions) (<-chan ports.LogEntry, error) {
+	return c.streamAt(ctx, "/v1/dbs/"+url.PathEscape(dbID)+"/logs/stream", opts, ports.ErrDatabaseNotProvisioned)
+}
+
+func (c *Client) streamAt(ctx context.Context, path string, opts ports.LogOptions, notFound error) (<-chan ports.LogEntry, error) {
+	endpoint := c.baseURL + path
+	if query := logQuery(opts); len(query) > 0 {
 		endpoint += "?" + query.Encode()
 	}
 
@@ -115,7 +130,7 @@ func (c *Client) StreamLogs(ctx context.Context, appID string, opts ports.LogOpt
 		// fall through to streaming below
 	case http.StatusNotFound:
 		closeBody(res)
-		return nil, fmt.Errorf("servermanager stream: %w", ports.ErrAppNotDeployed)
+		return nil, fmt.Errorf("servermanager stream: %w", notFound)
 	case http.StatusUnauthorized:
 		closeBody(res)
 		return nil, fmt.Errorf("servermanager stream: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
@@ -237,6 +252,82 @@ func (c *Client) lifecycle(ctx context.Context, method, appID, suffix, op string
 		return fmt.Errorf("servermanager %s: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)", op)
 	default:
 		return fmt.Errorf("servermanager %s: status %d: %s", op, res.StatusCode, managerError(res))
+	}
+}
+
+// ProvisionDatabase queues the async provision job on the manager.
+func (c *Client) ProvisionDatabase(ctx context.Context, dbID string, spec ports.DBProvisionSpec) (string, error) {
+	payload, err := json.Marshal(spec)
+	if err != nil {
+		return "", fmt.Errorf("servermanager provision payload: %w", err)
+	}
+
+	res, err := c.do(ctx, http.MethodPost, "/v1/dbs/"+url.PathEscape(dbID)+"/provision", payload)
+	if err != nil {
+		return "", fmt.Errorf("servermanager provision: %w", err)
+	}
+	defer closeBody(res)
+
+	switch res.StatusCode {
+	case http.StatusAccepted:
+		var body struct {
+			ProvisionID string `json:"provision_id"`
+		}
+		if err := json.NewDecoder(res.Body).Decode(&body); err != nil || body.ProvisionID == "" {
+			return "", fmt.Errorf("servermanager provision response: %w", err)
+		}
+		return body.ProvisionID, nil
+	case http.StatusConflict:
+		return "", fmt.Errorf("servermanager provision: %w", ports.ErrProvisionInFlight)
+	case http.StatusBadRequest:
+		return "", fmt.Errorf("%w: %s", ports.ErrSpecRejected, managerError(res))
+	case http.StatusUnauthorized:
+		return "", fmt.Errorf("servermanager provision: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
+	default:
+		return "", fmt.Errorf("servermanager provision: status %d: %s", res.StatusCode, managerError(res))
+	}
+}
+
+// DatabaseStatus polls the manager's database resource.
+func (c *Client) DatabaseStatus(ctx context.Context, dbID string) (*ports.DBStatus, error) {
+	res, err := c.do(ctx, http.MethodGet, "/v1/dbs/"+url.PathEscape(dbID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("servermanager database status: %w", err)
+	}
+	defer closeBody(res)
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		var status ports.DBStatus
+		if err := json.NewDecoder(res.Body).Decode(&status); err != nil {
+			return nil, fmt.Errorf("servermanager database status response: %w", err)
+		}
+		return &status, nil
+	case http.StatusUnauthorized:
+		return nil, fmt.Errorf("servermanager database status: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
+	default:
+		return nil, fmt.Errorf("servermanager database status: status %d: %s", res.StatusCode, managerError(res))
+	}
+}
+
+// RemoveDatabase sweeps the database's container, network, and volume. The
+// manager treats an already-gone database as success, so there is no 404 case.
+func (c *Client) RemoveDatabase(ctx context.Context, dbID string) error {
+	res, err := c.do(ctx, http.MethodDelete, "/v1/dbs/"+url.PathEscape(dbID), nil)
+	if err != nil {
+		return fmt.Errorf("servermanager remove database: %w", err)
+	}
+	defer closeBody(res)
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		return nil
+	case http.StatusConflict:
+		return fmt.Errorf("servermanager remove database: %w", ports.ErrProvisionInFlight)
+	case http.StatusUnauthorized:
+		return fmt.Errorf("servermanager remove database: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
+	default:
+		return fmt.Errorf("servermanager remove database: status %d: %s", res.StatusCode, managerError(res))
 	}
 }
 

@@ -20,6 +20,17 @@ func DBContainerName(dbID string) string { return "stt-db-" + dbID }
 
 func AppNetworkName(appID string) string { return "stt-net-" + appID }
 
+// DBNetworkName deliberately does NOT share the app networks' "stt-net-"
+// prefix: removing an app sweeps every attached "stt-net-*" network, and the
+// database network must survive its linked app. The database usecases own the
+// "stt-dbnet-*" lifecycle exclusively.
+func DBNetworkName(dbID string) string { return "stt-dbnet-" + dbID }
+
+// DBVolumeName is the named volume holding the database's data directory. It
+// survives container replacement and is removed only by an explicit database
+// delete.
+func DBVolumeName(dbID string) string { return "stt-db-data-" + dbID }
+
 // AppImageRepo is the image repository holding every image the manager built
 // for one app — image GC lists by this prefix.
 func AppImageRepo(appID string) string { return "stt-app-" + appID }

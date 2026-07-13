@@ -3,6 +3,7 @@ package apps
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"servermanager/internal/domain"
@@ -166,6 +167,7 @@ func TestRunApp_Execute_Rejections(t *testing.T) {
 		{"bad env key", func() RunInput { in := validRunInput(); in.Env = map[string]string{"1BAD-KEY": "v"}; return in }},
 		{"port out of range", func() RunInput { in := validRunInput(); in.Port = 70000; return in }},
 		{"negative port", func() RunInput { in := validRunInput(); in.Port = -1; return in }},
+		{"database id not a uuid", func() RunInput { in := validRunInput(); in.DatabaseID = "stt-dbnet-evil"; return in }},
 	}
 
 	for _, tt := range tests {
@@ -204,6 +206,56 @@ func TestRunApp_Execute_RuntimeFailures(t *testing.T) {
 		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
 		if _, err := svc.Run.Execute(context.Background(), validRunInput()); !errors.Is(err, startErr) {
 			t.Errorf("Execute error = %v, want the start error", err)
+		}
+	})
+}
+
+const testDatabaseID = "6f1d2c3b-4a5e-4f60-8b7a-9c0d1e2f3a4b"
+
+func TestRunApp_Execute_DatabaseLink(t *testing.T) {
+	t.Run("connects to the database network between create and start", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		rt := mocks.NewMockContainerRuntime(ctrl)
+		gomock.InOrder(
+			rt.EXPECT().Create(gomock.Any(), gomock.Any()).Return("cid-1", nil),
+			rt.EXPECT().ConnectNetwork(gomock.Any(), domain.DBNetworkName(testDatabaseID), "cid-1").Return(nil),
+			rt.EXPECT().Start(gomock.Any(), "cid-1").Return(nil),
+		)
+
+		in := validRunInput()
+		in.DatabaseID = testDatabaseID
+		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
+		if _, err := svc.Run.Execute(context.Background(), in); err != nil {
+			t.Errorf("Execute: %v", err)
+		}
+	})
+
+	t.Run("missing database network fails the run and removes the container", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		rt := mocks.NewMockContainerRuntime(ctrl)
+		rt.EXPECT().Create(gomock.Any(), gomock.Any()).Return("cid-1", nil)
+		rt.EXPECT().ConnectNetwork(gomock.Any(), gomock.Any(), "cid-1").
+			Return(fmt.Errorf("no such network: %w", domain.ErrNotFound))
+		rt.EXPECT().RemoveContainer(gomock.Any(), "cid-1").Return(nil)
+
+		in := validRunInput()
+		in.DatabaseID = testDatabaseID
+		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
+		_, err := svc.Run.Execute(context.Background(), in)
+		if !errors.Is(err, domain.ErrInvalid) {
+			t.Errorf("Execute error = %v, want ErrInvalid (provision the database first)", err)
+		}
+	})
+
+	t.Run("no database id means no network calls", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		rt := mocks.NewMockContainerRuntime(ctrl)
+		rt.EXPECT().Create(gomock.Any(), gomock.Any()).Return("cid-1", nil)
+		rt.EXPECT().Start(gomock.Any(), "cid-1").Return(nil)
+
+		svc := NewService(Dependencies{Runtime: rt, Limits: testLimits()})
+		if _, err := svc.Run.Execute(context.Background(), validRunInput()); err != nil {
+			t.Errorf("Execute: %v", err)
 		}
 	})
 }
