@@ -22,6 +22,7 @@ import type { SubdomainListItemDto } from '@/dtos/subdomain_dtos';
 import type { ApplicationDto } from '@/dtos/application_dtos';
 import type { DatabaseDto } from '@/dtos/database_dtos';
 import { useAsync } from '@/hooks/use_async';
+import { useProvisionWatch } from '@/hooks/use_provision_watch';
 import { cn } from '@/lib/utils';
 import { makeSeries, seededInt } from '@/lib/mock_telemetry';
 import type { ResourceKind } from '@/lib/mock_telemetry';
@@ -421,18 +422,14 @@ function DatabaseSettingsCard({
 	onChanged: () => Promise<void>;
 }) {
 	const [pending, setPending] = useState(false);
-	const [form, setForm] = useState({
-		name: database.name,
-		version: database.version,
-	});
+	const [name, setName] = useState(database.name);
 
 	const handleSave = async (event: FormEvent) => {
 		event.preventDefault();
 		setPending(true);
 		try {
 			await DatabaseController.patch(subdomain.id, database.id, {
-				name: form.name.trim() || undefined,
-				version: form.version.trim() || undefined,
+				name: name.trim() || undefined,
 			});
 			await onChanged();
 			toast.success('Database updated');
@@ -459,18 +456,17 @@ function DatabaseSettingsCard({
 						<Label htmlFor="db-name">Name</Label>
 						<Input
 							id="db-name"
-							value={form.name}
-							onChange={(event) => setForm({ ...form, name: event.target.value })}
+							value={name}
+							onChange={(event) => setName(event.target.value)}
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="db-version">Version</Label>
+						<Label htmlFor="db-engine">Engine</Label>
 						<Input
-							id="db-version"
-							value={form.version}
-							onChange={(event) =>
-								setForm({ ...form, version: event.target.value })
-							}
+							id="db-engine"
+							value={`${database.type} ${database.version}`}
+							disabled
+							title="The engine is fixed after creation — delete and recreate to change it"
 						/>
 					</div>
 					<div className="flex items-end justify-end sm:col-span-2">
@@ -593,6 +589,13 @@ export default function ResourceDetail({ kind }: { kind: ResourceKind }) {
 	const subdomain = subdomains?.find((item) => item.id === id);
 	const resource =
 		kind === 'application' ? subdomain?.application : subdomain?.database;
+
+	// While a database is provisioning, refetch so the badge flips to
+	// running and the connection string appears on its own.
+	useProvisionWatch(
+		kind === 'database' ? subdomain?.database?.status : undefined,
+		reload,
+	);
 	const basePath = `/projects/${id}/${kind === 'application' ? 'app' : 'db'}`;
 	const tabs = TAB_DEFS[kind];
 	const activeTab = tabs.some((item) => item.slug === (tab ?? ''))

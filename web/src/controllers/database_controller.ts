@@ -2,6 +2,8 @@ import type {
 	CreateDatabaseDto,
 	UpdateDatabaseDto,
 } from '../dtos/database_dtos';
+import type { LogEntry } from '../lib/mock_telemetry';
+import { mapLogEntry } from './application_controller';
 import DatabaseService from '../services/database_service';
 
 class DatabaseController {
@@ -11,6 +13,18 @@ class DatabaseController {
 			throw new Error(response.message);
 		}
 		return response.data;
+	}
+
+	public static async getLogs(
+		subdomainId: string,
+		dbId: string,
+	): Promise<LogEntry[]> {
+		const response = await DatabaseService.getLogs(subdomainId, dbId);
+		if (response.code != 200) {
+			throw new Error(response.message);
+		}
+		// The api omits `data` entirely when there are no log lines.
+		return (response.data ?? []).map(mapLogEntry);
 	}
 
 	public static async create(
