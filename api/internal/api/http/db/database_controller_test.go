@@ -2,11 +2,13 @@ package db
 
 import (
 	"api/internal/api/middlewares"
+	"api/internal/app/ports"
 	"api/internal/domain"
 	"api/internal/infra/utils"
 	"api/internal/mocks"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -34,6 +36,7 @@ type dbMocks struct {
 	databaseRepo  *mocks.MockDatabaseRepo
 	subdomainRepo *mocks.MockSubdomainRepo
 	userRepo      *mocks.MockUserRepo
+	serverManager *mocks.MockServerManagerClient
 	clock         *mocks.MockClock
 }
 
@@ -49,16 +52,19 @@ func newDbRouter(t *testing.T) (*gin.Engine, dbMocks) {
 		databaseRepo:  mocks.NewMockDatabaseRepo(ctrl),
 		subdomainRepo: mocks.NewMockSubdomainRepo(ctrl),
 		userRepo:      mocks.NewMockUserRepo(ctrl),
+		serverManager: mocks.NewMockServerManagerClient(ctrl),
 		clock:         mocks.NewMockClock(ctrl),
 	}
+	m.clock.EXPECT().Now().Return(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)).AnyTimes()
 	sdDeps := appsubdomain.Dependencies{
 		SubdomainRepo: m.subdomainRepo,
 		UserRepo:      m.userRepo,
 		Clock:         m.clock,
 	}
 	dbDeps := appdb.Dependencies{
-		DatabaseRepo: m.databaseRepo,
-		Clock:        m.clock,
+		DatabaseRepo:  m.databaseRepo,
+		Clock:         m.clock,
+		ServerManager: m.serverManager,
 	}
 	mw := middlewares.AuthMiddleware{
 		JwtTokenizer: infraauth.JwtTokenizer{Clock: utils.SystemClock{}, SecretKey: testSecret},
@@ -94,9 +100,9 @@ func TestCreateDatabase(t *testing.T) {
 	ownerID := uuid.New()
 	subID := uuid.New()
 	owned := &domain.Subdomain{ID: subID, UserID: ownerID}
-	validBody := `{"name":"mydb","type":"postgres","version":"17","db_name":"app","db_password":"secret123"}`
+	validBody := `{"name":"mydb","type":"postgres","version":"17","db_name":"app"}`
 
-	t.Run("success returns 201 and stores provisioning database", func(t *testing.T) {
+	t.Run("success returns 201, stores provisioning database, fires provision", func(t *testing.T) {
 		r, m := newDbRouter(t)
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
 		m.databaseRepo.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -112,6 +118,10 @@ func TestCreateDatabase(t *testing.T) {
 				}
 				return nil
 			})
+		m.serverManager.EXPECT().ProvisionDatabase(gomock.Any(), gomock.Any(), gomock.Any()).Return("prov-1", nil)
+		// The poller starts polling; park it on a non-terminal status.
+		m.serverManager.EXPECT().DatabaseStatus(gomock.Any(), gomock.Any()).
+			Return(&ports.DBStatus{Provision: &ports.DBProvisionState{Status: "pulling"}}, nil).AnyTimes()
 
 		w := doJSON(r, http.MethodPost, "/subdomain/"+subID.String()+"/database", validBody, authCookie(t, ownerID.String()))
 		if w.Code != http.StatusCreated {
@@ -119,12 +129,18 @@ func TestCreateDatabase(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid engine type returns 400", func(t *testing.T) {
+	t.Run("engine outside the allowlist returns 400", func(t *testing.T) {
 		r, _ := newDbRouter(t)
-		body := `{"name":"mydb","type":"redis","version":"7","db_name":"app","db_password":"secret123"}`
-		w := doJSON(r, http.MethodPost, "/subdomain/"+subID.String()+"/database", body, authCookie(t, ownerID.String()))
-		if w.Code != http.StatusBadRequest {
-			t.Fatalf("expected 400, got %d", w.Code)
+		for _, body := range []string{
+			`{"name":"mydb","type":"redis","version":"7","db_name":"app"}`,
+			`{"name":"mydb","type":"mysql","version":"8.0","db_name":"app"}`,
+			`{"name":"mydb","type":"postgres","version":"15","db_name":"app"}`,
+			`{"name":"mydb","type":"postgres","version":"17","db_name":"Bad Name"}`,
+		} {
+			w := doJSON(r, http.MethodPost, "/subdomain/"+subID.String()+"/database", body, authCookie(t, ownerID.String()))
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400 for %s, got %d", body, w.Code)
+			}
 		}
 	})
 
@@ -170,6 +186,7 @@ func TestGetDatabase(t *testing.T) {
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
 		m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).Return(&domain.Database{
 			ID:               dbID,
+			SubdomainID:      subID,
 			Name:             "mydb",
 			Type:             domain.DatabaseTypePostgres,
 			Version:          "17",
@@ -217,6 +234,25 @@ func TestGetDatabase(t *testing.T) {
 			t.Fatalf("expected 403, got %d", w.Code)
 		}
 	})
+
+	t.Run("a foreign database behind your own subdomain is 404, not a leak", func(t *testing.T) {
+		r, m := newDbRouter(t)
+		connStr := "postgres://user:secret@foreign/db"
+		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
+		m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).Return(&domain.Database{
+			ID:               dbID,
+			SubdomainID:      uuid.New(), // someone else's subdomain
+			ConnectionString: &connStr,
+		}, nil)
+
+		w := doJSON(r, http.MethodGet, path, "", authCookie(t, ownerID.String()))
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("expected 404, got %d (body %s)", w.Code, w.Body.String())
+		}
+		if strings.Contains(w.Body.String(), "secret") {
+			t.Error("foreign connection string leaked")
+		}
+	})
 }
 
 func TestUpdateDatabase(t *testing.T) {
@@ -224,46 +260,44 @@ func TestUpdateDatabase(t *testing.T) {
 	subID := uuid.New()
 	dbID := uuid.New()
 	owned := &domain.Subdomain{ID: subID, UserID: ownerID}
-	now := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	path := "/subdomain/" + subID.String() + "/database/" + dbID.String()
 
-	t.Run("updates provided fields only", func(t *testing.T) {
+	t.Run("renames the database", func(t *testing.T) {
 		r, m := newDbRouter(t)
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
-		m.clock.EXPECT().Now().Return(now)
+		m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).
+			Return(&domain.Database{ID: dbID, SubdomainID: subID}, nil)
 		m.databaseRepo.EXPECT().Update(dbID.String(), gomock.Any(), gomock.Any()).DoAndReturn(
 			func(id string, updates map[string]any, ctx any) error {
 				if updates["name"] != "renamed" {
 					t.Errorf("expected name renamed, got %v", updates["name"])
 				}
-				if updates["version"] != "18" {
-					t.Errorf("expected version 18, got %v", updates["version"])
-				}
-				if len(updates) != 3 { // name, version, updated_at
-					t.Errorf("expected 3 update keys, got %v", updates)
+				if len(updates) != 2 { // name, updated_at
+					t.Errorf("expected 2 update keys, got %v", updates)
 				}
 				return nil
 			})
 
-		w := doJSON(r, http.MethodPatch, path, `{"name":"renamed","version":"18"}`, authCookie(t, ownerID.String()))
+		w := doJSON(r, http.MethodPatch, path, `{"name":"renamed"}`, authCookie(t, ownerID.String()))
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected 200, got %d (body %s)", w.Code, w.Body.String())
 		}
 	})
 
-	t.Run("invalid engine type returns 400", func(t *testing.T) {
+	t.Run("engine changes are rejected", func(t *testing.T) {
 		r, _ := newDbRouter(t)
-		w := doJSON(r, http.MethodPatch, path, `{"type":"redis"}`, authCookie(t, ownerID.String()))
-		if w.Code != http.StatusBadRequest {
-			t.Fatalf("expected 400, got %d", w.Code)
+		for _, body := range []string{`{"type":"redis"}`, `{"version":"18"}`} {
+			w := doJSON(r, http.MethodPatch, path, body, authCookie(t, ownerID.String()))
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400 for %s, got %d", body, w.Code)
+			}
 		}
 	})
 
 	t.Run("missing database returns 404", func(t *testing.T) {
 		r, m := newDbRouter(t)
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
-		m.clock.EXPECT().Now().Return(now)
-		m.databaseRepo.EXPECT().Update(dbID.String(), gomock.Any(), gomock.Any()).Return(gorm.ErrRecordNotFound)
+		m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
 
 		w := doJSON(r, http.MethodPatch, path, `{"name":"renamed"}`, authCookie(t, ownerID.String()))
 		if w.Code != http.StatusNotFound {
@@ -279,16 +313,45 @@ func TestDeleteDatabase(t *testing.T) {
 	owned := &domain.Subdomain{ID: subID, UserID: ownerID}
 	path := "/subdomain/" + subID.String() + "/database/" + dbID.String()
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("success removes the container before the row", func(t *testing.T) {
 		r, m := newDbRouter(t)
-		database := &domain.Database{ID: dbID}
+		database := &domain.Database{ID: dbID, SubdomainID: subID}
 		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
-		m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).Return(database, nil)
-		m.databaseRepo.EXPECT().Delete(database, gomock.Any()).Return(nil)
+		gomock.InOrder(
+			m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).Return(database, nil),
+			m.serverManager.EXPECT().RemoveDatabase(gomock.Any(), dbID.String()).Return(nil),
+			m.databaseRepo.EXPECT().Delete(database, gomock.Any()).Return(nil),
+		)
 
 		w := doJSON(r, http.MethodDelete, path, "", authCookie(t, ownerID.String()))
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected 200, got %d (body %s)", w.Code, w.Body.String())
+		}
+	})
+
+	t.Run("provision in flight returns 409", func(t *testing.T) {
+		r, m := newDbRouter(t)
+		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
+		m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).
+			Return(&domain.Database{ID: dbID, SubdomainID: subID}, nil)
+		m.serverManager.EXPECT().RemoveDatabase(gomock.Any(), dbID.String()).
+			Return(fmt.Errorf("servermanager remove database: %w", ports.ErrProvisionInFlight))
+
+		w := doJSON(r, http.MethodDelete, path, "", authCookie(t, ownerID.String()))
+		if w.Code != http.StatusConflict {
+			t.Fatalf("expected 409, got %d (body %s)", w.Code, w.Body.String())
+		}
+	})
+
+	t.Run("a foreign database is 404 and never reaches the manager", func(t *testing.T) {
+		r, m := newDbRouter(t)
+		m.subdomainRepo.EXPECT().FindByID(subID.String(), gomock.Any()).Return(owned, nil)
+		m.databaseRepo.EXPECT().FindByID(dbID.String(), gomock.Any()).
+			Return(&domain.Database{ID: dbID, SubdomainID: uuid.New()}, nil)
+
+		w := doJSON(r, http.MethodDelete, path, "", authCookie(t, ownerID.String()))
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("expected 404, got %d", w.Code)
 		}
 	})
 

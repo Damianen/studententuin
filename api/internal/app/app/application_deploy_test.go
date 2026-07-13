@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 )
 
 func strPtr(s string) *string { return &s }
@@ -35,18 +36,27 @@ func deployableApp(id, subdomainID uuid.UUID) *domain.Application {
 	}
 }
 
+// newDeployMocks wires a subdomain without a database — the common case.
 func newDeployMocks(t *testing.T) (*mocks.MockApplicationRepo, *mocks.MockServerManagerClient, *mocks.MockClock, *Service) {
+	ar, dr, sm, clock, svc := newDeployMocksWithDB(t)
+	dr.EXPECT().FindBySubdomainID(gomock.Any(), gomock.Any()).
+		Return(nil, gorm.ErrRecordNotFound).AnyTimes()
+	return ar, sm, clock, svc
+}
+
+func newDeployMocksWithDB(t *testing.T) (*mocks.MockApplicationRepo, *mocks.MockDatabaseRepo, *mocks.MockServerManagerClient, *mocks.MockClock, *Service) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	ar := mocks.NewMockApplicationRepo(ctrl)
+	dr := mocks.NewMockDatabaseRepo(ctrl)
 	sm := mocks.NewMockServerManagerClient(ctrl)
 	clock := mocks.NewMockClock(ctrl)
 	clock.EXPECT().Now().Return(time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)).AnyTimes()
-	svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm, Clock: clock})
+	svc := NewService(Dependencies{ApplicationRepo: ar, DatabaseRepo: dr, ServerManager: sm, Clock: clock})
 	// Tests drive the poller synchronously through its own tests; deploy
 	// tests keep it quick.
 	svc.Deploy.poller.Interval = time.Millisecond
-	return ar, sm, clock, svc
+	return ar, dr, sm, clock, svc
 }
 
 func TestDeployApplication_Execute(t *testing.T) {
@@ -145,6 +155,86 @@ func TestDeployApplication_Execute(t *testing.T) {
 
 		if _, err := svc.Deploy.Execute(context.Background(), subID.String(), appID.String()); !errors.Is(err, ports.ErrDeployInFlight) {
 			t.Errorf("err = %v, want ErrDeployInFlight", err)
+		}
+	})
+}
+
+func TestDeployApplication_DatabaseLink(t *testing.T) {
+	appID := uuid.New()
+	subID := uuid.New()
+	dbID := uuid.New()
+	connStr := "postgres://app:secret@stt-db-" + dbID.String() + ":5432/appdb?sslmode=disable"
+
+	linkedDatabase := func() *domain.Database {
+		return &domain.Database{ID: dbID, SubdomainID: subID, ConnectionString: strPtr(connStr)}
+	}
+
+	// stopDeploy makes the manager call fail so the test ends synchronously
+	// after capturing the spec.
+	captureSpec := func(sm *mocks.MockServerManagerClient, gotSpec *ports.DeploySpec) {
+		sm.EXPECT().Deploy(gomock.Any(), appID.String(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, _ string, spec ports.DeploySpec) (string, error) {
+				*gotSpec = spec
+				return "", errors.New("stop here")
+			})
+	}
+
+	t.Run("injects DATABASE_URL and the database id", func(t *testing.T) {
+		ar, dr, sm, _, svc := newDeployMocksWithDB(t)
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(deployableApp(appID, subID), nil)
+		dr.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(linkedDatabase(), nil)
+
+		var gotSpec ports.DeploySpec
+		captureSpec(sm, &gotSpec)
+		_, _ = svc.Deploy.Execute(context.Background(), subID.String(), appID.String())
+
+		if gotSpec.DatabaseID != dbID.String() {
+			t.Errorf("DatabaseID = %q, want %s", gotSpec.DatabaseID, dbID)
+		}
+		if gotSpec.Env["DATABASE_URL"] != connStr {
+			t.Errorf("DATABASE_URL = %q", gotSpec.Env["DATABASE_URL"])
+		}
+		if gotSpec.Env["NODE_ENV"] != "production" {
+			t.Errorf("existing env lost: %+v", gotSpec.Env)
+		}
+	})
+
+	t.Run("a user-defined DATABASE_URL wins", func(t *testing.T) {
+		ar, dr, sm, _, svc := newDeployMocksWithDB(t)
+		application := deployableApp(appID, subID)
+		application.EnvironmentVariables["DATABASE_URL"] = "postgres://users-own"
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(application, nil)
+		dr.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(linkedDatabase(), nil)
+
+		var gotSpec ports.DeploySpec
+		captureSpec(sm, &gotSpec)
+		_, _ = svc.Deploy.Execute(context.Background(), subID.String(), appID.String())
+
+		if gotSpec.Env["DATABASE_URL"] != "postgres://users-own" {
+			t.Errorf("DATABASE_URL = %q, want the user's value", gotSpec.Env["DATABASE_URL"])
+		}
+		// The network link still happens: the id rides along regardless.
+		if gotSpec.DatabaseID != dbID.String() {
+			t.Errorf("DatabaseID = %q, want %s", gotSpec.DatabaseID, dbID)
+		}
+	})
+
+	t.Run("a database without a connection string deploys unlinked", func(t *testing.T) {
+		ar, dr, sm, _, svc := newDeployMocksWithDB(t)
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(deployableApp(appID, subID), nil)
+		database := linkedDatabase()
+		database.ConnectionString = nil // still provisioning, or failed
+		dr.EXPECT().FindBySubdomainID(subID.String(), gomock.Any()).Return(database, nil)
+
+		var gotSpec ports.DeploySpec
+		captureSpec(sm, &gotSpec)
+		_, _ = svc.Deploy.Execute(context.Background(), subID.String(), appID.String())
+
+		if gotSpec.DatabaseID != "" {
+			t.Errorf("DatabaseID = %q, want empty for an unprovisioned database", gotSpec.DatabaseID)
+		}
+		if _, ok := gotSpec.Env["DATABASE_URL"]; ok {
+			t.Error("DATABASE_URL injected for an unprovisioned database")
 		}
 	})
 }

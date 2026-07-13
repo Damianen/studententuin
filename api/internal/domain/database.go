@@ -32,6 +32,10 @@ type Database struct {
 	Version string       `gorm:"type:text;not null"`
 	Status  DatabaseStatus `gorm:"type:text;not null"`
 	ConnectionString *string `gorm:"type:text;"`
+	// DbName/DbUser are the in-database identifiers the provision used; the
+	// generated password lives only inside ConnectionString.
+	DbName *string `gorm:"type:text"`
+	DbUser *string `gorm:"type:text"`
 	DockerImage         *string `gorm:"type:text"`
 	DockerContainerID   *string `gorm:"type:text"`
 	DockerContainerName *string `gorm:"type:text"`

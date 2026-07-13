@@ -56,6 +56,11 @@ func newAppRouter(t *testing.T) (*gin.Engine, appMocks) {
 		serverManager:   mocks.NewMockServerManagerClient(ctrl),
 		clock:           mocks.NewMockClock(ctrl),
 	}
+	databaseRepo := mocks.NewMockDatabaseRepo(ctrl)
+	// The deploy handler consults the subdomain's database for DATABASE_URL
+	// injection; these routes test everything else, so default to "none".
+	databaseRepo.EXPECT().FindBySubdomainID(gomock.Any(), gomock.Any()).
+		Return(nil, gorm.ErrRecordNotFound).AnyTimes()
 	sdDeps := appsubdomain.Dependencies{
 		SubdomainRepo: m.subdomainRepo,
 		UserRepo:      m.userRepo,
@@ -63,6 +68,7 @@ func newAppRouter(t *testing.T) (*gin.Engine, appMocks) {
 	}
 	appDeps := appapp.Dependencies{
 		ApplicationRepo: m.applicationRepo,
+		DatabaseRepo:    databaseRepo,
 		ServerManager:   m.serverManager,
 		Clock:           m.clock,
 	}

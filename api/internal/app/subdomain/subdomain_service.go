@@ -3,9 +3,12 @@ package subdomain
 import "api/internal/app/ports"
 
 type Dependencies struct {
-	SubdomainRepo ports.SubdomainRepo
-	UserRepo      ports.UserRepo
-	Clock         ports.Clock
+	SubdomainRepo   ports.SubdomainRepo
+	UserRepo        ports.UserRepo
+	ApplicationRepo ports.ApplicationRepo
+	DatabaseRepo    ports.DatabaseRepo
+	ServerManager   ports.ServerManagerClient
+	Clock           ports.Clock
 }
 
 type Service struct {
@@ -27,7 +30,10 @@ func NewService(d Dependencies) *Service {
 			clock:         d.Clock,
 		},
 		Delete: &DeleteSubdomain{
-			subdomainRepo: d.SubdomainRepo,
+			subdomainRepo:   d.SubdomainRepo,
+			applicationRepo: d.ApplicationRepo,
+			databaseRepo:    d.DatabaseRepo,
+			serverManager:   d.ServerManager,
 		},
 		Get: &GetSubdomain{
 			subdomainRepo: d.SubdomainRepo,

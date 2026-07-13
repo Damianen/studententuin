@@ -41,6 +41,36 @@ func (m *MockServerManagerClient) EXPECT() *MockServerManagerClientMockRecorder 
 	return m.recorder
 }
 
+// DatabaseLogs mocks base method.
+func (m *MockServerManagerClient) DatabaseLogs(ctx context.Context, dbID string, opts ports.LogOptions) ([]ports.LogEntry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DatabaseLogs", ctx, dbID, opts)
+	ret0, _ := ret[0].([]ports.LogEntry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DatabaseLogs indicates an expected call of DatabaseLogs.
+func (mr *MockServerManagerClientMockRecorder) DatabaseLogs(ctx, dbID, opts any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DatabaseLogs", reflect.TypeOf((*MockServerManagerClient)(nil).DatabaseLogs), ctx, dbID, opts)
+}
+
+// DatabaseStatus mocks base method.
+func (m *MockServerManagerClient) DatabaseStatus(ctx context.Context, dbID string) (*ports.DBStatus, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DatabaseStatus", ctx, dbID)
+	ret0, _ := ret[0].(*ports.DBStatus)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DatabaseStatus indicates an expected call of DatabaseStatus.
+func (mr *MockServerManagerClientMockRecorder) DatabaseStatus(ctx, dbID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DatabaseStatus", reflect.TypeOf((*MockServerManagerClient)(nil).DatabaseStatus), ctx, dbID)
+}
+
 // Deploy mocks base method.
 func (m *MockServerManagerClient) Deploy(ctx context.Context, appID string, spec ports.DeploySpec) (string, error) {
 	m.ctrl.T.Helper()
@@ -86,6 +116,21 @@ func (mr *MockServerManagerClientMockRecorder) Logs(ctx, appID, opts any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logs", reflect.TypeOf((*MockServerManagerClient)(nil).Logs), ctx, appID, opts)
 }
 
+// ProvisionDatabase mocks base method.
+func (m *MockServerManagerClient) ProvisionDatabase(ctx context.Context, dbID string, spec ports.DBProvisionSpec) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ProvisionDatabase", ctx, dbID, spec)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ProvisionDatabase indicates an expected call of ProvisionDatabase.
+func (mr *MockServerManagerClientMockRecorder) ProvisionDatabase(ctx, dbID, spec any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProvisionDatabase", reflect.TypeOf((*MockServerManagerClient)(nil).ProvisionDatabase), ctx, dbID, spec)
+}
+
 // Remove mocks base method.
 func (m *MockServerManagerClient) Remove(ctx context.Context, appID string) error {
 	m.ctrl.T.Helper()
@@ -98,6 +143,20 @@ func (m *MockServerManagerClient) Remove(ctx context.Context, appID string) erro
 func (mr *MockServerManagerClientMockRecorder) Remove(ctx, appID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockServerManagerClient)(nil).Remove), ctx, appID)
+}
+
+// RemoveDatabase mocks base method.
+func (m *MockServerManagerClient) RemoveDatabase(ctx context.Context, dbID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveDatabase", ctx, dbID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveDatabase indicates an expected call of RemoveDatabase.
+func (mr *MockServerManagerClientMockRecorder) RemoveDatabase(ctx, dbID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDatabase", reflect.TypeOf((*MockServerManagerClient)(nil).RemoveDatabase), ctx, dbID)
 }
 
 // Start mocks base method.
@@ -126,6 +185,21 @@ func (m *MockServerManagerClient) Stop(ctx context.Context, appID string) error 
 func (mr *MockServerManagerClientMockRecorder) Stop(ctx, appID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockServerManagerClient)(nil).Stop), ctx, appID)
+}
+
+// StreamDatabaseLogs mocks base method.
+func (m *MockServerManagerClient) StreamDatabaseLogs(ctx context.Context, dbID string, opts ports.LogOptions) (<-chan ports.LogEntry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StreamDatabaseLogs", ctx, dbID, opts)
+	ret0, _ := ret[0].(<-chan ports.LogEntry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StreamDatabaseLogs indicates an expected call of StreamDatabaseLogs.
+func (mr *MockServerManagerClientMockRecorder) StreamDatabaseLogs(ctx, dbID, opts any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StreamDatabaseLogs", reflect.TypeOf((*MockServerManagerClient)(nil).StreamDatabaseLogs), ctx, dbID, opts)
 }
 
 // StreamLogs mocks base method.

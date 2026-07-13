@@ -4,6 +4,7 @@ import "api/internal/app/ports"
 
 type Dependencies struct {
 	ApplicationRepo ports.ApplicationRepo
+	DatabaseRepo    ports.DatabaseRepo
 	ServerManager   ports.ServerManagerClient
 	Clock           ports.Clock
 }
@@ -48,6 +49,7 @@ func NewService(d Dependencies) *Service {
 		},
 		Deploy: &DeployApplication{
 			applicationRepo: d.ApplicationRepo,
+			databaseRepo:    d.DatabaseRepo,
 			serverManager:   d.ServerManager,
 			clock:           d.Clock,
 			poller:          poller,

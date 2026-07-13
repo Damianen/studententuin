@@ -76,15 +76,6 @@ func main() {
 		Hasher: hasher,
 		JwtTokenizer: &jwtTokenizer,
 	}
-	subdomainDeps := appSubdomain.Dependencies{
-		UserRepo: &userRepo,
-		SubdomainRepo: &subdomainRepo,
-		Clock: &clock,
-	}
-	dbDeps := appDb.Dependencies{
-		DatabaseRepo: &dbRepo,
-		Clock: &clock,
-	}
 	// The servermanager is root-equivalent on the hosting server; refuse to
 	// start half-configured rather than failing per request.
 	smURL := os.Getenv("SERVERMANAGER_URL")
@@ -94,8 +85,22 @@ func main() {
 	}
 	smClient := servermanager.NewClient(smURL, smToken)
 
+	subdomainDeps := appSubdomain.Dependencies{
+		UserRepo: &userRepo,
+		SubdomainRepo: &subdomainRepo,
+		ApplicationRepo: &appRepo,
+		DatabaseRepo: &dbRepo,
+		ServerManager: smClient,
+		Clock: &clock,
+	}
+	dbDeps := appDb.Dependencies{
+		DatabaseRepo: &dbRepo,
+		Clock: &clock,
+		ServerManager: smClient,
+	}
 	appDeps := appApp.Dependencies{
 		ApplicationRepo: &appRepo,
+		DatabaseRepo: &dbRepo,
 		ServerManager: smClient,
 		Clock: &clock,
 	}
