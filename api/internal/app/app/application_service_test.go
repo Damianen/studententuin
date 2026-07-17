@@ -6,6 +6,7 @@ import (
 	"api/internal/mocks"
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -358,6 +359,88 @@ func TestGetApplicationLogs_Execute(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetApplicationMetrics_Execute(t *testing.T) {
+	appID := uuid.New()
+	subdomainID := uuid.New()
+	ownedApp := &domain.Application{ID: appID, SubdomainID: subdomainID}
+
+	t.Run("passes the manager envelope through", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		envelope := &ports.MetricsResponse{Range: "24h", Series: map[string][]ports.MetricPoint{
+			"cpu": {{Time: time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC), Value: 12.4}},
+			"mem": {},
+		}}
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+		sm.EXPECT().Metrics(gomock.Any(), appID.String(), "24h").Return(envelope, nil)
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		got, err := svc.Metrics.Execute(context.Background(), subdomainID.String(), appID.String(), "24h")
+		if err != nil || got != envelope {
+			t.Fatalf("got = %+v, err = %v, want the envelope untouched", got, err)
+		}
+	})
+
+	// The manager is never called for an app in someone else's subdomain —
+	// no sm.EXPECT() proves it.
+	t.Run("app in different subdomain", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		foreign := &domain.Application{ID: appID, SubdomainID: uuid.New()}
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(foreign, nil)
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		if _, err := svc.Metrics.Execute(context.Background(), subdomainID.String(), appID.String(), "24h"); !errors.Is(err, ErrNotInSubdomain) {
+			t.Errorf("err = %v, want ErrNotInSubdomain", err)
+		}
+	})
+
+	t.Run("app not found", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(nil, gorm.ErrRecordNotFound)
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		if _, err := svc.Metrics.Execute(context.Background(), subdomainID.String(), appID.String(), "24h"); !errors.Is(err, gorm.ErrRecordNotFound) {
+			t.Errorf("err = %v, want ErrRecordNotFound", err)
+		}
+	})
+
+	t.Run("never deployed means an empty envelope, not an error", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+		sm.EXPECT().Metrics(gomock.Any(), appID.String(), "24h").
+			Return(nil, fmt.Errorf("servermanager metrics: %w", ports.ErrAppNotDeployed))
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		got, err := svc.Metrics.Execute(context.Background(), subdomainID.String(), appID.String(), "24h")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got == nil || got.Series == nil || len(got.Series) != 0 || got.Range != "24h" {
+			t.Errorf("got = %+v, want an empty envelope with a non-nil series map", got)
+		}
+	})
+
+	t.Run("manager failure propagates", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		ar := mocks.NewMockApplicationRepo(ctrl)
+		sm := mocks.NewMockServerManagerClient(ctrl)
+		ar.EXPECT().FindByID(appID.String(), gomock.Any()).Return(ownedApp, nil)
+		sm.EXPECT().Metrics(gomock.Any(), appID.String(), "24h").Return(nil, errors.New("connection refused"))
+
+		svc := NewService(Dependencies{ApplicationRepo: ar, ServerManager: sm})
+		if _, err := svc.Metrics.Execute(context.Background(), subdomainID.String(), appID.String(), "24h"); err == nil {
+			t.Error("err = nil, want the manager error")
+		}
+	})
 }
 
 func TestStreamApplicationLogs_Execute(t *testing.T) {

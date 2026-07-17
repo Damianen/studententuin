@@ -231,6 +231,50 @@ func (c *Controller) GetLogs(ginc *gin.Context) {
 	middlewares.Respond(ginc, http.StatusOK, "success", logsResponse)
 }
 
+// metricsRange is fixed for now: the dashboard always shows the last 24
+// hours (the manager also accepts 1h).
+const metricsRange = "24h"
+
+func (c *Controller) GetMetrics(ginc *gin.Context) {
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
+	dbId := ginc.Param("dbId")
+
+	if !middlewares.CheckOwnership(ginc, c.subdomainService.CheckUser.Execute, userID, subdomainId, "subdomain") {
+		return
+	}
+
+	metrics, err := c.dbService.Metrics.Execute(ginc.Request.Context(), subdomainId, dbId, metricsRange)
+	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, db.ErrNotInSubdomain) {
+		middlewares.Respond(ginc, http.StatusNotFound, "database not found", nil)
+		return
+	}
+	if err != nil {
+		// The manager is an upstream hop, unlike the database — surface it as
+		// a gateway problem and keep the detail in the server log.
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, http.StatusBadGateway, "metrics service unavailable", nil)
+		return
+	}
+
+	middlewares.Respond(ginc, http.StatusOK, "success", toMetricsResponse(metrics))
+}
+
+func toMetricsResponse(metrics *ports.MetricsResponse) dtos.MetricsResponse {
+	series := make(map[string][]dtos.MetricPointResponse, len(metrics.Series))
+	for key, points := range metrics.Series {
+		mapped := make([]dtos.MetricPointResponse, 0, len(points))
+		for _, point := range points {
+			mapped = append(mapped, dtos.MetricPointResponse{
+				Time:  point.Time.UTC().Format(time.RFC3339),
+				Value: point.Value,
+			})
+		}
+		series[key] = mapped
+	}
+	return dtos.MetricsResponse{Range: metrics.Range, Series: series}
+}
+
 // StreamLogs bridges the manager's live database log tail onto a browser
 // WebSocket, mirroring the application handler.
 func (c *Controller) StreamLogs(ginc *gin.Context) {

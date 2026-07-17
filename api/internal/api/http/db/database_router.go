@@ -19,5 +19,6 @@ func SetupRouter(d db.Dependencies, sd subdomain.Dependencies,  middleware middl
 		dbGroup.GET("/:dbId", middleware.Auth, c.Get)
 		dbGroup.GET("/:dbId/logs", middleware.Auth, c.GetLogs)
 		dbGroup.GET("/:dbId/logs/stream", middleware.Auth, c.StreamLogs)
+		dbGroup.GET("/:dbId/metrics", middleware.Auth, c.GetMetrics)
 	}
 }

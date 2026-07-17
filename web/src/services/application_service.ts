@@ -1,11 +1,13 @@
 import type {
 	ApplicationDto,
 	CreateApplicationDto,
+	DeploymentRecordDto,
 	DeploymentStatusDto,
 	DeployResponseDto,
 	LogEntryDto,
 	UpdateApplicationDto,
 } from '../dtos/application_dtos';
+import type { MetricsDto } from '../dtos/metrics_dtos';
 import ApiService from './api_service';
 
 class ApplicationService {
@@ -18,6 +20,12 @@ class ApplicationService {
 	public static async getLogs(subdomainId: string, appId: string) {
 		return await ApiService.get<LogEntryDto[]>(
 			`/subdomain/${subdomainId}/application/${appId}/logs`,
+		);
+	}
+
+	public static async getMetrics(subdomainId: string, appId: string) {
+		return await ApiService.get<MetricsDto>(
+			`/subdomain/${subdomainId}/application/${appId}/metrics`,
 		);
 	}
 
@@ -62,6 +70,12 @@ class ApplicationService {
 	) {
 		return await ApiService.get<DeploymentStatusDto>(
 			`/subdomain/${subdomainId}/application/${appId}/deployment/${deploymentId}`,
+		);
+	}
+
+	public static async getDeployments(subdomainId: string, appId: string) {
+		return await ApiService.get<DeploymentRecordDto[]>(
+			`/subdomain/${subdomainId}/application/${appId}/deployments`,
 		);
 	}
 

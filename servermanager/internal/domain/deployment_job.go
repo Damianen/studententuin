@@ -22,6 +22,8 @@ type DeploymentJob struct {
 	Error         string
 	BuildLog      string
 	CommitSHA     string
+	CommitMessage string
+	CommitAuthor  string
 	Image         string
 	ContainerID   string
 	ContainerName string

@@ -14,6 +14,7 @@ func clearEnv(t *testing.T) {
 		"SM_DEFAULT_PIDS",
 		"SM_GIT_HOSTS", "SM_CLONE_TIMEOUT", "SM_CLONE_MAX_SIZE",
 		"SM_BUILD_TIMEOUT", "SM_HEALTH_GRACE", "SM_NIXPACKS_BIN",
+		"SM_METRICS_INTERVAL", "SM_METRICS_RETENTION", "SM_CGROUP_ROOT",
 	} {
 		t.Setenv(key, "")
 	}
@@ -76,6 +77,15 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.NixpacksBin != "nixpacks" {
 		t.Errorf("NixpacksBin = %q, want nixpacks", cfg.NixpacksBin)
 	}
+	if cfg.MetricsInterval != 30*time.Second {
+		t.Errorf("MetricsInterval = %v, want 30s", cfg.MetricsInterval)
+	}
+	if cfg.MetricsRetention != 24*time.Hour {
+		t.Errorf("MetricsRetention = %v, want 24h", cfg.MetricsRetention)
+	}
+	if cfg.CgroupRoot != "/sys/fs/cgroup" {
+		t.Errorf("CgroupRoot = %q, want /sys/fs/cgroup", cfg.CgroupRoot)
+	}
 }
 
 func TestLoadOverrides(t *testing.T) {
@@ -126,6 +136,43 @@ func TestLoadInvalidValues(t *testing.T) {
 			t.Setenv(key, value)
 			if _, err := Load(); err == nil {
 				t.Errorf("expected error for %s=%q", key, value)
+			}
+		})
+	}
+}
+
+func TestLoadMetricsBounds(t *testing.T) {
+	cases := []struct {
+		name     string
+		env      map[string]string
+		wantFail bool
+	}{
+		{"interval below floor", map[string]string{"SM_METRICS_INTERVAL": "1s"}, true},
+		{"interval above ceiling", map[string]string{"SM_METRICS_INTERVAL": "10m"}, true},
+		{"interval garbage", map[string]string{"SM_METRICS_INTERVAL": "often"}, true},
+		{"retention below floor", map[string]string{"SM_METRICS_RETENTION": "30m"}, true},
+		{"retention above ceiling", map[string]string{"SM_METRICS_RETENTION": "200h"}, true},
+		{"valid overrides", map[string]string{"SM_METRICS_INTERVAL": "10s", "SM_METRICS_RETENTION": "48h", "SM_CGROUP_ROOT": "/host/cgroup"}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			clearEnv(t)
+			t.Setenv("SM_TOKEN", "test-token")
+			for key, value := range tc.env {
+				t.Setenv(key, value)
+			}
+			cfg, err := Load()
+			if tc.wantFail {
+				if err == nil {
+					t.Errorf("expected error for %v", tc.env)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Load() returned error: %v", err)
+			}
+			if cfg.MetricsInterval != 10*time.Second || cfg.MetricsRetention != 48*time.Hour || cfg.CgroupRoot != "/host/cgroup" {
+				t.Errorf("metrics config = %v %v %q", cfg.MetricsInterval, cfg.MetricsRetention, cfg.CgroupRoot)
 			}
 		})
 	}

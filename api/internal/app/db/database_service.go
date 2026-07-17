@@ -15,6 +15,7 @@ type Service struct {
 	Get        *GetDatabase
 	Logs       *GetDatabaseLogs
 	StreamLogs *StreamDatabaseLogs
+	Metrics    *GetDatabaseMetrics
 	Poller     *ProvisionPoller
 }
 
@@ -42,6 +43,10 @@ func NewService(d Dependencies) *Service {
 			serverManager: d.ServerManager,
 		},
 		StreamLogs: &StreamDatabaseLogs{
+			databaseRepo:  d.DatabaseRepo,
+			serverManager: d.ServerManager,
+		},
+		Metrics: &GetDatabaseMetrics{
 			databaseRepo:  d.DatabaseRepo,
 			serverManager: d.ServerManager,
 		},

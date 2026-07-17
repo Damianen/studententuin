@@ -1,12 +1,15 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Check, GitBranch, RefreshCw, Rocket, User, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { makeDeployments, seededInt } from '@/lib/mock_telemetry';
 import type { DeploymentStatus } from '@/lib/mock_telemetry';
 import { cn } from '@/lib/utils';
+import { formatDuration } from '@/lib/format_time';
+import ApplicationController from '@/controllers/application_controller';
+import { useAsync } from '@/hooks/use_async';
 import { STAGE_LABELS, useDeployment } from '@/hooks/use_deployment';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Card,
 	CardAction,
@@ -15,7 +18,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
-import { DemoBadge } from '@/components/resource/demo-badge';
 
 const STATUS_META: Record<
 	DeploymentStatus,
@@ -42,7 +44,6 @@ const STATUS_META: Record<
 };
 
 export function DeploymentsList({
-	seedId,
 	branch,
 	resourceName,
 	subdomainId,
@@ -50,7 +51,6 @@ export function DeploymentsList({
 	repoUrl,
 	onChanged,
 }: {
-	seedId: string;
 	branch: string;
 	resourceName: string;
 	subdomainId: string;
@@ -58,6 +58,19 @@ export function DeploymentsList({
 	repoUrl: string;
 	onChanged?: () => void;
 }) {
+	const {
+		data,
+		loading,
+		error: listError,
+		reload,
+	} = useAsync(
+		useCallback(
+			() => ApplicationController.getDeployments(subdomainId, appId),
+			[subdomainId, appId],
+		),
+	);
+	const deployments = useMemo(() => data ?? [], [data]);
+
 	const { deploying, stage, error, buildLog, deploy } = useDeployment(
 		subdomainId,
 		appId,
@@ -67,32 +80,41 @@ export function DeploymentsList({
 			} else {
 				toast.error('Deployment failed');
 			}
+			void reload();
 			onChanged?.();
 		},
 	);
 
-	const deployments = useMemo(
-		() => makeDeployments(seedId, branch),
-		[seedId, branch],
-	);
-
 	const stats = useMemo(() => {
-		const failures = seededInt(`${seedId}:deploy-fail`, 1, 8);
+		if (deployments.length === 0) return [];
+		const terminal = deployments.filter(
+			(deployment) => deployment.status !== 'in_progress',
+		);
+		const succeeded = terminal.filter(
+			(deployment) => deployment.status === 'success',
+		);
+		const durations = succeeded
+			.map((deployment) => deployment.durationSeconds)
+			.filter((seconds): seconds is number => seconds != null);
 		return [
 			{
-				label: 'Total deployments',
-				value: String(seededInt(`${seedId}:deploy-total`, 24, 140)),
-				note: 'Last 90 days',
-			},
-			{
 				label: 'Success rate',
-				value: `${100 - failures}%`,
-				note: `${failures} failed in the last 90 days`,
+				value:
+					terminal.length > 0
+						? `${Math.round((succeeded.length / terminal.length) * 100)}%`
+						: '—',
+				note: `${succeeded.length} of ${terminal.length} finished deploys`,
 			},
 			{
 				label: 'Avg deploy time',
-				value: `${seededInt(`${seedId}:deploy-min`, 1, 4)}m ${seededInt(`${seedId}:deploy-sec`, 0, 59)}s`,
-				note: 'From push to live',
+				value:
+					durations.length > 0
+						? formatDuration(
+								durations.reduce((sum, seconds) => sum + seconds, 0) /
+									durations.length,
+							)
+						: '—',
+				note: 'Successful deploys, clone to live',
 			},
 			{
 				label: 'Last deployment',
@@ -100,7 +122,7 @@ export function DeploymentsList({
 				note: STATUS_META[deployments[0].status].label,
 			},
 		];
-	}, [seedId, deployments]);
+	}, [deployments]);
 
 	return (
 		<div className="space-y-5">
@@ -112,8 +134,7 @@ export function DeploymentsList({
 					<CardDescription>
 						Every push to {branch} replants {resourceName} fresh.
 					</CardDescription>
-					<CardAction className="flex items-center gap-2">
-						<DemoBadge />
+					<CardAction>
 						<Button
 							size="sm"
 							disabled={deploying || !repoUrl}
@@ -174,6 +195,26 @@ export function DeploymentsList({
 							)}
 						</div>
 					)}
+					{loading &&
+						[0, 1, 2].map((row) => (
+							<div key={row} className="flex items-start gap-4 px-6 py-5">
+								<Skeleton className="size-9 rounded-full" />
+								<div className="flex-1 space-y-2 py-1">
+									<Skeleton className="h-3 w-44" />
+									<Skeleton className="h-4 w-72" />
+								</div>
+							</div>
+						))}
+					{!loading && listError && (
+						<p className="px-6 py-10 text-center text-sm text-status-failed">
+							Could not fetch deployments: {listError}
+						</p>
+					)}
+					{!loading && !listError && deployments.length === 0 && (
+						<p className="px-6 py-10 text-center text-sm text-muted-foreground">
+							No deployments yet — plant the first one with Deploy now.
+						</p>
+					)}
 					{deployments.map((deployment) => {
 						const meta = STATUS_META[deployment.status];
 						const StatusIcon = meta.icon;
@@ -228,23 +269,25 @@ export function DeploymentsList({
 				</div>
 			</Card>
 
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{stats.map((stat) => (
-					<Card key={stat.label} className="gap-2 py-5">
-						<CardHeader>
-							<CardDescription className="font-mono text-[10px] uppercase tracking-[0.25em]">
-								{stat.label}
-							</CardDescription>
-							<CardTitle className="font-display text-2xl font-semibold tracking-tight">
-								{stat.value}
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="text-xs text-muted-foreground">
-							{stat.note}
-						</CardContent>
-					</Card>
-				))}
-			</div>
+			{stats.length > 0 && (
+				<div className="grid gap-4 sm:grid-cols-3">
+					{stats.map((stat) => (
+						<Card key={stat.label} className="gap-2 py-5">
+							<CardHeader>
+								<CardDescription className="font-mono text-[10px] uppercase tracking-[0.25em]">
+									{stat.label}
+								</CardDescription>
+								<CardTitle className="font-display text-2xl font-semibold tracking-tight">
+									{stat.value}
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="text-xs text-muted-foreground">
+								{stat.note}
+							</CardContent>
+						</Card>
+					))}
+				</div>
+			)}
 		</div>
 	);
 }

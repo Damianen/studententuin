@@ -239,6 +239,54 @@ func TestDatabaseLogs_Execute(t *testing.T) {
 	})
 }
 
+func TestDatabaseMetrics_Execute(t *testing.T) {
+	dbID := uuid.New()
+	subID := uuid.New()
+
+	t.Run("passes the manager envelope through", func(t *testing.T) {
+		dr, sm, svc := newDBMocks(t)
+		envelope := &ports.MetricsResponse{Range: "24h", Series: map[string][]ports.MetricPoint{
+			"conn": {{Time: time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC), Value: 3}},
+			"qps":  {},
+		}}
+		dr.EXPECT().FindByID(dbID.String(), gomock.Any()).
+			Return(&domain.Database{ID: dbID, SubdomainID: subID}, nil)
+		sm.EXPECT().DatabaseMetrics(gomock.Any(), dbID.String(), "24h").Return(envelope, nil)
+
+		got, err := svc.Metrics.Execute(context.Background(), subID.String(), dbID.String(), "24h")
+		if err != nil || got != envelope {
+			t.Fatalf("got = %+v, err = %v, want the envelope untouched", got, err)
+		}
+	})
+
+	t.Run("not provisioned reads as an empty envelope", func(t *testing.T) {
+		dr, sm, svc := newDBMocks(t)
+		dr.EXPECT().FindByID(dbID.String(), gomock.Any()).
+			Return(&domain.Database{ID: dbID, SubdomainID: subID}, nil)
+		sm.EXPECT().DatabaseMetrics(gomock.Any(), dbID.String(), "24h").
+			Return(nil, fmt.Errorf("servermanager metrics: %w", ports.ErrDatabaseNotProvisioned))
+
+		got, err := svc.Metrics.Execute(context.Background(), subID.String(), dbID.String(), "24h")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got == nil || got.Series == nil || len(got.Series) != 0 || got.Range != "24h" {
+			t.Errorf("got = %+v, want an empty envelope with a non-nil series map", got)
+		}
+	})
+
+	// The manager is never called for a database in someone else's subdomain
+	// — no sm.EXPECT() proves it.
+	t.Run("wrong subdomain is not found", func(t *testing.T) {
+		dr, _, svc := newDBMocks(t)
+		dr.EXPECT().FindByID(dbID.String(), gomock.Any()).
+			Return(&domain.Database{ID: dbID, SubdomainID: uuid.New()}, nil)
+		if _, err := svc.Metrics.Execute(context.Background(), subID.String(), dbID.String(), "24h"); !errors.Is(err, ErrNotInSubdomain) {
+			t.Fatalf("err = %v, want ErrNotInSubdomain", err)
+		}
+	})
+}
+
 func TestProvisionPoller(t *testing.T) {
 	dbID := uuid.New().String()
 	creds := ProvisionCreds{User: "app", Password: "0123456789abcdef0123456789abcdef", DBName: "appdb"} // gitleaks:allow — fixture, not a secret

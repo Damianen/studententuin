@@ -36,4 +36,8 @@ type ContainerRuntime interface {
 	// RemoveVolume removes a named volume; in-use volumes map to
 	// domain.ErrConflict, missing ones to domain.ErrNotFound.
 	RemoveVolume(ctx context.Context, name string) error
+	// ListManagedContainers returns the running containers whose names match
+	// the manager's naming scheme (domain.ParseManagedName). Stopped
+	// containers are excluded — there is nothing to sample.
+	ListManagedContainers(ctx context.Context) ([]domain.ManagedContainer, error)
 }

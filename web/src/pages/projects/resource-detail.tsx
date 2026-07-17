@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import {
@@ -22,16 +22,15 @@ import type { SubdomainListItemDto } from '@/dtos/subdomain_dtos';
 import type { ApplicationDto } from '@/dtos/application_dtos';
 import type { DatabaseDto } from '@/dtos/database_dtos';
 import { useAsync } from '@/hooks/use_async';
+import { useMetrics } from '@/hooks/use_metrics';
 import { useProvisionWatch } from '@/hooks/use_provision_watch';
 import { cn } from '@/lib/utils';
-import { makeSeries, seededInt } from '@/lib/mock_telemetry';
 import type { ResourceKind } from '@/lib/mock_telemetry';
-import { headlineStats, overviewSpec } from '@/lib/metric_specs';
+import { CHART_SPECS, formatMetricValue, overviewSpec } from '@/lib/metric_specs';
 import { StatusBadge } from '@/components/status-badge';
 import { CopyButton } from '@/components/copy-button';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { AreaChart } from '@/components/resource/area-chart';
-import { DemoBadge } from '@/components/resource/demo-badge';
 import { LogsTerminal } from '@/components/resource/logs-terminal';
 import { MetricsPanel } from '@/components/resource/metrics-panel';
 import { DeploymentsList } from '@/components/resource/deployments-list';
@@ -169,17 +168,26 @@ function OverviewTab({
 }) {
 	const resource = (kind === 'application' ? application : database)!;
 	const chartSpec = overviewSpec(kind);
-	const chartData = useMemo(
-		() => makeSeries(`${resource.id}:${chartSpec.key}`, chartSpec),
-		[resource.id, chartSpec],
-	);
-	const stats = useMemo(() => {
-		const uptimeDays = seededInt(`${resource.id}:uptime`, 3, 41);
-		return [
-			{ label: 'Uptime', value: `${uptimeDays} days` },
-			...headlineStats(kind, resource.id).slice(0, 3),
-		];
-	}, [kind, resource.id]);
+	const {
+		series,
+		loading,
+		error: metricsError,
+	} = useMetrics(kind, subdomain.id, resource.id);
+	const chartData = series[chartSpec.key] ?? [];
+	// Headline numbers only cover the series the api serves today — resp/req
+	// stay seeded until phase 7 and have no place among real values.
+	const statSpecs =
+		kind === 'application'
+			? CHART_SPECS.application.slice(0, 2)
+			: CHART_SPECS.database;
+	const stats = statSpecs.map((spec) => {
+		const data = series[spec.key] ?? [];
+		const latest = data[data.length - 1];
+		return {
+			label: spec.title,
+			value: latest ? `${formatMetricValue(latest.value)}${spec.unit}` : '—',
+		};
+	});
 
 	return (
 		<div className="space-y-5">
@@ -279,8 +287,7 @@ function OverviewTab({
 					<CardTitle className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
 						{chartSpec.title} — last 24 hours
 					</CardTitle>
-					<CardAction className="flex items-center gap-2">
-						<DemoBadge />
+					<CardAction>
 						<Button variant="outline" size="sm" asChild>
 							<Link to={`${basePath}/metrics`}>
 								All vitals
@@ -290,11 +297,22 @@ function OverviewTab({
 					</CardAction>
 				</CardHeader>
 				<CardContent>
-					<AreaChart
-						data={chartData}
-						color={chartSpec.color}
-						unit={chartSpec.unit}
-					/>
+					{loading ? (
+						<Skeleton className="h-44 w-full" />
+					) : chartData.length >= 2 ? (
+						// AreaChart cannot render fewer than two points.
+						<AreaChart
+							data={chartData}
+							color={chartSpec.color}
+							unit={chartSpec.unit}
+						/>
+					) : (
+						<div className="flex h-44 items-center justify-center rounded-lg border border-dashed px-6 text-center text-sm text-muted-foreground">
+							{metricsError
+								? 'Metrics are unavailable right now.'
+								: `No metrics yet — they appear once the ${kind} is running.`}
+						</div>
+					)}
 				</CardContent>
 			</Card>
 		</div>
@@ -758,6 +776,7 @@ export default function ResourceDetail({ kind }: { kind: ResourceKind }) {
 
 			{activeTab === '' && (
 				<OverviewTab
+					key={resource.id}
 					kind={kind}
 					subdomain={subdomain}
 					application={subdomain.application}
@@ -775,11 +794,16 @@ export default function ResourceDetail({ kind }: { kind: ResourceKind }) {
 				/>
 			)}
 			{activeTab === 'metrics' && (
-				<MetricsPanel kind={kind} seedId={resource.id} />
+				<MetricsPanel
+					key={resource.id}
+					kind={kind}
+					subdomainId={subdomain.id}
+					resourceId={resource.id}
+				/>
 			)}
 			{activeTab === 'deployments' && kind === 'application' && (
 				<DeploymentsList
-					seedId={resource.id}
+					key={resource.id}
 					branch={(resource as ApplicationDto).branch}
 					resourceName={resource.name}
 					subdomainId={subdomain.id}

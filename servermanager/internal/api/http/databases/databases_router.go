@@ -18,5 +18,6 @@ func SetupRouter(d databases.Dependencies, group *gin.RouterGroup) {
 		dbGroup.DELETE("", c.Delete)
 		dbGroup.GET("/logs", c.Logs)
 		dbGroup.GET("/logs/stream", c.StreamLogs)
+		dbGroup.GET("/metrics", c.Metrics)
 	}
 }

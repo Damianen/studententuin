@@ -56,6 +56,21 @@ func (mr *MockServerManagerClientMockRecorder) DatabaseLogs(ctx, dbID, opts any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DatabaseLogs", reflect.TypeOf((*MockServerManagerClient)(nil).DatabaseLogs), ctx, dbID, opts)
 }
 
+// DatabaseMetrics mocks base method.
+func (m *MockServerManagerClient) DatabaseMetrics(ctx context.Context, dbID, rng string) (*ports.MetricsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DatabaseMetrics", ctx, dbID, rng)
+	ret0, _ := ret[0].(*ports.MetricsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DatabaseMetrics indicates an expected call of DatabaseMetrics.
+func (mr *MockServerManagerClientMockRecorder) DatabaseMetrics(ctx, dbID, rng any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DatabaseMetrics", reflect.TypeOf((*MockServerManagerClient)(nil).DatabaseMetrics), ctx, dbID, rng)
+}
+
 // DatabaseStatus mocks base method.
 func (m *MockServerManagerClient) DatabaseStatus(ctx context.Context, dbID string) (*ports.DBStatus, error) {
 	m.ctrl.T.Helper()
@@ -114,6 +129,21 @@ func (m *MockServerManagerClient) Logs(ctx context.Context, appID string, opts p
 func (mr *MockServerManagerClientMockRecorder) Logs(ctx, appID, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logs", reflect.TypeOf((*MockServerManagerClient)(nil).Logs), ctx, appID, opts)
+}
+
+// Metrics mocks base method.
+func (m *MockServerManagerClient) Metrics(ctx context.Context, appID, rng string) (*ports.MetricsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Metrics", ctx, appID, rng)
+	ret0, _ := ret[0].(*ports.MetricsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Metrics indicates an expected call of Metrics.
+func (mr *MockServerManagerClientMockRecorder) Metrics(ctx, appID, rng any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metrics", reflect.TypeOf((*MockServerManagerClient)(nil).Metrics), ctx, appID, rng)
 }
 
 // ProvisionDatabase mocks base method.

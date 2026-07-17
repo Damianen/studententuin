@@ -31,7 +31,9 @@ func (okRunner) Execute(context.Context, apps.RunInput) (string, error) {
 type harness struct {
 	router  *gin.Engine
 	fetcher *mocks.MockSourceFetcher
+	builder *mocks.MockImageBuilder
 	runtime *mocks.MockContainerRuntime
+	images  *mocks.MockImageStore
 }
 
 // setupRouter wires the real service behind the controller with mocked infra
@@ -44,15 +46,17 @@ func setupRouter(t *testing.T) harness {
 
 	h := harness{
 		fetcher: mocks.NewMockSourceFetcher(ctrl),
+		builder: mocks.NewMockImageBuilder(ctrl),
 		runtime: mocks.NewMockContainerRuntime(ctrl),
+		images:  mocks.NewMockImageStore(ctrl),
 	}
 	router := gin.New()
 	v1 := router.Group("/v1")
 	SetupRouter(deploysvc.Dependencies{
 		Fetcher:  h.fetcher,
-		Builder:  mocks.NewMockImageBuilder(ctrl),
+		Builder:  h.builder,
 		Runtime:  h.runtime,
-		Images:   mocks.NewMockImageStore(ctrl),
+		Images:   h.images,
 		Runner:   okRunner{},
 		Clock:    fixedClock{},
 		GitHosts: []string{"github.com"},
@@ -132,6 +136,43 @@ func TestDeployAcceptedAndPollable(t *testing.T) {
 	}
 	if job.AppID != testAppID || job.ID != resp.DeploymentID {
 		t.Errorf("job identity = %+v", job)
+	}
+}
+
+// TestDeploymentExposesCommitMetadata drives a full successful pipeline and
+// pins the poll DTO's commit_message/commit_author passthrough.
+func TestDeploymentExposesCommitMetadata(t *testing.T) {
+	h := setupRouter(t)
+
+	h.fetcher.EXPECT().Fetch(gomock.Any(), "https://github.com/user/repo", "main").
+		Return(&domain.SourceCheckout{
+			Dir:           t.TempDir(),
+			CommitSHA:     "abc123def456",
+			CommitMessage: "feat: plant the tulips",
+			CommitAuthor:  "Gardener",
+			Cleanup:       func() {},
+		}, nil)
+	h.builder.EXPECT().Build(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+	// No previous container; the new one comes up healthy; nothing to GC.
+	h.runtime.EXPECT().Inspect(gomock.Any(), domain.AppContainerName(testAppID)).Return(nil, domain.ErrNotFound)
+	h.runtime.EXPECT().Inspect(gomock.Any(), "cid-new").Return(&domain.ContainerState{Exists: true, Running: true}, nil)
+	h.images.EXPECT().ListAppImages(gomock.Any(), testAppID).Return(nil, nil)
+
+	w := request(h.router, http.MethodPost, "/v1/apps/"+testAppID+"/deploy", deployBody())
+	if w.Code != http.StatusAccepted {
+		t.Fatalf("POST deploy = %d: %s", w.Code, w.Body.String())
+	}
+	var resp DeployResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+
+	job := waitJobTerminal(t, h.router, resp.DeploymentID)
+	if job.Status != string(domain.DeploymentStatusRunning) {
+		t.Fatalf("job = %+v, want running", job)
+	}
+	if job.CommitSHA != "abc123def456" || job.CommitMessage != "feat: plant the tulips" || job.CommitAuthor != "Gardener" {
+		t.Errorf("commit fields = %q/%q/%q, want the checkout's", job.CommitSHA, job.CommitMessage, job.CommitAuthor)
 	}
 }
 

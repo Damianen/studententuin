@@ -16,6 +16,15 @@ const maxHealthGrace = 60 * time.Second
 // maxDBHealthBudget bounds SM_DB_HEALTH_BUDGET the same way.
 const maxDBHealthBudget = 5 * time.Minute
 
+// Metrics bounds (§6 phase 6): the interval keeps the sampler cheap but the
+// deltas meaningful; retention bounds the in-memory store.
+const (
+	minMetricsInterval  = 5 * time.Second
+	maxMetricsInterval  = 5 * time.Minute
+	minMetricsRetention = time.Hour
+	maxMetricsRetention = 168 * time.Hour
+)
+
 type Config struct {
 	Port           string
 	BindAddr       string
@@ -37,6 +46,10 @@ type Config struct {
 
 	DBPullTimeout  time.Duration
 	DBHealthBudget time.Duration
+
+	MetricsInterval  time.Duration
+	MetricsRetention time.Duration
+	CgroupRoot       string
 }
 
 // Load reads the SM_* environment (SERVERMANAGEMENT.md §9) and fails on a
@@ -119,6 +132,27 @@ func Load() (*Config, error) {
 	}
 	if cfg.DBHealthBudget > maxDBHealthBudget {
 		return nil, fmt.Errorf("SM_DB_HEALTH_BUDGET exceeds the %s maximum", maxDBHealthBudget)
+	}
+
+	// Metrics (§6 phase 6). The default cgroup root works uncontainerized in
+	// local dev; compose mounts the host tree at /host/cgroup.
+	if cfg.MetricsInterval, err = positiveDuration("SM_METRICS_INTERVAL", "30s"); err != nil {
+		return nil, err
+	}
+	if cfg.MetricsInterval < minMetricsInterval || cfg.MetricsInterval > maxMetricsInterval {
+		return nil, fmt.Errorf("SM_METRICS_INTERVAL must be between %s and %s", minMetricsInterval, maxMetricsInterval)
+	}
+	if cfg.MetricsRetention, err = positiveDuration("SM_METRICS_RETENTION", "24h"); err != nil {
+		return nil, err
+	}
+	if cfg.MetricsRetention < minMetricsRetention || cfg.MetricsRetention > maxMetricsRetention {
+		return nil, fmt.Errorf("SM_METRICS_RETENTION must be between %s and %s", minMetricsRetention, maxMetricsRetention)
+	}
+	if cfg.MetricsRetention <= cfg.MetricsInterval {
+		return nil, fmt.Errorf("SM_METRICS_RETENTION must exceed SM_METRICS_INTERVAL")
+	}
+	if cfg.CgroupRoot = getenv("SM_CGROUP_ROOT", "/sys/fs/cgroup"); cfg.CgroupRoot == "" {
+		return nil, fmt.Errorf("SM_CGROUP_ROOT must not be empty")
 	}
 
 	return cfg, nil

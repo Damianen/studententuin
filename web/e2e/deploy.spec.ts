@@ -57,6 +57,41 @@ test.describe('deploy from git', () => {
 		);
 	});
 
+	test('the deployment lands in the history with real metrics', async ({
+		page,
+	}) => {
+		test.setTimeout(180_000);
+
+		await login(page, user);
+		await page
+			.getByRole('link', { name: `Open project ${subdomain}` })
+			.click();
+		await page.getByRole('link', { name: 'Open', exact: true }).click();
+		await page.getByRole('link', { name: 'Deployments' }).click();
+
+		// The persisted record (phase 6): a success row with the commit the
+		// clone resolved, not the seeded fiction of phases 0-5.
+		await expect(page.getByText('Success', { exact: true }).first()).toBeVisible();
+		await expect(page.getByText(/^[0-9a-f]{7}$/).first()).toBeVisible();
+
+		// Real cpu samples flow within a collector tick or two of running.
+		await page.getByRole('link', { name: 'Metrics' }).click();
+		await expect
+			.poll(
+				async () => {
+					await page.reload();
+					return page
+						.locator('[data-slot="card"]', {
+							has: page.getByText('CPU usage', { exact: true }),
+						})
+						.locator('svg[role="img"]')
+						.count();
+				},
+				{ timeout: 120_000 },
+			)
+			.toBeGreaterThan(0);
+	});
+
 	test('save env vars and redeploy from the settings tab', async ({ page }) => {
 		// A redeploy repeats the whole clone + build journey.
 		test.setTimeout(10 * 60 * 1000);

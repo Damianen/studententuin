@@ -20,5 +20,6 @@ func SetupRouter(d apps.Dependencies, group *gin.RouterGroup) {
 		appGroup.GET("", c.Status)
 		appGroup.GET("/logs", c.Logs)
 		appGroup.GET("/logs/stream", c.StreamLogs)
+		appGroup.GET("/metrics", c.Metrics)
 	}
 }

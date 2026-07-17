@@ -49,3 +49,18 @@ export interface DeploymentStatusDto {
 	created_at: string; // RFC3339
 	updated_at: string; // RFC3339
 }
+
+// One persisted history row (phase 6), newest first. Commit fields exist
+// only when the clone got that far; finished_at/duration only once terminal.
+export interface DeploymentRecordDto {
+	id: string;
+	status: string; // in_flight | succeeded | failed
+	branch?: string;
+	commit_sha?: string;
+	commit_message?: string;
+	commit_author?: string;
+	error?: string;
+	started_at: string; // RFC3339
+	finished_at?: string; // RFC3339
+	duration_seconds?: number;
+}

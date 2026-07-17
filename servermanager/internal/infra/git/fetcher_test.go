@@ -60,6 +60,31 @@ func TestMapCloneErr(t *testing.T) {
 	}
 }
 
+func TestCommitSubject(t *testing.T) {
+	long := strings.Repeat("x", 300)
+	cases := []struct {
+		name, in, want string
+	}{
+		{"first line only", "fix: water the plants\n\nlong body\n", "fix: water the plants"},
+		{"trims whitespace", "  tidy \n", "tidy"},
+		{"empty message", "", ""},
+		{"caps at 200 runes", long + "\nbody", long[:200]},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := commitSubject(tc.in); got != tc.want {
+				t.Errorf("commitSubject = %q, want %q", got, tc.want)
+			}
+		})
+	}
+
+	// Rune cap, not byte cap: multibyte subjects must not be split mid-rune.
+	wide := strings.Repeat("é", 250)
+	if got := commitSubject(wide); got != strings.Repeat("é", 200) {
+		t.Errorf("multibyte subject capped to %d runes, want 200", len([]rune(got)))
+	}
+}
+
 func TestCheckTreeSize(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "a.bin"), make([]byte, 600), 0o644); err != nil {

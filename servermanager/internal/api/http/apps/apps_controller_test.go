@@ -10,6 +10,7 @@ import (
 	"time"
 
 	appsvc "servermanager/internal/app/apps"
+	"servermanager/internal/app/metrics"
 	"servermanager/internal/domain"
 	"servermanager/internal/mocks"
 
@@ -30,16 +31,31 @@ func testLimits() appsvc.Limits {
 	}
 }
 
+// metricsTestNow anchors the metrics store's query windows so seeded points
+// stay deterministic.
+var metricsTestNow = time.Date(2026, 7, 13, 12, 0, 0, 0, time.UTC)
+
+type metricsClock struct{}
+
+func (metricsClock) Now() time.Time { return metricsTestNow }
+
 func setupRouter(t *testing.T) (*gin.Engine, *mocks.MockContainerRuntime) {
+	t.Helper()
+	router, rt, _ := setupRouterWithMetrics(t)
+	return router, rt
+}
+
+func setupRouterWithMetrics(t *testing.T) (*gin.Engine, *mocks.MockContainerRuntime, *metrics.Store) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	ctrl := gomock.NewController(t)
 	rt := mocks.NewMockContainerRuntime(ctrl)
+	store := metrics.NewStore(30*time.Second, 24*time.Hour, metricsClock{})
 
 	router := gin.New()
 	v1 := router.Group("/v1")
-	SetupRouter(appsvc.Dependencies{Runtime: rt, Limits: testLimits()}, v1)
-	return router, rt
+	SetupRouter(appsvc.Dependencies{Runtime: rt, Metrics: store, Limits: testLimits()}, v1)
+	return router, rt, store
 }
 
 func request(router *gin.Engine, method, path, body string) *httptest.ResponseRecorder {
@@ -318,6 +334,79 @@ func TestLogsEndpoint(t *testing.T) {
 		router, _ := setupRouter(t)
 		if w := request(router, http.MethodGet, "/v1/apps/not-a-uuid/logs", ""); w.Code != http.StatusBadRequest {
 			t.Errorf("status = %d, want 400", w.Code)
+		}
+	})
+}
+
+func TestMetricsEndpoint(t *testing.T) {
+	base := "/v1/apps/" + testAppID + "/metrics"
+
+	t.Run("bad range", func(t *testing.T) {
+		router, _ := setupRouter(t)
+		for _, rng := range []string{"7d", "60", "24H"} {
+			if w := request(router, http.MethodGet, base+"?range="+rng, ""); w.Code != http.StatusBadRequest {
+				t.Errorf("range=%s: status = %d, want 400", rng, w.Code)
+			}
+		}
+	})
+
+	t.Run("non-uuid id", func(t *testing.T) {
+		router, _ := setupRouter(t)
+		if w := request(router, http.MethodGet, "/v1/apps/not-a-uuid/metrics", ""); w.Code != http.StatusBadRequest {
+			t.Errorf("status = %d, want 400", w.Code)
+		}
+	})
+
+	t.Run("no samples is 200 with empty series", func(t *testing.T) {
+		router, _ := setupRouter(t)
+		w := request(router, http.MethodGet, base, "")
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200; body %s", w.Code, w.Body)
+		}
+		var resp MetricsResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("invalid JSON response: %v", err)
+		}
+		if resp.Range != "24h" {
+			t.Errorf("range = %q, want default 24h", resp.Range)
+		}
+		for _, key := range []string{"cpu", "mem"} {
+			if points, ok := resp.Series[key]; !ok || len(points) != 0 {
+				t.Errorf("series[%q] = %v, want present and empty", key, points)
+			}
+		}
+		// Empty series must serialize as [], never null.
+		if strings.Contains(w.Body.String(), "null") {
+			t.Errorf("body contains null: %s", w.Body)
+		}
+	})
+
+	t.Run("seeded series round-trips", func(t *testing.T) {
+		router, _, store := setupRouterWithMetrics(t)
+		store.Record(domain.AppContainerName(testAppID), metricsTestNow.Add(-5*time.Minute),
+			map[string]float64{"cpu": 12.5, "mem": 256})
+
+		w := request(router, http.MethodGet, base+"?range=1h", "")
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200; body %s", w.Code, w.Body)
+		}
+		var resp MetricsResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("invalid JSON response: %v", err)
+		}
+		if resp.Range != "1h" {
+			t.Errorf("range = %q, want 1h", resp.Range)
+		}
+		if len(resp.Series["cpu"]) != 1 || resp.Series["cpu"][0].Value != 12.5 {
+			t.Fatalf("cpu = %+v, want one 12.5 point", resp.Series["cpu"])
+		}
+		if ts := resp.Series["cpu"][0].Time; !strings.HasSuffix(ts, "Z") {
+			t.Errorf("time = %q, want RFC3339 UTC", ts)
+		} else if _, err := time.Parse(time.RFC3339, ts); err != nil {
+			t.Errorf("time %q does not parse as RFC3339: %v", ts, err)
+		}
+		if len(resp.Series["mem"]) != 1 || resp.Series["mem"][0].Value != 256 {
+			t.Errorf("mem = %+v, want one 256 point", resp.Series["mem"])
 		}
 	})
 }

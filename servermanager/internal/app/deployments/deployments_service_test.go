@@ -92,9 +92,11 @@ func checkoutFixture(t *testing.T) (*domain.SourceCheckout, *atomic.Int32) {
 	t.Helper()
 	var cleanups atomic.Int32
 	return &domain.SourceCheckout{
-		Dir:       t.TempDir(),
-		CommitSHA: "sha-1",
-		Cleanup:   func() { cleanups.Add(1) },
+		Dir:           t.TempDir(),
+		CommitSHA:     "sha-1",
+		CommitMessage: "add feature",
+		CommitAuthor:  "Dev",
+		Cleanup:       func() { cleanups.Add(1) },
 	}, &cleanups
 }
 
@@ -171,6 +173,9 @@ func TestDeployHappyPath(t *testing.T) {
 	}
 	if job.CommitSHA != "sha-1" || job.Image != imageRef || job.ContainerID != "cid-new" || job.ContainerName != name {
 		t.Errorf("job fields = %+v", job)
+	}
+	if job.CommitMessage != "add feature" || job.CommitAuthor != "Dev" {
+		t.Errorf("commit metadata = %q by %q, want the checkout's", job.CommitMessage, job.CommitAuthor)
 	}
 	if !strings.Contains(job.BuildLog, "step 1 ok") {
 		t.Errorf("build log missing builder output: %q", job.BuildLog)

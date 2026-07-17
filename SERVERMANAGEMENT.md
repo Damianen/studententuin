@@ -292,12 +292,14 @@ to `web/src/services/application_service.ts`, swap `makeLogs(...)` in
 existing search/filter/download UI untouched. Then, in later phases: enable the
 disabled "Deploy now" button in `deployments-list.tsx` (phase 3 ✅), wire env-var
 persistence through the PATCH + GET round-trip (phase 4 ✅), real database
-provisioning with live status/connection string/logs (phase 5 ✅ — the DemoBadge
-now survives only on metrics), then metrics charts.
+provisioning with live status/connection string/logs (phase 5 ✅), then metrics
+charts + deployment history (phase 6 ✅ — the DemoBadge survives only on the
+`resp`/`req` app charts).
 
 Source split for app metrics, planned now so the contract doesn't churn later:
-`cpu`/`mem` come from container/host stats (cAdvisor, per §1.3); `resp`/`req` can
-only come from the edge proxy (Traefik access metrics) — they land after phase 7.
+`cpu`/`mem` come from host-level cgroup reads (per §1.3, landed phase 6);
+`resp`/`req` can only come from the edge proxy (Traefik access metrics) — they
+land after phase 7 and keep their seeded sample data + badge until then.
 
 ---
 
@@ -412,13 +414,40 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
   database turns running).
 
 ### Phase 6 — Metrics (research-informed)
-- [ ] cAdvisor (or direct cgroup v2 reads) on the hosting server — host-level per
-      §1.3, **not** `docker stats`
-- [ ] Manager aggregates into the `metric_specs.ts` series contract (`cpu`, `mem`
-      now; `conn`/`qps`/`disk` for databases from pg_stat + volume size)
-- [ ] api proxy route + web charts off mock (`makeSeries` stays only for absent data)
-- [ ] Real deployment history backing `deployments-list.tsx` (persist deployment
-      records: commit, duration, status)
+- [x] Direct cgroup v2 reads on the hosting server (host tree mounted ro at
+      `/host/cgroup`) — host-level per §1.3, **not** `docker stats`; behind a
+      `MetricsSource` port so cAdvisor can swap in later without code churn
+- [x] Manager aggregates into the `metric_specs.ts` series contract (`cpu`, `mem`
+      now; `conn`/`qps`/`disk` for databases via one fixed-argv `psql` exec per
+      tick — pg_stat views + `pg_database_size`, never `du`)
+- [x] api proxy route + web charts off mock (`makeSeries` stays only on the
+      phase-7 `resp`/`req` app charts, marked with a per-chart sample badge)
+- [x] Real deployment history backing `deployments-list.tsx` (`deployments`
+      table in the api's postgres: commit sha/message/author, duration, status)
+- Landed with: a background collector in the manager (its first background loop;
+  `SM_METRICS_INTERVAL`, default 30s) lists `stt-app-*`/`stt-db-*` containers
+  (names strictly re-validated — prefix + canonical UUID) and records into
+  in-memory per-container-name ring buffers (`SM_METRICS_RETENTION`, default
+  24h), downsampled to ≤48 bucket-averaged points for `range=1h|24h`. CPU% is
+  normalized by the container's own `cpu.max`; mem is the working set
+  (`memory.current − inactive_file`, the cAdvisor convention). Buffers key on
+  the stable container *name* so history survives deploy cutovers, while
+  cpu/xact baselines key on container *ID* so counter resets never produce
+  negative spikes. DB `conn` excludes background workers and the monitoring
+  backend itself; the psql identity (`-U`/`-d`) comes from the container's own
+  inspect env, re-validated. Deploys now capture commit message (first line,
+  ≤200 runes) + author name from the depth-1 clone; the api creates an
+  `in_flight` history row at deploy trigger, the poller finalizes it (keyed by
+  the manager deployment id), and a startup sweep fails rows orphaned by an api
+  restart. Web: overview tab switched to real series (app cpu, db conn), fact
+  cards removed, deployments list + stats footer computed from real records.
+- MVP limits (documented): metrics history is in-memory — a manager restart
+  wipes charts until buffers refill; cgroup v2 rootful hosts only (rootless/v1
+  → empty series, manager stays healthy); `qps` counts transactions, not
+  statements (true statement counts need pg_stat_statements); `resp`/`req` stay
+  seeded until Traefik (phase 7); history starts at phase 6 (no backfill) and
+  the list returns the latest 20 (`?limit=`, max 100); an api restart
+  mid-deploy marks that deploy failed in history even if the manager finished it.
 
 ### Phase 7 — Edge routing & TLS
 - [ ] Traefik on the hosting server, docker-label-driven: `app.<domain>` →
@@ -429,6 +458,10 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
 - [ ] `runtime: kata` hardened tier behind config + per-user level (Epic 2 "level")
 - [ ] Idle detection → stop container; wake-on-request at the edge (runc ~1s cold
       start makes this acceptable, per the research)
+- Note (from phase 6): per-scope cgroup reads are runc-accurate, but Kata's VMM
+  lives outside the container scope by default — the kata tier must set
+  `sandbox_cgroup_only=true` (or aggregate the sandbox cgroup) or host-level
+  metrics reintroduce exactly the undercount the research flagged in §1.3.
 
 ---
 
@@ -458,6 +491,14 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
       maps, and the api's PATCH validation errors name the offending key only —
       values never reach a log line. (A user's own build log can still echo
       env their build prints; it is shown only to the owner.)
+- [x] Metrics sampling stays inside the §7 rules: the db stats `psql` runs via
+      the Docker exec API with a fixed argv (constant SQL; the `-U`/`-d`
+      identifiers come from the container's own inspect env and are
+      re-validated — never from a request); exec stderr is bounded and never
+      enters an HTTP response; the host cgroup tree is mounted read-only at a
+      non-conflicting path; metrics responses carry only numbers + timestamps;
+      the new api routes repeat both ownership checks (user→subdomain and
+      resource→subdomain, the phase-5 IDOR pattern)
 - [ ] Disk quotas / volume size caps; image GC
 - [ ] Plays into Epic 5's "done": ZAP clean, SAST clean — manager endpoints are
       internal-only so the DAST surface stays the api
@@ -493,6 +534,9 @@ only come from the edge proxy (Traefik access metrics) — they land after phase
 | `SM_NIXPACKS_BIN` | servermanager | default `nixpacks` (in the Docker image; pinned version) |
 | `SM_DB_PULL_TIMEOUT` | servermanager | first pull of a database image; default `5m` |
 | `SM_DB_HEALTH_BUDGET` | servermanager | db start → healthy (covers initdb); default `60s`, capped at 5m |
+| `SM_METRICS_INTERVAL` | servermanager | sampling tick; default `30s`, bounds 5s–5m |
+| `SM_METRICS_RETENTION` | servermanager | in-memory history window; default `24h`, bounds 1h–168h |
+| `SM_CGROUP_ROOT` | servermanager | host cgroup v2 root; default `/sys/fs/cgroup` (bare-metal dev), `/host/cgroup` when containerized (compose mounts it ro) |
 | `SERVERMANAGER_URL` | api | e.g. `http://10.0.0.2:8080` |
 | `SERVERMANAGER_TOKEN` | api | same secret |
 
@@ -517,9 +561,10 @@ the host's Docker, outside the compose network — fine for dev.
    allowlisted). The domain enum keeps mysql/mongodb and the create dialog shows
    them disabled ("coming soon"); adding an engine is an allowlist entry plus
    engine-specific env/healthcheck/data-dir handling in the provision usecase.
-4. **Job persistence**: in-memory (proposed for single-instance MVP, reconstructed
-   from Docker state on restart) vs SQLite in the manager. Decide when deployment
-   history (phase 6) lands — history likely belongs in the api's postgres anyway.
+4. **Job persistence** — ✅ decided (phase 6): deployment history persists in the
+   api's postgres (`deployments` table, FK cascade on application delete); the
+   manager's job stores stay in-memory, reconstructable from Docker state. Live
+   metrics history is likewise in-memory in the manager (accepted MVP tradeoff).
 5. **One hosting server for now** — the manager API is already shaped so the api
    could fan out to several managers later (id-based, stateless), but nothing in the
    MVP should pretend to be multi-node.

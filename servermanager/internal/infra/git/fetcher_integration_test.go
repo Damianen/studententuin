@@ -80,6 +80,12 @@ func TestIntegrationFetchLocalRepo(t *testing.T) {
 		if co.CommitSHA != mainSHA {
 			t.Errorf("CommitSHA = %s, want %s", co.CommitSHA, mainSHA)
 		}
+		if co.CommitMessage != "add README.md" || co.CommitAuthor != "fixture" {
+			t.Errorf("commit metadata = %q by %q, want the fixture commit's", co.CommitMessage, co.CommitAuthor)
+		}
+		if strings.Contains(co.CommitAuthor, "@") {
+			t.Errorf("CommitAuthor %q looks like an email — name only", co.CommitAuthor)
+		}
 		if _, err := os.Stat(filepath.Join(co.Dir, "README.md")); err != nil {
 			t.Errorf("README.md missing in checkout: %v", err)
 		}

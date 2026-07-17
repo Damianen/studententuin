@@ -39,6 +39,8 @@ type Application struct {
 	MemoryLimit *string `gorm:"type:text"`
 	CpuLimit    *string `gorm:"type:text"`
 	Status ApplicationStatus `gorm:"type:text;not null"`
+	// Without the cascade, deleting an app 500s once it has history rows.
+	Deployments []Deployment `gorm:"constraint:OnDelete:CASCADE"`
 	LastDeployedAt *time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time

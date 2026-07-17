@@ -22,11 +22,17 @@ services:
       SM_TOKEN: ${SM_TOKEN:-dev-insecure-sm-token}
       # The default 127.0.0.1 bind is unreachable from the api container.
       SM_BIND_ADDR: 0.0.0.0
+      # Metrics read the HOST's cgroup tree (mounted below) — the user
+      # containers are siblings on the host daemon, not in this container.
+      SM_CGROUP_ROOT: /host/cgroup
     volumes:
       # The manager legitimately holds the socket (it manages user
       # containers); user containers themselves never get it. Containers it
       # creates are siblings on the host daemon, outside this compose network.
       - /var/run/docker.sock:/var/run/docker.sock
+      # Read-only host cgroup2 tree at a shadow path — never mounted over the
+      # container's own /sys/fs/cgroup.
+      - /sys/fs/cgroup:/host/cgroup:ro
     # No host port on purpose: only the api may talk to the manager.
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/health"]
