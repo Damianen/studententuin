@@ -12,6 +12,7 @@ import (
 
 	"servermanager/internal/app/apps"
 	dbsvc "servermanager/internal/app/databases"
+	"servermanager/internal/app/metrics"
 	"servermanager/internal/domain"
 	"servermanager/internal/mocks"
 
@@ -24,6 +25,7 @@ const testDBID = "6f1d2c3b-4a5e-4f60-8b7a-9c0d1e2f3a4b"
 type harness struct {
 	router  *gin.Engine
 	runtime *mocks.MockContainerRuntime
+	metrics *metrics.Store
 }
 
 func setupRouter(t *testing.T) harness {
@@ -31,11 +33,15 @@ func setupRouter(t *testing.T) harness {
 	gin.SetMode(gin.TestMode)
 	ctrl := gomock.NewController(t)
 
-	h := harness{runtime: mocks.NewMockContainerRuntime(ctrl)}
+	h := harness{
+		runtime: mocks.NewMockContainerRuntime(ctrl),
+		metrics: metrics.NewStore(30*time.Second, 24*time.Hour, fixedClock{}),
+	}
 	router := gin.New()
 	v1 := router.Group("/v1")
 	SetupRouter(dbsvc.Dependencies{
 		Runtime: h.runtime,
+		Metrics: h.metrics,
 		Limits: apps.Limits{
 			DefaultMemoryBytes: 256 * 1024 * 1024,
 			MaxMemoryBytes:     1024 * 1024 * 1024,
@@ -225,6 +231,71 @@ func TestLogsEndpoint(t *testing.T) {
 	if w := request(h.router, http.MethodGet, "/v1/dbs/"+testDBID+"/logs?tail=zero", ""); w.Code != http.StatusBadRequest {
 		t.Errorf("bad tail = %d, want 400", w.Code)
 	}
+}
+
+func TestMetricsEndpoint(t *testing.T) {
+	base := "/v1/dbs/" + testDBID + "/metrics"
+
+	t.Run("bad range", func(t *testing.T) {
+		h := setupRouter(t)
+		if w := request(h.router, http.MethodGet, base+"?range=7d", ""); w.Code != http.StatusBadRequest {
+			t.Errorf("status = %d, want 400", w.Code)
+		}
+	})
+
+	t.Run("non-uuid id", func(t *testing.T) {
+		h := setupRouter(t)
+		if w := request(h.router, http.MethodGet, "/v1/dbs/not-a-uuid/metrics", ""); w.Code != http.StatusBadRequest {
+			t.Errorf("status = %d, want 400", w.Code)
+		}
+	})
+
+	t.Run("no samples is 200 with all four series empty", func(t *testing.T) {
+		h := setupRouter(t)
+		w := request(h.router, http.MethodGet, base, "")
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200; body %s", w.Code, w.Body)
+		}
+		var resp MetricsResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("invalid JSON response: %v", err)
+		}
+		if resp.Range != "24h" {
+			t.Errorf("range = %q, want default 24h", resp.Range)
+		}
+		for _, key := range []string{"conn", "qps", "cpu", "disk"} {
+			if points, ok := resp.Series[key]; !ok || len(points) != 0 {
+				t.Errorf("series[%q] = %v, want present and empty", key, points)
+			}
+		}
+		if strings.Contains(w.Body.String(), "null") {
+			t.Errorf("body contains null: %s", w.Body)
+		}
+	})
+
+	t.Run("seeded series round-trips", func(t *testing.T) {
+		h := setupRouter(t)
+		h.metrics.Record(domain.DBContainerName(testDBID), fixedClock{}.Now().Add(-5*time.Minute),
+			map[string]float64{"conn": 3, "disk": 42})
+
+		w := request(h.router, http.MethodGet, base+"?range=1h", "")
+		if w.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200; body %s", w.Code, w.Body)
+		}
+		var resp MetricsResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("invalid JSON response: %v", err)
+		}
+		if len(resp.Series["conn"]) != 1 || resp.Series["conn"][0].Value != 3 {
+			t.Errorf("conn = %+v, want one 3 point", resp.Series["conn"])
+		}
+		if len(resp.Series["disk"]) != 1 || resp.Series["disk"][0].Value != 42 {
+			t.Errorf("disk = %+v, want one 42 point", resp.Series["disk"])
+		}
+		if len(resp.Series["qps"]) != 0 || len(resp.Series["cpu"]) != 0 {
+			t.Errorf("qps/cpu = %+v/%+v, want empty", resp.Series["qps"], resp.Series["cpu"])
+		}
+	})
 }
 
 func mustJSON(t *testing.T, v any) string {

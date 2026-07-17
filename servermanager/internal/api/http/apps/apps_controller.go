@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"servermanager/internal/app/apps"
+	"servermanager/internal/app/metrics"
 	"servermanager/internal/domain"
 
 	"github.com/gin-gonic/gin"
@@ -172,6 +173,22 @@ func (c *Controller) StreamLogs(ginc *gin.Context) {
 		ginc.Writer.Flush()
 		index++
 	}
+}
+
+// Metrics serves the collector-fed series for the app. A valid UUID with no
+// samples is a 200 with empty series — the store is the local truth, "not
+// deployed" is the api's judgement call.
+func (c *Controller) Metrics(ginc *gin.Context) {
+	appID, ok := appID(ginc)
+	if !ok {
+		return
+	}
+	rng, err := metrics.ParseRange(ginc.Query("range"))
+	if err != nil {
+		respondErr(ginc, http.StatusBadRequest, "range must be 1h or 24h")
+		return
+	}
+	ginc.JSON(http.StatusOK, toMetricsResponse(rng, c.service.Metrics.Execute(appID, rng)))
 }
 
 const (

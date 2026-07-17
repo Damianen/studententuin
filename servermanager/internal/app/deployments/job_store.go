@@ -87,12 +87,15 @@ func (s *JobStore) SetStatus(id string, status domain.DeploymentStatus) {
 	}
 }
 
-// SetSource records what the clone produced and which image will be built.
-func (s *JobStore) SetSource(id, commitSHA, image string) {
+// SetSource records what the clone produced (sha plus display metadata) and
+// which image will be built.
+func (s *JobStore) SetSource(id string, checkout domain.SourceCheckout, image string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if job, ok := s.jobs[id]; ok {
-		job.CommitSHA = commitSHA
+		job.CommitSHA = checkout.CommitSHA
+		job.CommitMessage = checkout.CommitMessage
+		job.CommitAuthor = checkout.CommitAuthor
 		job.Image = image
 		job.UpdatedAt = s.clock.Now()
 	}

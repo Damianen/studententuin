@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"servermanager/internal/app/apps"
+	"servermanager/internal/app/metrics"
 	"servermanager/internal/domain"
+	"servermanager/internal/infra/cgroup"
 	clockinfra "servermanager/internal/infra/clock"
 	"servermanager/internal/infra/docker"
 
@@ -102,6 +104,45 @@ func TestIntegrationProvisionPipeline(t *testing.T) {
 	if err != nil || !status.State.Running || status.State.Health != "healthy" {
 		t.Fatalf("status = %+v err = %v, want running+healthy", status, err)
 	}
+
+	// Phase-6 leg: the metrics pipeline reads real vitals from the fresh
+	// database over psql-exec. conn/qps/disk don't need the cgroup mount, so
+	// this holds even where /sys/fs/cgroup isn't cgroup2.
+	metricsStore := metrics.NewStore(time.Second, time.Hour, clockinfra.System{})
+	collector := metrics.NewCollector(metrics.Dependencies{
+		Runtime:   runtime,
+		Source:    cgroup.New("/sys/fs/cgroup"),
+		Exec:      runtime,
+		Store:     metricsStore,
+		Clock:     clockinfra.System{},
+		Interval:  time.Second,
+		Retention: time.Hour,
+	})
+	collectCtx, stopCollect := context.WithCancel(ctx)
+	collectDone := make(chan struct{})
+	go func() {
+		defer close(collectDone)
+		collector.Run(collectCtx)
+	}()
+	pgStatsDeadline := time.Now().Add(60 * time.Second)
+	for {
+		series := metricsStore.Query(domain.DBContainerName(dbID), metrics.DBSeriesKeys, time.Hour)
+		if conn, disk := series["conn"], series["disk"]; len(conn) > 0 && len(disk) > 0 {
+			if conn[len(conn)-1].Value < 0 {
+				t.Errorf("conn = %+v, want >= 0", conn)
+			}
+			if disk[len(disk)-1].Value <= 0 {
+				t.Errorf("disk = %+v, want > 0 MB", disk)
+			}
+			break
+		}
+		if time.Now().After(pgStatsDeadline) {
+			t.Fatalf("no conn/disk points within deadline: %+v", series)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	stopCollect()
+	<-collectDone
 
 	// Daemon-side twin of the db spec-mapper test: the hardening plus the
 	// postgres-specific settings actually landed.

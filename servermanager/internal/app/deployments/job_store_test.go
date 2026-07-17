@@ -73,13 +73,20 @@ func TestJobStoreLifecycleFields(t *testing.T) {
 	}
 
 	s.SetStatus("d1", domain.DeploymentStatusCloning)
-	s.SetSource("d1", "abc123", "stt-app-x:abcd1234")
+	s.SetSource("d1", domain.SourceCheckout{
+		CommitSHA:     "abc123",
+		CommitMessage: "fix: water the plants",
+		CommitAuthor:  "Gardener",
+	}, "stt-app-x:abcd1234")
 	s.Succeed("d1", "cid-9", "stt-app-x")
 
 	job, _ := s.Get("d1")
 	if job.Status != domain.DeploymentStatusRunning || job.CommitSHA != "abc123" ||
 		job.Image != "stt-app-x:abcd1234" || job.ContainerID != "cid-9" || job.ContainerName != "stt-app-x" {
 		t.Errorf("job = %+v", job)
+	}
+	if job.CommitMessage != "fix: water the plants" || job.CommitAuthor != "Gardener" {
+		t.Errorf("commit metadata = %q by %q, want threaded through", job.CommitMessage, job.CommitAuthor)
 	}
 
 	s.Fail("d1", "late failure should still record") // terminal transition still writes
@@ -188,7 +195,7 @@ func TestJobStoreConcurrency(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		s.SetStatus("d1", domain.DeploymentStatusCloning)
-		s.SetSource("d1", "sha", "img")
+		s.SetSource("d1", domain.SourceCheckout{CommitSHA: "sha"}, "img")
 		s.SetStatus("d1", domain.DeploymentStatusBuilding)
 		s.SetStatus("d1", domain.DeploymentStatusStarting)
 		s.Succeed("d1", "cid", "name")

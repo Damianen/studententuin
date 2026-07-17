@@ -67,10 +67,15 @@ func ValidateBranch(branch string) error {
 
 // SourceCheckout is a fetched working tree in a throwaway directory. Cleanup
 // removes the directory and is safe to call multiple times.
+// CommitMessage/CommitAuthor are best-effort display metadata (empty when the
+// commit object couldn't be read — never a reason to fail a deploy); Author
+// is the name only, the email is PII.
 type SourceCheckout struct {
-	Dir       string
-	CommitSHA string
-	Cleanup   func()
+	Dir           string
+	CommitSHA     string
+	CommitMessage string // first line, capped
+	CommitAuthor  string
+	Cleanup       func()
 }
 
 // OnceCleanup wraps fn so concurrent/duplicate Cleanup calls run it once.

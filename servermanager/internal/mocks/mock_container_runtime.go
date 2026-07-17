@@ -100,6 +100,21 @@ func (mr *MockContainerRuntimeMockRecorder) Inspect(ctx, nameOrID any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Inspect", reflect.TypeOf((*MockContainerRuntime)(nil).Inspect), ctx, nameOrID)
 }
 
+// ListManagedContainers mocks base method.
+func (m *MockContainerRuntime) ListManagedContainers(ctx context.Context) ([]domain.ManagedContainer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListManagedContainers", ctx)
+	ret0, _ := ret[0].([]domain.ManagedContainer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListManagedContainers indicates an expected call of ListManagedContainers.
+func (mr *MockContainerRuntimeMockRecorder) ListManagedContainers(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListManagedContainers", reflect.TypeOf((*MockContainerRuntime)(nil).ListManagedContainers), ctx)
+}
+
 // Logs mocks base method.
 func (m *MockContainerRuntime) Logs(ctx context.Context, nameOrID string, opts domain.LogOptions) ([]domain.LogLine, error) {
 	m.ctrl.T.Helper()

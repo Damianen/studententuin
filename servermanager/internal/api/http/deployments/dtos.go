@@ -30,6 +30,8 @@ type DeploymentResponse struct {
 	Status        string    `json:"status"`
 	Error         string    `json:"error,omitempty"`
 	CommitSHA     string    `json:"commit_sha,omitempty"`
+	CommitMessage string    `json:"commit_message,omitempty"`
+	CommitAuthor  string    `json:"commit_author,omitempty"`
 	Image         string    `json:"image,omitempty"`
 	ContainerID   string    `json:"container_id,omitempty"`
 	ContainerName string    `json:"container_name,omitempty"`

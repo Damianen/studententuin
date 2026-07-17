@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"servermanager/internal/app/apps"
+	"servermanager/internal/app/metrics"
 	"servermanager/internal/ports"
 )
 
@@ -18,6 +19,9 @@ type Budgets struct {
 
 type Dependencies struct {
 	Runtime ports.ContainerRuntime
+	// Metrics is the shared collector-fed store; nil only in tests that never
+	// hit the metrics endpoint.
+	Metrics *metrics.Store
 	Limits  apps.Limits
 	Clock   ports.Clock
 	Budgets Budgets
@@ -29,6 +33,7 @@ type Service struct {
 	Delete    *DeleteDatabase
 	Logs      *GetDatabaseLogs
 	Follow    *FollowDatabaseLogs
+	Metrics   *GetDatabaseMetrics
 	Jobs      *JobStore
 }
 
@@ -42,10 +47,11 @@ func NewService(d Dependencies) *Service {
 			budgets:      d.Budgets,
 			pollInterval: healthPollInterval,
 		},
-		Status: &GetDatabaseStatus{runtime: d.Runtime, jobs: jobs},
-		Delete: &DeleteDatabase{runtime: d.Runtime, jobs: jobs},
-		Logs:   &GetDatabaseLogs{runtime: d.Runtime},
-		Follow: &FollowDatabaseLogs{runtime: d.Runtime},
-		Jobs:   jobs,
+		Status:  &GetDatabaseStatus{runtime: d.Runtime, jobs: jobs},
+		Delete:  &DeleteDatabase{runtime: d.Runtime, jobs: jobs},
+		Logs:    &GetDatabaseLogs{runtime: d.Runtime},
+		Follow:  &FollowDatabaseLogs{runtime: d.Runtime},
+		Metrics: &GetDatabaseMetrics{store: d.Metrics},
+		Jobs:    jobs,
 	}
 }

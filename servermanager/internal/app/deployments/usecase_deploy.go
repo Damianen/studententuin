@@ -119,7 +119,7 @@ func (u *Deploy) run(id string, in DeployInput, runInput apps.RunInput, imageRef
 		return
 	}
 	defer checkout.Cleanup()
-	u.jobs.SetSource(id, checkout.CommitSHA, imageRef)
+	u.jobs.SetSource(id, *checkout, imageRef)
 
 	// Build.
 	u.jobs.SetStatus(id, domain.DeploymentStatusBuilding)

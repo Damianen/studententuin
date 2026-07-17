@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"servermanager/internal/app/metrics"
 	"servermanager/internal/domain"
 )
 
@@ -85,4 +86,28 @@ func toLogEntryResponse(line domain.LogLine, index int) LogEntryResponse {
 		entry.Timestamp = line.Timestamp.UTC().Format(time.RFC3339Nano)
 	}
 	return entry
+}
+
+// MetricPointResponse / MetricsResponse duplicate the apps package's shapes
+// on purpose, like the log DTOs above.
+type MetricPointResponse struct {
+	Time  string  `json:"time"`
+	Value float64 `json:"value"`
+}
+
+type MetricsResponse struct {
+	Range  string                           `json:"range"`
+	Series map[string][]MetricPointResponse `json:"series"`
+}
+
+func toMetricsResponse(rng metrics.Range, series map[string][]domain.MetricPoint) MetricsResponse {
+	resp := MetricsResponse{Range: rng.Label, Series: make(map[string][]MetricPointResponse, len(series))}
+	for key, points := range series {
+		out := make([]MetricPointResponse, 0, len(points))
+		for _, p := range points {
+			out = append(out, MetricPointResponse{Time: p.Time.UTC().Format(time.RFC3339), Value: p.Value})
+		}
+		resp.Series[key] = out
+	}
+	return resp
 }

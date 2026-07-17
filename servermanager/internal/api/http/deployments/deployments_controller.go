@@ -75,6 +75,8 @@ func (c *Controller) Get(ginc *gin.Context) {
 		Status:        string(job.Status),
 		Error:         job.Error,
 		CommitSHA:     job.CommitSHA,
+		CommitMessage: job.CommitMessage,
+		CommitAuthor:  job.CommitAuthor,
 		Image:         job.Image,
 		ContainerID:   job.ContainerID,
 		ContainerName: job.ContainerName,

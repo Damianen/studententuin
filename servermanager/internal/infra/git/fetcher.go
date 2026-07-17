@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"servermanager/internal/domain"
 	"servermanager/internal/ports"
@@ -84,11 +85,36 @@ func (f *Fetcher) fetchInto(ctx context.Context, repoURL, branch string) (*domai
 		return nil, fmt.Errorf("reading clone HEAD: %w", err)
 	}
 
-	return &domain.SourceCheckout{
+	checkout := &domain.SourceCheckout{
 		Dir:       dir,
 		CommitSHA: head.Hash().String(),
 		Cleanup:   cleanup,
-	}, nil
+	}
+	// Display metadata only — a commit object that won't read (shallow-clone
+	// edge cases) must never fail the deploy.
+	if commit, err := repo.CommitObject(head.Hash()); err != nil {
+		slog.Warn("reading HEAD commit metadata", "sha", checkout.CommitSHA, "error", err)
+	} else {
+		checkout.CommitMessage = commitSubject(commit.Message)
+		// Name only (the email is PII), capped like the subject — author
+		// strings are tenant-controlled and git puts no limit on them.
+		checkout.CommitAuthor = commitSubject(commit.Author.Name)
+	}
+	return checkout, nil
+}
+
+// maxCommitSubjectRunes bounds the stored commit subject; git has no line
+// limit and the value ends up in api responses.
+const maxCommitSubjectRunes = 200
+
+// commitSubject reduces a commit message to its capped first line.
+func commitSubject(message string) string {
+	subject, _, _ := strings.Cut(message, "\n")
+	subject = strings.TrimSpace(subject)
+	if runes := []rune(subject); len(runes) > maxCommitSubjectRunes {
+		subject = string(runes[:maxCommitSubjectRunes])
+	}
+	return subject
 }
 
 // mapCloneErr turns go-git failures into the user-facing messages that end
