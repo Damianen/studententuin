@@ -263,6 +263,50 @@ func toLogEntryResponse(entry ports.LogEntry) dtos.LogEntryResponse {
 	}
 }
 
+// metricsRange is fixed for now: the dashboard always shows the last 24
+// hours (the manager also accepts 1h).
+const metricsRange = "24h"
+
+func (c *Controller) GetMetrics(ginc *gin.Context) {
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
+	appId := ginc.Param("appId")
+
+	if !middlewares.CheckOwnership(ginc, c.subdomainService.CheckUser.Execute, userID, subdomainId, "subdomain") {
+		return
+	}
+
+	metrics, err := c.appService.Metrics.Execute(ginc.Request.Context(), subdomainId, appId, metricsRange)
+	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, app.ErrNotInSubdomain) {
+		middlewares.Respond(ginc, http.StatusNotFound, "application not found", nil)
+		return
+	}
+	if err != nil {
+		// The manager is an upstream hop, unlike the database — surface it as
+		// a gateway problem and keep the detail in the server log.
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, http.StatusBadGateway, "metrics service unavailable", nil)
+		return
+	}
+
+	middlewares.Respond(ginc, http.StatusOK, "success", toMetricsResponse(metrics))
+}
+
+func toMetricsResponse(metrics *ports.MetricsResponse) dtos.MetricsResponse {
+	series := make(map[string][]dtos.MetricPointResponse, len(metrics.Series))
+	for key, points := range metrics.Series {
+		mapped := make([]dtos.MetricPointResponse, 0, len(points))
+		for _, point := range points {
+			mapped = append(mapped, dtos.MetricPointResponse{
+				Time:  point.Time.UTC().Format(time.RFC3339),
+				Value: point.Value,
+			})
+		}
+		series[key] = mapped
+	}
+	return dtos.MetricsResponse{Range: metrics.Range, Series: series}
+}
+
 // Deploy queues a build-and-run of the stored repository on the hosting
 // server and returns the deployment ID the frontend polls.
 func (c *Controller) Deploy(ginc *gin.Context) {
@@ -322,6 +366,80 @@ func (c *Controller) GetDeployment(ginc *gin.Context) {
 			UpdatedAt: status.UpdatedAt.UTC().Format(time.RFC3339),
 		})
 	}
+}
+
+const (
+	defaultDeploymentsLimit = 20
+	maxDeploymentsLimit     = 100
+)
+
+// ListDeployments returns the app's persisted deploy history, newest first.
+func (c *Controller) ListDeployments(ginc *gin.Context) {
+	userID := ginc.GetString("userID")
+	subdomainId := ginc.Param("id")
+	appId := ginc.Param("appId")
+
+	if !middlewares.CheckOwnership(ginc, c.subdomainService.CheckUser.Execute, userID, subdomainId, "subdomain") {
+		return
+	}
+
+	limit := defaultDeploymentsLimit
+	if raw := ginc.Query("limit"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed < 1 {
+			middlewares.Respond(ginc, http.StatusBadRequest, "limit must be a positive integer", nil)
+			return
+		}
+		limit = min(parsed, maxDeploymentsLimit)
+	}
+
+	deployments, err := c.appService.ListDeployments.Execute(ginc.Request.Context(), subdomainId, appId, limit)
+	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, app.ErrNotInSubdomain) {
+		middlewares.Respond(ginc, http.StatusNotFound, "application not found", nil)
+		return
+	}
+	if err != nil {
+		fmt.Println(err.Error())
+		middlewares.Respond(ginc, http.StatusInternalServerError, "failed to list deployments", nil)
+		return
+	}
+
+	// A fresh app has no history — serialize as [], never null.
+	deploymentsResponse := make([]dtos.DeploymentRecordResponse, 0, len(deployments))
+	for _, deployment := range deployments {
+		deploymentsResponse = append(deploymentsResponse, toDeploymentRecordResponse(deployment))
+	}
+
+	middlewares.Respond(ginc, http.StatusOK, "success", deploymentsResponse)
+}
+
+func toDeploymentRecordResponse(deployment domain.Deployment) dtos.DeploymentRecordResponse {
+	record := dtos.DeploymentRecordResponse{
+		ID:        deployment.ID.String(),
+		Status:    string(deployment.Status),
+		StartedAt: deployment.StartedAt.UTC().Format(time.RFC3339),
+	}
+	if deployment.Branch != nil {
+		record.Branch = *deployment.Branch
+	}
+	if deployment.CommitSHA != nil {
+		record.CommitSHA = *deployment.CommitSHA
+	}
+	if deployment.CommitMessage != nil {
+		record.CommitMessage = *deployment.CommitMessage
+	}
+	if deployment.CommitAuthor != nil {
+		record.CommitAuthor = *deployment.CommitAuthor
+	}
+	if deployment.Error != nil {
+		record.Error = *deployment.Error
+	}
+	if deployment.FinishedAt != nil {
+		record.FinishedAt = deployment.FinishedAt.UTC().Format(time.RFC3339)
+		duration := deployment.FinishedAt.Sub(deployment.StartedAt).Seconds()
+		record.DurationSeconds = &duration
+	}
+	return record
 }
 
 // Start and Stop drive the lifecycle of an already-deployed container.

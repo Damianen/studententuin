@@ -35,15 +35,20 @@ func ConnectDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&domain.User{})
-	err = db.AutoMigrate(&domain.PasswordCredential{})
-	err = db.AutoMigrate(&domain.AuthIdentity{})
-	err = db.AutoMigrate(&domain.Subdomain{})
-	err = db.AutoMigrate(&domain.Database{})
-	err = db.AutoMigrate(&domain.Application{})
-
-	if err != nil {
-		return nil, err
+	// Deployment references Application, so it must migrate after it.
+	models := []any{
+		&domain.User{},
+		&domain.PasswordCredential{},
+		&domain.AuthIdentity{},
+		&domain.Subdomain{},
+		&domain.Database{},
+		&domain.Application{},
+		&domain.Deployment{},
+	}
+	for _, model := range models {
+		if err := db.AutoMigrate(model); err != nil {
+			return nil, err
+		}
 	}
 
 	fmt.Println("successfully connected to DB")

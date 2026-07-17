@@ -165,6 +165,47 @@ func (c *Client) streamAt(ctx context.Context, path string, opts ports.LogOption
 	return entries, nil
 }
 
+// Metrics reads the app's sampled series from the manager.
+func (c *Client) Metrics(ctx context.Context, appID string, rng string) (*ports.MetricsResponse, error) {
+	return c.metricsAt(ctx, "/v1/apps/"+url.PathEscape(appID)+"/metrics", rng, ports.ErrAppNotDeployed)
+}
+
+// DatabaseMetrics mirrors Metrics for the database container.
+func (c *Client) DatabaseMetrics(ctx context.Context, dbID string, rng string) (*ports.MetricsResponse, error) {
+	return c.metricsAt(ctx, "/v1/dbs/"+url.PathEscape(dbID)+"/metrics", rng, ports.ErrDatabaseNotProvisioned)
+}
+
+// metricsAt reads one metrics endpoint; apps and databases share the response
+// envelope and differ only in path and 404 meaning.
+func (c *Client) metricsAt(ctx context.Context, path, rng string, notFound error) (*ports.MetricsResponse, error) {
+	if rng != "" {
+		query := url.Values{}
+		query.Set("range", rng)
+		path += "?" + query.Encode()
+	}
+
+	res, err := c.do(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("servermanager metrics: %w", err)
+	}
+	defer closeBody(res)
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		var body ports.MetricsResponse
+		if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+			return nil, fmt.Errorf("servermanager metrics response: %w", err)
+		}
+		return &body, nil
+	case http.StatusNotFound:
+		return nil, fmt.Errorf("servermanager metrics: %w", notFound)
+	case http.StatusUnauthorized:
+		return nil, fmt.Errorf("servermanager metrics: bearer token rejected (check SERVERMANAGER_TOKEN/SM_TOKEN)")
+	default:
+		return nil, fmt.Errorf("servermanager metrics: status %d: %s", res.StatusCode, managerError(res))
+	}
+}
+
 // Deploy queues the async job on the manager and returns its deployment ID.
 func (c *Client) Deploy(ctx context.Context, appID string, spec ports.DeploySpec) (string, error) {
 	payload, err := json.Marshal(spec)

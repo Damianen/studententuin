@@ -185,6 +185,120 @@ func TestClientStreamLogs(t *testing.T) {
 	})
 }
 
+func TestClientMetrics(t *testing.T) {
+	appID := "8b9f5e9e-9a3a-4b7e-9a59-1d2f3a4b5c6d"
+	dbID := "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f"
+
+	t.Run("requests the manager and decodes the envelope", func(t *testing.T) {
+		var gotPath, gotAuth, gotRange string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotPath = r.URL.Path
+			gotAuth = r.Header.Get("Authorization")
+			gotRange = r.URL.Query().Get("range")
+			w.Header().Set("Content-Type", "application/json")
+			if _, err := w.Write([]byte(`{"range":"24h","series":{"cpu":[{"time":"2026-07-10T12:00:00Z","value":12.4}],"mem":[]}}`)); err != nil {
+				t.Errorf("writing response: %v", err)
+			}
+		}))
+		defer srv.Close()
+
+		metrics, err := NewClient(srv.URL, testToken).Metrics(context.Background(), appID, "24h")
+		if err != nil {
+			t.Fatalf("Metrics: %v", err)
+		}
+		if gotPath != "/v1/apps/"+appID+"/metrics" {
+			t.Errorf("path = %q", gotPath)
+		}
+		if gotAuth != "Bearer "+testToken {
+			t.Errorf("auth header = %q", gotAuth)
+		}
+		if gotRange != "24h" {
+			t.Errorf("range = %q", gotRange)
+		}
+		if metrics.Range != "24h" || len(metrics.Series["cpu"]) != 1 || metrics.Series["cpu"][0].Value != 12.4 {
+			t.Errorf("metrics = %+v", metrics)
+		}
+		if !metrics.Series["cpu"][0].Time.Equal(time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)) {
+			t.Errorf("time = %v", metrics.Series["cpu"][0].Time)
+		}
+		// Empty series decode as present-but-empty, matching the manager's
+		// never-null contract.
+		if mem, ok := metrics.Series["mem"]; !ok || len(mem) != 0 {
+			t.Errorf("mem series = %v, %v", mem, ok)
+		}
+	})
+
+	t.Run("database metrics hit the db path", func(t *testing.T) {
+		var gotPath, gotRange string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotPath = r.URL.Path
+			gotRange = r.URL.Query().Get("range")
+			_, _ = w.Write([]byte(`{"range":"24h","series":{"conn":[],"qps":[],"cpu":[],"disk":[]}}`))
+		}))
+		defer srv.Close()
+
+		metrics, err := NewClient(srv.URL, testToken).DatabaseMetrics(context.Background(), dbID, "24h")
+		if err != nil {
+			t.Fatalf("DatabaseMetrics: %v", err)
+		}
+		if gotPath != "/v1/dbs/"+dbID+"/metrics" || gotRange != "24h" {
+			t.Errorf("path = %q range = %q", gotPath, gotRange)
+		}
+		if len(metrics.Series) != 4 {
+			t.Errorf("series = %+v", metrics.Series)
+		}
+	})
+
+	t.Run("404 means not deployed", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, `{"error":"no container for this application"}`, http.StatusNotFound)
+		}))
+		defer srv.Close()
+
+		if _, err := NewClient(srv.URL, testToken).Metrics(context.Background(), appID, "24h"); !errors.Is(err, ports.ErrAppNotDeployed) {
+			t.Errorf("err = %v, want ErrAppNotDeployed", err)
+		}
+	})
+
+	t.Run("database 404 means not provisioned", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, `{"error":"no container for this database"}`, http.StatusNotFound)
+		}))
+		defer srv.Close()
+
+		if _, err := NewClient(srv.URL, testToken).DatabaseMetrics(context.Background(), dbID, "24h"); !errors.Is(err, ports.ErrDatabaseNotProvisioned) {
+			t.Errorf("err = %v, want ErrDatabaseNotProvisioned", err)
+		}
+	})
+
+	t.Run("401 surfaces a token hint without the token", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusUnauthorized)
+		}))
+		defer srv.Close()
+
+		_, err := NewClient(srv.URL, testToken).Metrics(context.Background(), appID, "24h")
+		if err == nil || !strings.Contains(err.Error(), "token") {
+			t.Errorf("err = %v, want token hint", err)
+		}
+		if err != nil && strings.Contains(err.Error(), testToken) {
+			t.Errorf("error leaks the token: %v", err)
+		}
+	})
+
+	t.Run("other statuses surface the manager error body", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, `{"error":"internal error"}`, http.StatusInternalServerError)
+		}))
+		defer srv.Close()
+
+		_, err := NewClient(srv.URL, testToken).Metrics(context.Background(), appID, "24h")
+		if err == nil || !strings.Contains(err.Error(), "internal error") || !strings.Contains(err.Error(), "500") {
+			t.Errorf("err = %v, want status and detail", err)
+		}
+	})
+}
+
 func TestClientDeploy(t *testing.T) {
 	appID := "8b9f5e9e-9a3a-4b7e-9a59-1d2f3a4b5c6d"
 	spec := ports.DeploySpec{

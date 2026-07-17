@@ -19,6 +19,8 @@ import (
 	"api/internal/infra/postgres"
 	"api/internal/infra/servermanager"
 	"api/internal/infra/utils"
+	"context"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -53,6 +55,13 @@ func main() {
 	subdomainRepo := postgres.GormSubdomainRepo{ DB: db }
 	dbRepo := postgres.GormDatabaseRepo{ DB: db }
 	appRepo := postgres.GormApplicationRepo{ DB: db }
+	deploymentRepo := postgres.GormDeploymentRepo{ DB: db }
+	// Polling state is in-memory and single-instance: at boot every in_flight
+	// history row is orphaned by definition. Best-effort — history never
+	// blocks startup.
+	if err := deploymentRepo.FailInFlight("interrupted by an api restart", context.Background()); err != nil {
+		fmt.Println("sweeping in-flight deployments:", err.Error())
+	}
 	clock := utils.SystemClock{}
 	hasher := authUtils.NewBcryptHasher(10)
 	jwtToken := os.Getenv("JWT_TOKEN")
@@ -101,6 +110,7 @@ func main() {
 	appDeps := appApp.Dependencies{
 		ApplicationRepo: &appRepo,
 		DatabaseRepo: &dbRepo,
+		DeploymentRepo: &deploymentRepo,
 		ServerManager: smClient,
 		Clock: &clock,
 	}

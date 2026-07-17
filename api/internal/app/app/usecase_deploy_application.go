@@ -19,6 +19,7 @@ const defaultAppPort = 3000
 type DeployApplication struct {
 	applicationRepo ports.ApplicationRepo
 	databaseRepo    ports.DatabaseRepo
+	deploymentRepo  ports.DeploymentRepo
 	serverManager   ports.ServerManagerClient
 	clock           ports.Clock
 	poller          *DeploymentPoller
@@ -47,6 +48,18 @@ func (d *DeployApplication) Execute(ctx context.Context, subdomainID, appID stri
 	deploymentID, err := d.serverManager.Deploy(ctx, appID, spec)
 	if err != nil {
 		return "", err
+	}
+
+	// History is best-effort: a write failure never aborts a deploy the
+	// manager already accepted.
+	if err := d.deploymentRepo.Create(&domain.Deployment{
+		ApplicationID:       application.ID,
+		ManagerDeploymentID: deploymentID,
+		Status:              domain.DeploymentStatusInFlight,
+		Branch:              application.Branch,
+		StartedAt:           d.clock.Now(),
+	}, ctx); err != nil {
+		fmt.Println("recording deployment history:", err.Error())
 	}
 
 	if err := d.applicationRepo.Update(appID, map[string]any{

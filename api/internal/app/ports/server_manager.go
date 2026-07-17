@@ -53,13 +53,17 @@ type DeploySpec struct {
 }
 
 // DeploymentStatus is the manager's job resource the api polls. Status moves
-// queued → cloning → building → starting → running | failed.
+// queued → cloning → building → starting → running | failed. The commit
+// fields exist only after the clone and only on phase-6 managers — absent is
+// fine.
 type DeploymentStatus struct {
 	ID            string    `json:"id"`
 	AppID         string    `json:"app_id"`
 	Status        string    `json:"status"`
 	Error         string    `json:"error,omitempty"`
 	CommitSHA     string    `json:"commit_sha,omitempty"`
+	CommitMessage string    `json:"commit_message,omitempty"`
+	CommitAuthor  string    `json:"commit_author,omitempty"`
 	Image         string    `json:"image,omitempty"`
 	ContainerID   string    `json:"container_id,omitempty"`
 	ContainerName string    `json:"container_name,omitempty"`
@@ -113,6 +117,19 @@ func (p *DBProvisionState) Terminal() bool {
 	return p.Status == "running" || p.Status == "failed"
 }
 
+// MetricPoint is one bucket-averaged sample as the manager returns it.
+type MetricPoint struct {
+	Time  time.Time `json:"time"`
+	Value float64   `json:"value"`
+}
+
+// MetricsResponse is the manager's metrics envelope. Every requested series
+// key is present with a (possibly empty) slice, never null.
+type MetricsResponse struct {
+	Range  string                   `json:"range"`
+	Series map[string][]MetricPoint `json:"series"`
+}
+
 // DBStatus is the manager's database resource: actual Docker state plus the
 // latest provision job. Provision is nil when the manager lost the job (e.g.
 // restart) — the poller treats exists=false with a nil Provision as a strike.
@@ -163,4 +180,10 @@ type ServerManagerClient interface {
 	// StreamDatabaseLogs follows the database container's logs live,
 	// mirroring StreamLogs.
 	StreamDatabaseLogs(ctx context.Context, dbID string, opts LogOptions) (<-chan LogEntry, error)
+	// Metrics reads the app's sampled series for the range;
+	// ErrAppNotDeployed when the manager has no container.
+	Metrics(ctx context.Context, appID string, rng string) (*MetricsResponse, error)
+	// DatabaseMetrics mirrors Metrics for the database container;
+	// ErrDatabaseNotProvisioned when there is none.
+	DatabaseMetrics(ctx context.Context, dbID string, rng string) (*MetricsResponse, error)
 }

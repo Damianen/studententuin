@@ -61,6 +61,11 @@ func newAppRouter(t *testing.T) (*gin.Engine, appMocks) {
 	// injection; these routes test everything else, so default to "none".
 	databaseRepo.EXPECT().FindBySubdomainID(gomock.Any(), gomock.Any()).
 		Return(nil, gorm.ErrRecordNotFound).AnyTimes()
+	// History writes are best-effort side effects of the deploy/poll flow;
+	// its own tests pin them, so accept whatever these routes trigger.
+	deploymentRepo := mocks.NewMockDeploymentRepo(ctrl)
+	deploymentRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	deploymentRepo.EXPECT().UpdateByManagerID(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	sdDeps := appsubdomain.Dependencies{
 		SubdomainRepo: m.subdomainRepo,
 		UserRepo:      m.userRepo,
@@ -69,6 +74,7 @@ func newAppRouter(t *testing.T) (*gin.Engine, appMocks) {
 	appDeps := appapp.Dependencies{
 		ApplicationRepo: m.applicationRepo,
 		DatabaseRepo:    databaseRepo,
+		DeploymentRepo:  deploymentRepo,
 		ServerManager:   m.serverManager,
 		Clock:           m.clock,
 	}
