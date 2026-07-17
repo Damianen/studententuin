@@ -67,9 +67,9 @@ func (s *Source) Sample(_ context.Context, containerID string) (domain.StatsSamp
 		return domain.StatsSample{}, err
 	}
 
-	workingSet := int64(current) - int64(inactiveFile)
-	if workingSet < 0 {
-		workingSet = 0
+	var workingSet uint64
+	if current > inactiveFile {
+		workingSet = current - inactiveFile
 	}
 	return domain.StatsSample{
 		CPUUsageUsec:       usage,
@@ -98,6 +98,8 @@ func (s *Source) containerDir(containerID string) (string, error) {
 // with the file name so a broken layout is diagnosable from the warn log.
 func readParsed[T any](dir, file string, parse func(string) (T, error)) (T, error) {
 	var zero T
+	// #nosec G304 -- dir is the config root plus a hex-validated container
+	// id, file is a compile-time constant cgroup file name.
 	data, err := os.ReadFile(filepath.Join(dir, file))
 	if err != nil {
 		return zero, fmt.Errorf("reading %s: %w", file, err)

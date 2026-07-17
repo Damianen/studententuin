@@ -28,7 +28,7 @@ func TestSampleSystemdLayout(t *testing.T) {
 		t.Errorf("CPULimitCores = %v, want 0.5", sample.CPULimitCores)
 	}
 	// 100 MiB current − 4 MiB inactive_file = 96 MiB working set.
-	if want := int64(104857600 - 4194304); sample.MemWorkingSetBytes != want {
+	if want := uint64(104857600 - 4194304); sample.MemWorkingSetBytes != want {
 		t.Errorf("MemWorkingSetBytes = %d, want %d", sample.MemWorkingSetBytes, want)
 	}
 }

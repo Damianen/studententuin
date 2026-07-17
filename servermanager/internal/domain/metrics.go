@@ -22,7 +22,7 @@ type ManagedContainer struct {
 type StatsSample struct {
 	CPUUsageUsec       uint64  // cumulative cpu time from cpu.stat
 	CPULimitCores      float64 // from cpu.max; 0 = unlimited
-	MemWorkingSetBytes int64   // memory.current - inactive_file, clamped at 0
+	MemWorkingSetBytes uint64  // memory.current - inactive_file, clamped at 0
 }
 
 // MetricPoint is one value on a metrics series.
