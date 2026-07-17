@@ -103,4 +103,24 @@ test.describe('environment variables round-trip', () => {
 		await expect(reloaded.getByLabel('Key').first()).toHaveValue('E2E_FLAG');
 		await expect(reloaded.getByLabel('Key')).toHaveCount(2); // stored row + draft
 	});
+
+	// This app is never deployed, so it covers the phase-6 no-data path
+	// without needing E2E_DEPLOY_REPO.
+	test('metrics and deployments show their empty states before a deploy', async ({
+		page,
+	}) => {
+		await login(page, user);
+		await page
+			.getByRole('link', { name: `Open project ${subdomain}` })
+			.click();
+		await page.getByRole('link', { name: 'Open', exact: true }).click();
+
+		await page.getByRole('link', { name: 'Metrics' }).click();
+		await expect(page.getByText('No metrics yet').first()).toBeVisible();
+
+		await page.getByRole('link', { name: 'Deployments' }).click();
+		await expect(
+			page.getByText('No deployments yet — plant the first one with Deploy now.'),
+		).toBeVisible();
+	});
 });

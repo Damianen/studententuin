@@ -4,6 +4,7 @@ import type {
 	UpdateDatabaseDto,
 } from '../dtos/database_dtos';
 import type { LogEntryDto } from '../dtos/application_dtos';
+import type { MetricsDto } from '../dtos/metrics_dtos';
 import ApiService from './api_service';
 
 class DatabaseService {
@@ -16,6 +17,12 @@ class DatabaseService {
 	public static async getLogs(subdomainId: string, dbId: string) {
 		return await ApiService.get<LogEntryDto[]>(
 			`/subdomain/${subdomainId}/database/${dbId}/logs`,
+		);
+	}
+
+	public static async getMetrics(subdomainId: string, dbId: string) {
+		return await ApiService.get<MetricsDto>(
+			`/subdomain/${subdomainId}/database/${dbId}/metrics`,
 		);
 	}
 

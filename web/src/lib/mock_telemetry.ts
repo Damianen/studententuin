@@ -24,12 +24,14 @@ export interface DeploymentRecord {
 	author: string;
 	timeAgo: string;
 	duration: string;
+	durationSeconds?: number;
 }
 
 /*
- * The API has no telemetry endpoints yet, so the detail pages grow on
- * sample data. Everything is seeded by resource id so values stay stable
- * across navigation and reloads instead of reshuffling on every render.
+ * Only the resp/req application charts still grow on sample data — they can
+ * only come from the edge proxy, which lands with Traefik in phase 7. The
+ * series are seeded by resource id so values stay stable across navigation
+ * and reloads instead of reshuffling on every render.
  */
 
 function hashSeed(input: string): number {
@@ -49,11 +51,6 @@ function mulberry32(seed: number): () => number {
 		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
 		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 	};
-}
-
-export function seededInt(seed: string, min: number, max: number): number {
-	const rng = mulberry32(hashSeed(seed));
-	return Math.floor(min + rng() * (max - min + 1));
 }
 
 function hourLabel(hoursAgo: number): string {
@@ -76,60 +73,4 @@ export function makeSeries(
 		series.push({ time: hourLabel(i), value: Math.round(value * 10) / 10 });
 	}
 	return series;
-}
-
-function int(rng: () => number, min: number, max: number): number {
-	return Math.floor(min + rng() * (max - min + 1));
-}
-
-function hex(rng: () => number, length: number): string {
-	return Array.from({ length }, () => Math.floor(rng() * 16).toString(16)).join(
-		'',
-	);
-}
-
-
-const DEPLOY_MESSAGES = [
-	'Fix login redirect after session expiry',
-	'Add caching headers to static assets',
-	'Bump dependencies and patch advisories',
-	'Tidy the navbar on small screens',
-	'Add health check endpoint',
-	'Refactor request logging middleware',
-	'Speed up image builds with layer caching',
-	'Handle empty states on the projects page',
-];
-
-const DEPLOY_AGES = [
-	'2 hours ago',
-	'yesterday',
-	'2 days ago',
-	'4 days ago',
-	'5 days ago',
-	'last week',
-];
-
-export function makeDeployments(
-	seed: string,
-	branch: string,
-): DeploymentRecord[] {
-	const rng = mulberry32(hashSeed(`${seed}:deploys`));
-	const messages = [...DEPLOY_MESSAGES].sort(() => rng() - 0.5);
-	return DEPLOY_AGES.map((timeAgo, index) => {
-		const failed = index === 3;
-		const minutes = int(rng, 1, 4);
-		const seconds = int(rng, 0, 59);
-		return {
-			id: String(index),
-			status: failed ? 'failed' : index === 0 && rng() > 0.6 ? 'in_progress' : 'success',
-			commit: hex(rng, 7),
-			branch,
-			message: messages[index % messages.length],
-			author: rng() > 0.8 ? 'dependabot[bot]' : 'damian',
-			timeAgo,
-			duration: failed
-				? `${seconds}s`
-				: `${minutes}m ${String(seconds).padStart(2, '0')}s`,
-		};
-	});
 }

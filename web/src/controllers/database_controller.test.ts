@@ -2,7 +2,13 @@ import DatabaseController from './database_controller';
 import DatabaseService from '@/services/database_service';
 
 vi.mock('@/services/database_service', () => ({
-	default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+	default: {
+		get: vi.fn(),
+		getMetrics: vi.fn(),
+		post: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	},
 }));
 
 const db = {
@@ -61,6 +67,39 @@ describe('DatabaseController', () => {
 		await expect(DatabaseController.create('sub-1', createDto)).rejects.toThrow(
 			'Invalid JSON or missing value'
 		);
+	});
+
+	it('getMetrics maps the envelope and guarantees all four series', async () => {
+		vi.mocked(DatabaseService.getMetrics).mockResolvedValue({
+			code: 200,
+			message: 'success',
+			data: {
+				range: '24h',
+				series: {
+					conn: [{ time: '2026-07-10T12:00:00Z', value: 3 }],
+					disk: [{ time: '2026-07-10T12:00:00Z', value: 213.4 }],
+				},
+			},
+		});
+
+		const series = await DatabaseController.getMetrics('sub-1', 'db-1');
+		expect(DatabaseService.getMetrics).toHaveBeenCalledWith('sub-1', 'db-1');
+		expect(series.conn).toHaveLength(1);
+		expect(series.disk[0].value).toBe(213.4);
+		// qps/cpu had no samples yet; they still come back as arrays.
+		expect(series.qps).toEqual([]);
+		expect(series.cpu).toEqual([]);
+	});
+
+	it('getMetrics throws on non-200', async () => {
+		vi.mocked(DatabaseService.getMetrics).mockResolvedValue({
+			code: 502,
+			message: 'servermanager unreachable',
+		});
+
+		await expect(
+			DatabaseController.getMetrics('sub-1', 'db-1')
+		).rejects.toThrow('servermanager unreachable');
 	});
 
 	it('patch and delete throw on non-200', async () => {

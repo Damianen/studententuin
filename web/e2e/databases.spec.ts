@@ -75,6 +75,37 @@ test.describe('database provisioning', () => {
 		).toHaveCount(0);
 	});
 
+	test('the metrics tab shows real database vitals', async ({ page }) => {
+		test.setTimeout(180_000);
+
+		await login(page, user);
+		await page.goto(`${projectUrl}/db`);
+		await page.getByRole('link', { name: 'Metrics' }).click();
+
+		// Phase 6: every db series is real — the sample badge survives only on
+		// the app resp/req charts.
+		await expect(page.getByText('sample data')).toHaveCount(0);
+
+		// Disk usage is the safest nonzero signal (connections can be 0). The
+		// collector ticks every ~30s, so poll with reloads until a sample lands.
+		await expect
+			.poll(
+				async () => {
+					await page.reload();
+					const text = await page
+						.locator('[data-slot="card"]', {
+							has: page.getByText('Disk usage'),
+						})
+						.first()
+						.textContent();
+					const match = text?.match(/([\d.]+)\s*MB/);
+					return match ? parseFloat(match[1]) : 0;
+				},
+				{ timeout: 120_000 },
+			)
+			.toBeGreaterThan(0);
+	});
+
 	test('deleting the project sweeps the database', async ({ page }) => {
 		await login(page, user);
 		await page.goto(projectUrl);

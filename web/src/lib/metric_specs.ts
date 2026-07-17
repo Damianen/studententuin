@@ -1,4 +1,3 @@
-import { makeSeries } from '@/lib/mock_telemetry';
 import type { ResourceKind } from '@/lib/mock_telemetry';
 
 export const CHART_COLORS = {
@@ -38,22 +37,11 @@ export function formatMetricValue(value: number): string {
 		: String(Math.round(value * 10) / 10);
 }
 
-/** The single chart the overview tab previews, per resource kind. */
+/**
+ * The single chart the overview tab previews: cpu for applications, conn for
+ * databases — the first real series of each kind (req stays seeded until
+ * phase 7, so it has no place on the overview).
+ */
 export function overviewSpec(kind: ResourceKind): ChartSpec {
-	return kind === 'application'
-		? CHART_SPECS.application[3]
-		: CHART_SPECS.database[0];
-}
-
-export function headlineStats(
-	kind: ResourceKind,
-	seedId: string,
-): Array<{ label: string; value: string }> {
-	return CHART_SPECS[kind].map((spec) => {
-		const data = makeSeries(`${seedId}:${spec.key}`, spec);
-		return {
-			label: spec.title,
-			value: `${formatMetricValue(data[data.length - 1].value)}${spec.unit}`,
-		};
-	});
+	return CHART_SPECS[kind][0];
 }
