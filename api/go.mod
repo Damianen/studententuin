@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/joho/godotenv v1.5.1
-	github.com/lib/pq v1.11.0
+	github.com/lib/pq v1.12.3
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.50.0
 	gorm.io/datatypes v1.2.7
